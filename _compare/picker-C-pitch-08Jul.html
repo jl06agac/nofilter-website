@@ -1,0 +1,2280 @@
+<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Generic Part2 pitch master · 8 Jul</title>
+<!-- READ-ONLY EXTRACT, 2026-08-01, from Clients/Generic/NoFilter-Generic-Part2-SG.html. Source untouched. -->
+<link href="https://fonts.googleapis.com" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&family=Open+Sans:wght@400;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+<style>:root{
+  --or:#ed3326; --cr:#F4F2EE; --pa:#EDE7D9; --nb:#1A1815;
+  --ad:#FFE8C3; --lf:#1B3A2D; --gy:#6B6B6B; --li:#D8D4CE;
+  --font-d:"Tiempos Headline",Georgia,serif;
+  --font-bs:"Big Shoulders Display",sans-serif; /* retained for numeric tile counter */
+  --font-b:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --font-m:"IBM Plex Mono","SF Mono",monospace;
+  --font-s:"Source Serif 4",Georgia,serif;
+  /* ── tokens ported from index.html so lifted sections (tasting CTA, Let's talk) render ── */
+  --nf-near-black:#1A1815; --nf-cream:#F4F2EE; --nf-orange:#ed3326;
+  --nf-orange-hover:#f2564a; --nf-orange-press:#c9291d; --nf-stamp-red:#FA2B1C;
+  --nf-rule-light:#D8D4CE; --nf-rule-dark:rgba(255,232,195,0.14);
+  --fg-2:#3D3E3D; --fg-dim:#636463; --fg-dim-dark:rgba(255,232,195,0.70);
+  --font-display:"Big Shoulders Display",sans-serif;
+  --font-mono:"IBM Plex Mono","SF Mono",monospace;
+  --font-body:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --ease-nf:cubic-bezier(.2,.7,.2,1);
+  --t-body:15px; --tk-label:0.14em; --tk-display-tight:-0.02em;
+  --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px;
+  --s-7:48px; --s-8:64px; --s-9:96px; --s-10:128px;
+}
+html,body{margin:0;background:#F4F2EE;}
+#lbl{position:fixed;top:0;left:0;right:0;z-index:99999;background:#1A1815;color:#F4F2EE;
+ font:11px/1.4 "IBM Plex Mono",monospace;letter-spacing:.14em;text-transform:uppercase;padding:11px 16px;}
+body{padding-top:40px;}
+/* ══ coffee carousel (focus-shrink): tiles + inline detail card that pushes the row ══ */
+.cx-viewport{position:relative;overflow:hidden;margin:28px auto 4px;min-height:300px;max-width:1000px;}
+.cx-track{position:relative;}
+.cx-cell{position:absolute;top:0;left:0;width:23.5%;transition:transform .6s cubic-bezier(.5,0,.15,1), opacity .5s ease;will-change:transform,opacity;}
+.cx-tile{background:#FBFAF8;border:1.5px solid rgba(26,24,21,.10);border-radius:14px;padding:9px;cursor:pointer;position:relative;transition:border-color .18s,box-shadow .18s;}
+.cx-tile:hover{box-shadow:0 10px 24px rgba(26,24,21,.09);}
+.cx-tile.is-picked{border-color:var(--or,#ed3326);}
+.cx-tile.is-active{border-color:var(--nb,#1A1815);}
+.cx-bar{height:4px;border-radius:99px;margin:2px 3px 8px;}
+.cx-photo{aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#efe9df;position:relative;}
+.cx-photo img{width:100%;height:100%;object-fit:cover;object-position:center 42%;display:block;}
+.cx-name{font-family:var(--font-d,Georgia,serif);font-size:15px;margin:8px 3px 6px;color:var(--nb,#1A1815);}
+.cx-note{font-family:var(--font-m,monospace);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--gy,#6B6B6B);margin:0 3px 7px;}
+.cx-chips{display:flex;gap:5px;flex-wrap:wrap;margin:0 3px 6px;}
+.cx-chip{font-family:var(--font-m,monospace);font-size:8.5px;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(26,24,21,.16);border-radius:99px;color:rgba(26,24,21,.62);}
+.cx-scales{display:flex;flex-direction:column;gap:3px;margin:0 3px 8px;}
+.cx-scale{display:flex;align-items:center;justify-content:space-between;}
+.cx-scale-lab{font-family:var(--font-m,monospace);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(26,24,21,.5);}
+.cx-dots{display:inline-flex;align-items:center;}
+.cx-dot{width:7px;height:7px;border-radius:50%;border:1.5px solid rgba(26,24,21,.3);display:inline-block;margin-left:4px;box-sizing:border-box;}
+.cx-dot.on{background:var(--nb,#1A1815);border-color:var(--nb,#1A1815);}
+.cx-tick{position:absolute;top:13px;right:13px;width:23px;height:23px;border-radius:50%;background:var(--or,#ed3326);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:3;transform:scale(0);transition:transform .22s cubic-bezier(.34,1.6,.64,1);}
+.cx-tile.is-picked .cx-tick{transform:scale(1);}
+.cx-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:0 3px;}
+.cx-status{font-family:var(--font-m,monospace);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--gy,#6B6B6B);}
+.cx-tile.is-picked .cx-status{color:var(--or,#ed3326);}
+.cx-details{font-family:var(--font-m,monospace);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--nb,#1A1815);background:none;border:none;border-bottom:1px solid rgba(26,24,21,.3);cursor:pointer;padding:1px 0;}
+.cx-details:hover{color:var(--or,#ed3326);border-color:var(--or,#ed3326);}
+.cx-detailcard{border-radius:14px;padding:16px;color:#F4F2EE;height:100%;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.cx-dc-close{position:absolute;top:11px;right:13px;font-size:15px;background:none;border:none;color:currentColor;cursor:pointer;opacity:.7;z-index:2;}
+.cx-dc-close:hover{opacity:1;}
+.cx-dc-eyebrow{font-family:var(--font-m,monospace);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.8;margin:0 0 3px;}
+.cx-dc-name{font-family:var(--font-d,Georgia,serif);font-size:20px;line-height:1;margin:0 0 3px;}
+.cx-dc-region{font-family:var(--font-m,monospace);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;opacity:.75;margin:0 0 9px;}
+.cx-dc-proc{font-family:var(--font-m,monospace);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin:-5px 0 9px;}
+.cx-dc-coord{font-family:var(--font-m,monospace);font-size:9px;letter-spacing:.12em;opacity:.55;margin:10px 0 8px;}
+.cx-dc-specs{display:flex;flex-direction:column;gap:4px;margin:10px 0 2px;padding-top:9px;border-top:1px solid rgba(255,255,255,.18);}
+.cx-dc-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+.cx-dc-k{font-family:var(--font-m,monospace);font-size:8px;letter-spacing:.1em;text-transform:uppercase;opacity:.5;flex:0 0 auto;}
+.cx-dc-v{font-family:var(--font-m,monospace);font-size:8.5px;letter-spacing:.03em;text-transform:uppercase;opacity:.88;text-align:right;}
+.cx-dc-desc{font-size:11px;line-height:1.5;opacity:.95;margin:0 0 10px;}
+.cx-dc-notes{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 12px;}
+.cx-dc-chip{font-family:var(--font-m,monospace);font-size:8.5px;letter-spacing:.03em;text-transform:uppercase;padding:4px 9px;border-radius:99px;border:1.2px solid currentColor;}
+.cx-dc-actions{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:14px;}
+.cx-dc-add{font-family:var(--font-b,sans-serif);font-size:12px;font-weight:600;border:none;border-radius:8px;padding:11px 16px;cursor:pointer;width:100%;transition:transform .1s,filter .15s;}
+.cx-dc-add:hover{filter:brightness(.94);}
+.cx-dc-add:active{transform:scale(.98);}
+#price.nf-focus-sec .cx-viewport{max-width:1240px;}
+/* ═══ verbatim from shop.html — origin dossier + Find-out-more button CSS ═══ */
+.cx-dc-more{font-family:var(--font-m,monospace);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+  background:none;border:1px solid rgba(244,242,238,.5);border-radius:7px;color:#F4F2EE;padding:11px 16px;cursor:pointer;width:100%;text-align:center;font-size:9.5px;transition:background .15s;}
+.cx-dc-more:hover{background:rgba(244,242,238,.16);}
+/* ── origin dossier — full-width accordion that expands below the row ── */
+.cx-dossier{max-height:0;overflow:hidden;border-radius:18px;margin:0 auto;max-width:1460px;color:#F4F2EE;
+  transition:max-height .55s cubic-bezier(.5,0,.15,1),margin-top .5s ease;box-shadow:0 30px 70px -30px rgba(26,24,21,.5);}
+.cx-dossier.is-open{margin-top:44px;}
+.cx-dossier.is-flying{opacity:0;}
+.cx-morph{position:fixed;z-index:200;border-radius:16px;pointer-events:none;display:none;opacity:0;overflow:hidden;
+  box-shadow:0 16px 38px -24px rgba(26,24,21,.5);will-change:left,top,width,height;transform:translateZ(0);backface-visibility:hidden;}
+.cx-db>*{transition:opacity .45s ease, transform .5s cubic-bezier(.4,0,.2,1);will-change:transform,opacity;}
+.cx-db>*:nth-child(1){transition-delay:.04s}
+.cx-db>*:nth-child(2){transition-delay:.09s}
+.cx-db>*:nth-child(3){transition-delay:.14s}
+.cx-db>*:nth-child(4){transition-delay:.19s}
+.cx-db>*:nth-child(5){transition-delay:.24s}
+.cx-db>*:nth-child(6){transition-delay:.29s}
+.cx-db>*:nth-child(7){transition-delay:.34s}
+.cx-dv video{transition:opacity .55s ease, transform .6s cubic-bezier(.4,0,.2,1);will-change:transform,opacity;backface-visibility:hidden;}
+.cx-dv-coord{transition:opacity .5s ease .18s;}
+.cx-dossier.is-morphing .cx-db>*{opacity:0;transform:translateY(12px);}
+.cx-dossier.is-morphing .cx-dv video{opacity:0;transform:scale(1.06);}
+.cx-dossier.is-morphing .cx-dv-coord{opacity:0;}
+.cx-dsheet{position:relative;border-radius:18px;overflow:hidden;}
+.cx-sheet-close{position:absolute;top:15px;right:18px;z-index:4;font-family:var(--font-m,monospace);font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.24);border:none;border-radius:7px;color:#F4F2EE;padding:8px 12px;cursor:pointer;opacity:.85;transition:opacity .15s,background .15s;}
+.cx-sheet-close:hover{opacity:1;background:rgba(0,0,0,.36);}
+.cx-drow{display:grid;grid-template-columns:var(--cx-film-col,60%) minmax(0,1fr);align-items:center;gap:0;}
+.cx-film-frame{padding:var(--cx-frame,22px);}
+.cx-dv{position:relative;overflow:hidden;border-radius:12px;background:#0c0c0b;aspect-ratio:var(--cx-film-ar,1.25);box-shadow:0 16px 40px -20px rgba(0,0,0,.55);}
+.cx-dv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+.cx-dv::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(200deg,transparent 55%,rgba(0,0,0,.45)),linear-gradient(90deg,transparent 78%,rgba(0,0,0,.28));}
+.cx-dv-coord{position:absolute;left:20px;bottom:18px;font-family:var(--font-m,monospace);font-size:10.5px;letter-spacing:.16em;color:#F4F2EE;opacity:.92;text-shadow:0 1px 8px rgba(0,0,0,.6);z-index:2;}
+.cx-db{padding:var(--cx-body-pad,40px) var(--cx-body-pad,40px) var(--cx-body-pad,40px) clamp(6px,1vw,14px);align-self:center;}
+.cx-db-eyebrow{font-family:var(--font-m,monospace);font-size:10px;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin:0 0 13px;}
+.cx-db-name{font-family:var(--font-display,sans-serif);font-weight:900;text-transform:uppercase;line-height:.9;letter-spacing:-.01em;font-size:clamp(34px,4vw,58px);margin:0 0 15px;}
+.cx-db-desc{font-family:var(--font-s,Georgia,serif);font-size:clamp(15px,1.35vw,18px);line-height:1.55;opacity:.94;margin:0 0 20px;max-width:46ch;}
+.cx-db-notes{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 22px;}
+.cx-db-chip{font-family:var(--font-m,monospace);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;border-radius:99px;border:1.3px solid rgba(244,242,238,.5);}
+.cx-db-buy{margin-top:6px;padding-top:20px;border-top:1px solid rgba(244,242,238,.2);}
+.cx-price-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+.cx-price{font-family:var(--font-display,sans-serif);font-weight:900;font-size:clamp(30px,3.4vw,42px);line-height:.9;color:#F4F2EE;}
+.cx-price small{font-family:var(--font-m,monospace);font-size:11px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,232,195,.6);display:block;margin-bottom:6px;}
+.cx-db-sizes{display:inline-flex;gap:6px;}
+.cx-db-size{font-family:var(--font-m,monospace);font-size:10px;letter-spacing:.05em;text-transform:uppercase;background:none;border:1.4px solid rgba(244,242,238,.45);border-radius:8px;color:#F4F2EE;padding:9px 13px;cursor:pointer;transition:background .15s,border-color .15s;}
+.cx-db-size:hover{border-color:rgba(244,242,238,.8);}
+.cx-db-size.is-sel{background:#F4F2EE;color:#1A1815;border-color:#F4F2EE;}
+.cx-db-qty{display:inline-flex;align-items:center;gap:12px;border:1.4px solid rgba(244,242,238,.5);border-radius:10px;padding:7px 12px;}
+.cx-db-step{width:26px;height:26px;border:none;border-radius:6px;background:rgba(244,242,238,.16);color:#F4F2EE;font-size:16px;line-height:1;cursor:pointer;transition:background .15s;}
+.cx-db-step:hover{background:rgba(244,242,238,.3);}
+.cx-db-n{font-family:var(--font-m,monospace);font-size:13px;min-width:16px;text-align:center;}
+.cx-db-imp2{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.cx-db-imp-left{display:flex;align-items:center;gap:18px;}
+.cx-seal{position:relative;width:100px;height:100px;flex:0 0 auto;}
+.cx-seal svg{position:absolute;inset:0;width:100%;height:100%;animation:cxSpin 22s linear infinite;}
+.cx-seal text{font-family:var(--font-m,monospace);font-size:9px;letter-spacing:2px;fill:rgba(255,232,195,.85);text-transform:uppercase;}
+.cx-seal-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.cx-seal-pct{font-family:var(--font-display,sans-serif);font-weight:900;font-size:32px;line-height:.8;color:#F4F2EE;}
+.cx-seal-pct small{font-size:14px;vertical-align:super;}
+.cx-seal-amt{display:flex;flex-direction:column;gap:3px;}
+.cx-seal-k{font-family:var(--font-m,monospace);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,232,195,.5);}
+.cx-seal-amt b{font-family:var(--font-display,sans-serif);font-weight:900;font-size:33px;color:#F4F2EE;line-height:.92;letter-spacing:-.01em;}
+.cx-seal-to{font-family:var(--font-m,monospace);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,232,195,.7);}
+.cx-db-add{font-family:var(--font-b,sans-serif);font-size:15px;font-weight:700;color:#fff;background:var(--or,#ed3326);border:none;border-radius:12px;padding:15px 26px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 10px 26px rgba(238,77,23,.28);transition:transform .1s,filter .15s;white-space:nowrap;}
+.cx-db-add:hover{filter:brightness(1.05);transform:translateY(-1px);}
+.cx-db-add:active{transform:scale(.98);}
+.cx-morelink{display:inline-block;margin-top:20px;font-family:var(--font-m,monospace);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#F4F2EE;border-bottom:1px solid rgba(244,242,238,.5);padding-bottom:2px;text-decoration:none;}
+.cx-db-close{font-family:var(--font-m,monospace);font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:none;border:none;color:currentColor;opacity:.7;cursor:pointer;padding:6px 2px;}
+/* [generic Part 2 adaptation] the builder runs inside #price.nf-focus-sec (position:fixed; z-index:900),
+   so the flying morph (harvested at z-index:200, appended to <body>) travelled BEHIND the fullscreen deck
+   and the vertical->horizontal flight was invisible. Lift it above the deck overlay. */
+.cx-morph{z-index:1000;}
+/* [generic Part 2 adaptation] with the origin panel open, let the focus deck-screen grow and scroll
+   (mirrors body.mx-detail-open for machine details) so the panel opens BELOW the visible tile row and
+   the deck can travel down to it and back up to the bags — the syrupy scroll shop gets from window. */
+body.cx-dossier-open #price.nf-focus-sec .deck-screen.is-active{height:auto;min-height:calc(100vh - 92px);overflow:visible;}
+/* [generic Part 2 adaptation] the deck's sticky action bar has a cream gradient pinned to the viewport
+   bottom; with the panel open it feathered a white blur across the panel's lower edge. Unpin it while
+   the panel is open so the panel's edge stays clean. */
+body.cx-dossier-open #price.nf-focus-sec .deck-actions{position:static;background:none;}
+</style></head><body>
+<div id="lbl">Generic Part2 pitch master · 8 Jul</div>
+<section class="section" id="price" data-band="stone">
+  <div class="sec-doc rv"><span class="num">§02</span></div>
+  <h2 class="sec-title rv">Build your workplace coffee experience <em>with NoFilter.</em></h2>
+
+  <div class="q-doc">
+  <div class="deck-dots" id="deckDots"><span style="font-family:monospace;font-size:9px;color:#b0a89a;letter-spacing:.05em;margin-right:14px">v256</span><span class="deck-dot is-active"></span><span class="deck-dot"></span><span class="deck-dot"></span><span class="deck-dot"></span></div>
+  <div class="deck-screen" data-screen="0">
+  <!-- ─── step 2: choose your coffees ─── -->
+  <div class="q-block">
+    <div class="q-step-head rv"><span class="q-step-n">1</span><span class="q-step-name">Choose the coffees (and forests) you're backing</span><p class="sec-body q-head-copy">Select the origins you would like to pour. Each detail card covers the forest it protects, the partner holding that line, and how the coffee tastes.</p></div>
+    <div class="cx-viewport rv"><div class="cx-track" id="cxTrack" role="group" aria-label="Choose your coffee origins"></div></div>
+    <div class="cx-dossier" id="cxDossier" aria-hidden="true"></div>
+  </div>
+
+  <div class="deck-actions"><button type="button" class="deck-next" data-goto="1">Choose machines →</button></div>
+  </div><!-- /screen 1 -->
+  <div class="deck-screen" data-screen="1">
+  <!-- ─── step 3: choose your machines ─── -->
+  <div id="quote" class="q-block">
+    <div class="q-step-head rv"><span class="q-step-n">2</span><span class="q-step-name">Choose your machines</span><p class="sec-body q-head-copy">Every machine here is bean-to-cup: pick by team size, then set rental or purchase per machine. After something else, like a semi-automatic and grinder? Mention it when you send for review.</p></div>
+
+  <!-- equipment picker -->
+  <div class="q-eq-grid rv">
+    <div class="q-eq-card" id="eqCardCm5">
+      <div class="q-eq-photo">
+        <span class="q-eq-badge" id="eqBadgeCm5">In your fleet</span>
+        <img src="https://nofilter-shared.netlify.app/cafematic-5.png" alt="CaféMatic 5 bean-to-cup machine in NoFilter livery" loading="lazy" onerror="this.style.display='none';">
+      </div>
+      <div class="q-eq-body">
+        <div class="mx-size-badge">Mid-size teams · up to ~75</div><div class="q-eq-name">CaféMatic 5</div>
+        <div class="q-eq-loc">Executive Floor · L35 · 1 grinder · 1 powder hopper</div>
+        <div class="q-eq-spec">1 grinder · 1 powder hopper · steam wand + hot water</div>
+        <button type="button" class="mx-specs-btn" data-machine="CaféMatic 5">See full details &rarr;</button>
+        <div class="q-eq-terms" data-m="cm5">
+          <div class="q-eq-modes" role="radiogroup" aria-label="CaféMatic 5 — rental or purchase">
+            <button type="button" class="q-eq-mode is-on" data-mode="rental" role="radio" aria-checked="true">Rental</button>
+            <button type="button" class="q-eq-mode" data-mode="purchase" role="radio" aria-checked="false">Purchase</button>
+          </div>
+          <div class="q-eq-lengths" role="radiogroup" aria-label="CaféMatic 5 — rental term">
+            <button type="button" class="q-eq-len" data-term="24" role="radio" aria-checked="false">24<span>mo</span></button>
+            <button type="button" class="q-eq-len is-on" data-term="36" role="radio" aria-checked="true">36<span>mo</span></button>
+          </div>
+        </div>
+        <div class="q-eq-foot">
+          <div class="q-eq-rate"><span class="q-eq-fig">SGD <b>280</b> <span class="q-eq-per">/mo each</span></span><div class="q-eq-sub" id="eqSubCm5"></div></div>
+          <div class="q-stepper">
+            <button class="q-step-btn" data-m="cm5" data-d="-1" aria-label="fewer CaféMatic 5">−</button>
+            <span class="q-step-val" id="qtyCm5">1</span>
+            <button class="q-step-btn" data-m="cm5" data-d="1" aria-label="more CaféMatic 5">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="q-eq-card" id="eqCardCm8">
+      <div class="q-eq-photo">
+        <span class="q-eq-badge" id="eqBadgeCm8">In your fleet</span>
+        <img src="https://nofilter-shared.netlify.app/cafematic-8.png" alt="CaféMatic 8 bean-to-cup machine in NoFilter livery" loading="lazy" onerror="this.style.display='none';">
+      </div>
+      <div class="q-eq-body">
+        <div class="mx-size-badge">Large floors · 100+</div><div class="q-eq-name">CaféMatic 8</div>
+        <div class="q-eq-loc">Employee Pantry · L34 · 2 grinders · 2 powder hoppers</div>
+        <div class="q-eq-spec">2 grinders · 2 powder hoppers · the fullest menu</div>
+        <button type="button" class="mx-specs-btn" data-machine="CaféMatic 8">See full details &rarr;</button>
+        <div class="q-eq-terms" data-m="cm8">
+          <div class="q-eq-modes" role="radiogroup" aria-label="CaféMatic 8 — rental or purchase">
+            <button type="button" class="q-eq-mode is-on" data-mode="rental" role="radio" aria-checked="true">Rental</button>
+            <button type="button" class="q-eq-mode" data-mode="purchase" role="radio" aria-checked="false">Purchase</button>
+          </div>
+          <div class="q-eq-lengths" role="radiogroup" aria-label="CaféMatic 8 — rental term">
+            <button type="button" class="q-eq-len" data-term="24" role="radio" aria-checked="false">24<span>mo</span></button>
+            <button type="button" class="q-eq-len is-on" data-term="36" role="radio" aria-checked="true">36<span>mo</span></button>
+          </div>
+        </div>
+        <div class="q-eq-foot">
+          <div class="q-eq-rate"><span class="q-eq-fig">SGD <b>380</b> <span class="q-eq-per">/mo each</span></span><div class="q-eq-sub" id="eqSubCm8"></div></div>
+          <div class="q-stepper">
+            <button class="q-step-btn" data-m="cm8" data-d="-1" aria-label="fewer CaféMatic 8">−</button>
+            <span class="q-step-val" id="qtyCm8">1</span>
+            <button class="q-step-btn" data-m="cm8" data-d="1" aria-label="more CaféMatic 8">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="q-eq-card" id="eqCardCm2">
+      <div class="q-eq-photo">
+        <span class="q-eq-badge" id="eqBadgeCm2">Add to fleet</span>
+        <img src="https://nofilter-shared.netlify.app/cafematic-2.png" alt="CaféMatic 2 countertop bean-to-cup machine in NoFilter livery" loading="lazy" onerror="this.style.display='none';">
+      </div>
+      <div class="q-eq-body">
+        <div class="mx-size-badge">Small teams · up to ~40</div><div class="q-eq-name">CaféMatic 2</div>
+        <div class="q-eq-spec">1 grinder · fresh-milk drinks · true countertop</div>
+        <button type="button" class="mx-specs-btn" data-machine="CaféMatic 2">See full details &rarr;</button>
+        <div class="q-eq-terms" data-m="cm2">
+          <div class="q-eq-modes" role="radiogroup" aria-label="CaféMatic 2 — rental or purchase">
+            <button type="button" class="q-eq-mode is-on" data-mode="rental" role="radio" aria-checked="true">Rental</button>
+            <button type="button" class="q-eq-mode" data-mode="purchase" role="radio" aria-checked="false">Purchase</button>
+          </div>
+          <div class="q-eq-lengths" role="radiogroup" aria-label="CaféMatic 2 — rental term">
+            <button type="button" class="q-eq-len" data-term="24" role="radio" aria-checked="false">24<span>mo</span></button>
+            <button type="button" class="q-eq-len is-on" data-term="36" role="radio" aria-checked="true">36<span>mo</span></button>
+          </div>
+        </div>
+        <div class="q-eq-foot">
+          <div class="q-eq-rate"><span class="q-eq-fig">SGD <b>160</b> <span class="q-eq-per">/mo each</span></span><div class="q-eq-sub" id="eqSubCm2"></div></div>
+          <div class="q-stepper">
+            <button class="q-step-btn" data-m="cm2" data-d="-1" aria-label="fewer CaféMatic 2">−</button>
+            <span class="q-step-val" id="qtyCm2">0</span>
+            <button class="q-step-btn" data-m="cm2" data-d="1" aria-label="more CaféMatic 2">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="q-eq-card" id="eqCardCm6">
+      <div class="q-eq-photo">
+        <span class="q-eq-badge" id="eqBadgeCm6">Add to fleet</span>
+        <img src="https://nofilter-shared.netlify.app/cafematic-6.png" alt="CaféMatic 6 bean-to-cup machine in NoFilter livery" loading="lazy" onerror="this.style.display='none';">
+      </div>
+      <div class="q-eq-body">
+        <div class="mx-size-badge">Large floors · 100+</div><div class="q-eq-name">CaféMatic 6</div>
+        <div class="q-eq-spec">2 grinders · two beans side by side · no powder</div>
+        <button type="button" class="mx-specs-btn" data-machine="CaféMatic 6">See full details &rarr;</button>
+        <div class="q-eq-terms" data-m="cm6">
+          <div class="q-eq-modes" role="radiogroup" aria-label="CaféMatic 6 — rental or purchase">
+            <button type="button" class="q-eq-mode is-on" data-mode="rental" role="radio" aria-checked="true">Rental</button>
+            <button type="button" class="q-eq-mode" data-mode="purchase" role="radio" aria-checked="false">Purchase</button>
+          </div>
+          <div class="q-eq-lengths" role="radiogroup" aria-label="CaféMatic 6 — rental term">
+            <button type="button" class="q-eq-len" data-term="24" role="radio" aria-checked="false">24<span>mo</span></button>
+            <button type="button" class="q-eq-len is-on" data-term="36" role="radio" aria-checked="true">36<span>mo</span></button>
+          </div>
+        </div>
+        <div class="q-eq-foot">
+          <div class="q-eq-rate"><span class="q-eq-fig">SGD <b>340</b> <span class="q-eq-per">/mo each</span></span><div class="q-eq-sub" id="eqSubCm6"></div></div>
+          <div class="q-stepper">
+            <button class="q-step-btn" data-m="cm6" data-d="-1" aria-label="fewer CaféMatic 6">−</button>
+            <span class="q-step-val" id="qtyCm6">0</span>
+            <button class="q-step-btn" data-m="cm6" data-d="1" aria-label="more CaféMatic 6">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mx-inline" id="mxInline">
+    <div class="mx-topbar"><button class="mx-backlink" id="mxBack" type="button">← Back to machines</button></div>
+    <h3 class="mx-name" id="mxName">—</h3>
+    <p class="mx-cap" id="mxCap"></p>
+    <div class="mx-grid">
+      <div class="mx-left">
+        <div class="mx-gallery"><div class="mx-gallery-main"><img id="mxImg" alt="" onerror="this.style.opacity=0"></div></div>
+        <div class="mx-stats" id="mxStats"></div>
+      </div>
+      <div class="mx-right">
+        <div class="mx-specs-block">
+          <div class="mx-specs-head"><span class="mx-specs-tag">What this means for your office</span><p class="mx-specs-intro">Plain terms, with the technical detail underneath.</p></div>
+          <table class="mx-table" id="mxTable"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="deck-actions"><button type="button" class="deck-back" data-goto="0">← back to your coffees</button><button type="button" class="deck-next" data-goto="2">Confirm machines →</button></div>
+  </div></div><!-- /screen 2 -->
+  <div class="deck-screen is-active" data-screen="2">
+  <div class="q-step-head rv"><span class="q-step-n">3</span><span class="q-step-name" id="qStepName">Price your coffee, choose your impact</span><p class="sec-body q-head-copy">Three quick dials: the price you pay per kilo of coffee, an optional top-up, and a rough sense of your year.</p></div>
+
+  <div class="morph-stage" id="morphStage">
+    <div class="morph-bg">
+      <figure><video autoplay muted loop playsinline preload="metadata" onerror="var f=this.closest('.morph-bg').querySelector('.mfb');if(f)f.style.display='flex';this.style.display='none';"><source src="https://nofilter-shared.netlify.app/signoff-orangutan.mp4" type="video/mp4"></video><div class="mfb" style="display:none;">orangutan footage</div></figure>
+    </div>
+    <div class="morph-scrim"></div>
+    <script>document.querySelectorAll('.morph-bg video').forEach(function(v){ v.playbackRate=0.6; });</script>
+
+    <div class="morph-rail" id="morphRail">
+      <div class="seg active" data-seg="0"><span class="rdot">1</span><span class="rname">Price</span></div>
+      <div class="rline" id="mrl0"></div>
+      <div class="seg" data-seg="1"><span class="rdot">2</span><span class="rname">Top-up</span></div>
+      <div class="rline" id="mrl1"></div>
+      <div class="seg" data-seg="2"><span class="rdot">3</span><span class="rname">The year</span></div>
+    </div>
+
+    <div class="morph-inner">
+      <div class="morph-eyebrow" id="morphEyebrow"></div>
+      <div class="morph-figure" id="morphFigure"><span class="mfig-lead" id="mFigLead"></span><span class="mcur" id="mFigCur">SGD </span><span class="mnum" id="mFigNum">48.00</span><span class="mu" id="mFigUnit"></span><span class="mper" id="mFigPer">/kg</span><span class="mfig-eq" id="mFigEq">=</span><span class="mfig-imp"><span class="mnum mnum-imp" id="mFigNum2">8.6</span><span class="mu mu-imp">¢</span><span class="mper" >/cup</span></span></div>
+      <div class="morph-sub hide" id="morphSub"></div>
+      <div class="morph-cap" id="morphCap">the price Your workplace sets, per kilo roasted and landed</div>
+
+      <div class="morph-locked" id="morphLocked"></div>
+
+      <!-- phase 0: price only (real ID wholePrice) -->
+      <div class="morph-ctl" id="mCtlPrice">
+        <div class="mrow mrow-price">
+          <div class="mprice-track" id="mPriceTrack">
+            <span class="mprice-mark" id="mPriceMark"><span class="mprice-mark-lab">full 10%</span></span>
+            <input type="range" id="wholePrice" class="scale-range thumb-pulse" value="48.00" min="44" max="50" step="0.25">
+          </div>
+          <div class="morph-ends"><span>SGD 44</span><span>SGD 50</span></div>
+        </div>
+        <div class="mprice-encourage" id="mPriceEncourage">✓ Full 10% · each extra SGD 1 ≈ +0.2¢ a cup, ~SGD 54/yr more to the forests</div>
+      </div>
+
+      <!-- phase 1: optional top-up (real ID topUp), its own explained moment -->
+      <div class="morph-ctl hide" id="mCtlTopup">
+        <div class="mrow">
+          <div class="mrow-lab mrow-lab-opt">Your top-up<span id="mTopupEcho" class="mrow-echo"></span></div>
+          <input type="range" id="topUp" class="scale-range topup-range thumb-pulse" value="0" min="0" max="7.5" step="0.1">
+          <div class="morph-ends"><span>none</span><span>+7.5&cent; / cup</span></div>
+        </div>
+      </div>
+
+      <!-- unified instrument: one track for price + top-up (drives the hidden native sliders) -->
+      <div class="morph-ctl" id="mCtlUni">
+        <div class="uni-wrap" id="uniWrap">
+          <div class="uni-track" id="uniTrack"></div>
+          <div class="uni-zone" id="uniZone"></div>
+          <div class="uni-fill-p" id="uniFillP"></div>
+          <div class="uni-fill-t" id="uniFillT"></div>
+          <div class="uni-mk" id="uniMk"></div><div class="uni-mklab" id="uniMkLab">full 10%</div>
+          <div class="uni-pin" id="uniPin"></div><div class="uni-pinlab" id="uniPinLab"></div>
+          <div class="uni-end" id="uniLabL">SGD 44</div>
+          <div class="uni-end uni-end-r" id="uniLabR">SGD 50</div>
+          <div class="uni-thumb thumb-pulse-u" id="uniThumb" role="slider" tabindex="0" aria-label="price and top-up"></div>
+          <div class="uni-hint" id="uniHint">price locked · tap the pin to edit</div>
+        </div>
+        <div class="morph-combined" id="morphCombined"></div>
+      </div>
+
+      <!-- phase 1: volume (real ID volCups, gold fill) -->
+      <div class="morph-ctl hide" id="mCtlVol">
+        <span class="ml">Your likely cups per year</span>
+        <input type="range" id="volCups" class="scale-range vol-range" value="10000" min="5000" max="300000" step="1000">
+        <div class="morph-ends"><span>5k</span><span>300k</span></div>
+      </div>
+
+      <button class="morph-lockbtn pulse" id="morphLockBtn"><span id="morphLockLabel">Lock in the price</span><span class="mic">&#128274;</span></button>
+      <button class="morph-back hide" id="morphBack" aria-label="Back a step"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+      <!-- retained hidden nodes compute() writes to (kept so no ReferenceErrors; not shown) -->
+      <div style="display:none" aria-hidden="true">
+        <span id="wholePriceV">48.00</span><span id="topUpV">0.0</span><span id="centsHero">8.6</span>
+        <span id="combinedReadout"><span class="combined-cents"></span><span class="mile-sweep"></span></span>
+        <span id="scaleTrackWrap"><span id="tenMark"></span></span>
+        <span id="allInKg"></span><span id="allInBreak"></span><span id="consKg"></span>
+        <span id="volCupsBig"></span><span id="ledgerCups"></span><span id="ledgerNgo"></span><span id="ledgerCents"></span><span id="ledgerKg"></span>
+        <span id="stkNf"></span><span id="stkZoo"></span><span id="tenBadge"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- downstream quote: dimmed until the builder above is complete -->
+  <div class="carto rv"><span>1°38′18″N · 99°15′56″E · Batang Toru frontier</span></div>
+
+  <div class="deck-actions"><button type="button" class="deck-back" data-goto="1">← back to machines</button><button type="button" class="deck-next" id="deckNext0" data-goto="3" style="display:none">Your quote →</button></div>
+  </div><!-- /screen 0 -->
+  <div class="deck-screen" data-screen="3">
+  <!-- the live quotation -->
+  <div class="q-step-head rv"><span class="q-step-n">4</span><span class="q-step-name">Your quote</span></div>
+  <div class="q-sheet rv">
+    <div class="q-inv-metaline">Schedule ref NF-ACN-01 &nbsp;·&nbsp; <span id="qInvDate2">today</span> &nbsp;·&nbsp; valid 30 days &nbsp;·&nbsp; not binding until signed</div>
+    <div class="q-inv-masthead">
+      <div class="q-inv-brand"><img src="https://nofilter-shared.netlify.app/nofilter-wordmark.png" alt="NoFilter" class="q-inv-logo"></div>
+      <div class="q-inv-cat">Quote<br>Ex-GST · Live</div>
+    </div>
+    <div class="q-inv-meta">
+      <div class="q-inv-to">
+        <span class="q-inv-tag">Prepared for</span>
+        Your authorised signatory<br>Your Company Pte. Ltd., o/b/o Your workplace
+      </div>
+      <div class="q-inv-from">
+        <span class="q-inv-tag">From</span>
+        NoFilter Pte. Ltd.<br>Singapore, <span id="qInvDate">today</span>
+      </div>
+    </div>
+    <div class="q-inv-re"><span class="q-inv-tag">Re:</span> Workplace coffee &amp; conservation supply · your live selections</div>
+    <div class="q-sheet-head" hidden>Quote · ex-GST · live</div>
+    <div class="q-group">Coffee &amp; contribution · where it leads</div>
+    <div class="q-line">
+      <div class="q-lab">Conservation coffee <span class="q-sub" id="qCoffeeSub">SGD 48.00 / kg · 10% to conservation</span></div>
+      <div class="q-val" id="qCoffeeLine">SGD 48.00<span class="q-unit"> /kg</span></div>
+    </div>
+    <div class="q-line" id="qTopUpRow" hidden>
+      <div class="q-lab">Sustainability top-up <span class="q-sub" id="qTopUpSub">from sustainability budget · pass-through to NGO in full</span></div>
+      <div class="q-val" id="qTopUpLine">SGD 0.00<span class="q-unit"> /kg</span></div>
+    </div>
+    <div class="q-line">
+      <div class="q-lab">Conservation contribution <span class="q-sub">to NGO partners · illustrative, at ~30,000 cups/yr</span></div>
+      <div class="q-val" id="qConsAnnual">~SGD 2,592<span class="q-unit"> /yr</span></div>
+    </div>
+    <div class="q-group q-group--eq">Machines &amp; servicing · monthly</div>
+    <div class="q-line" id="qRowCm5">
+      <div class="q-lab">CaféMatic 5 <span class="q-sub" id="qCm5Sub">1 × SGD 369.99 · L35</span></div>
+      <div class="q-val" id="qCm5Line">SGD 369.99<span class="q-unit"> /mo</span></div>
+    </div>
+    <div class="q-line" id="qRowCm8">
+      <div class="q-lab">CaféMatic 8 <span class="q-sub" id="qCm8Sub">1 × SGD 499.99 · L34</span></div>
+      <div class="q-val" id="qCm8Line">SGD 499.99<span class="q-unit"> /mo</span></div>
+    </div>
+    <div class="q-line" id="qRowCoolers">
+      <div class="q-lab">Milk coolers <span class="q-sub" id="qCoolerSub">1 per machine · 2 included</span></div>
+      <div class="q-val" id="qCoolerLine">2 × included</div>
+    </div>
+    <div class="q-group q-group--inc">Included with the partnership</div>
+    <div class="q-line">
+      <div class="q-lab">Live Impact Tablet <span class="q-sub" id="qTabletSub">cups poured and conservation raised, updating live</span></div>
+      <div class="q-val">1 × included</div>
+    </div>
+    <div class="q-line" id="qRowCobrand">
+      <div class="q-lab">Co-branding <span class="q-sub">optional · Your workplace's logo at the drip-tray</span></div>
+      <div class="q-val">Included</div>
+    </div>
+    <div class="q-line">
+      <div class="q-lab">Hosted impact tracker <span class="q-sub">private URL · conservation + composting, live after signing</span></div>
+      <div class="q-val">Included</div>
+    </div>
+    <div class="q-line" id="qRowFleet">
+      <div class="q-lab">Fleet service programme <span class="q-sub">bi-annual Y1–Y2 · every four months Y3 · parts &amp; labour</span></div>
+      <div class="q-val">Included</div>
+    </div>
+    <div class="q-line">
+      <div class="q-lab">Grounds collection &amp; composting <span class="q-sub">diverted to Sennett Estate Harvest Hub</span></div>
+      <div class="q-val">Included</div>
+    </div>
+    <div class="q-line">
+      <div class="q-lab">Quarterly impact statement <span class="q-sub">reconciled against actual kg supplied · shared quarterly</span></div>
+      <div class="q-val">Included</div>
+    </div>
+    <div class="q-total q-total--pair">
+      <div class="q-total-cell">
+        <div class="q-total-lab">Coffee</div>
+        <div class="q-total-fig">SGD <span id="qHeroCoffee">48.00</span><span class="q-unit"> /kg</span></div>
+        <div class="q-total-note" id="qHeroCoffeeNote">+ 10% to conservation · ~SGD 2,592/yr to NGO partners</div>
+      </div>
+      <div class="q-total-cell">
+        <div class="q-total-lab" id="qFleetLab">Equipment</div>
+        <div class="q-total-fig" id="qHeroEquipFig">SGD <span id="qFleetTotal">869.98</span><span class="q-unit" id="qFleetUnit"> /mo</span></div>
+        <div class="q-total-note" id="qHeroEquipNote">our leasing partner · coolers &amp; servicing included</div>
+      </div>
+    </div>
+
+
+    <div class="q-fine" id="qFine" hidden>Equipment rental invoiced monthly in advance via our leasing partner. Coffee billed per kg on the agreed price; conservation contribution is a share of every sale, paid through to NGO partners. Grounds diverted to Sennett Estate Harvest Hub, tracked by the quantity billed on collection. Daily cleaning materials excluded.</div>
+    <div class="q-inv-foot">
+      <div class="q-inv-foot-big">UEN <span>201839882N</span></div>
+      <div class="q-inv-foot-addr">31 Kaki Bukit Road 3 · #01-02C Techlink · Singapore 417818</div>
+    </div>
+    <div class="q-inv-signoff">
+      <div class="q-inv-thanks">Thank you.</div>
+      <div class="q-inv-sig">Alexander Clark<span>NoFilter Pte. Ltd.</span></div>
+    </div>
+  </div>
+  <div class="deck-actions"><button type="button" class="deck-back" data-goto="2">← back to your impact</button></div>
+
+  </div><!-- /screen 3 -->
+  </div><!-- /q-doc -->
+
+  <!-- send this quote — folded into §04 as the finish of the quote -->
+  <div class="q-submit-dark rv" id="qSubmitCard">
+    <form name="nf-package-sheet-sg-generic" method="POST" id="qForm">
+      <input type="hidden" name="form-name" value="nf-package-sheet-sg-generic">
+      <p class="q-hp"><label>Leave this empty: <input name="bot-field"></label></p>
+      <!-- mirrored live selections (populated by compute()) -->
+      <input type="hidden" name="coffee_price"        id="fPrice">
+      <input type="hidden" name="conservation_rate"   id="fRate">
+      <input type="hidden" name="sustainability_top_up" id="fTopUp">
+      <input type="hidden" name="cafematic_5_quantity"      id="fCm5">
+      <input type="hidden" name="cafematic_8_quantity"      id="fCm8">
+      <input type="hidden" name="fleet_monthly_total"       id="fFleet">
+      <input type="hidden" name="all_in_price_per_kg"       id="fAllIn">
+      <input type="hidden" name="annual_conservation_contribution" id="fConsAnnual">
+      <input type="hidden" name="contact_entity" value="Your Company Pte. Ltd. (o/b/o Your workplace)">
+
+      <div class="q-dark-inner">
+        <div class="q-dark-copy">
+          <div class="q-dark-title">Confirm and send to NoFilter</div>
+        </div>
+        <div class="q-dark-fields">
+          <input class="q-dark-input" type="text"  name="contact_name"  required autocomplete="name"  placeholder="Your name" value="Your authorised signatory">
+          <input class="q-dark-input" type="email" name="contact_email" required autocomplete="email" placeholder="Work email" value="you@yourcompany.com">
+          <button type="submit" class="q-dark-btn" id="qSubmitBtn" disabled aria-disabled="true">Complete the builder first</button>
+        </div>
+      </div>
+      <div class="q-dark-notes">
+        <label class="q-notes-label" for="qNotes">Anything to add? <span>Questions, extras, or anything we've missed · optional</span></label>
+        <textarea class="q-dark-textarea" id="qNotes" name="notes_and_questions" rows="1" placeholder="e.g. a preferred start date, an extra floor, a question about the servicing schedule…"></textarea>
+      </div>
+    </form>
+
+    <div class="q-thanks" id="qThanks" hidden>
+      <div class="q-thanks-mark">✓</div>
+      <div class="q-thanks-title">Selections received.</div>
+      <p class="q-thanks-body">Thank you. We'll bundle your selections into a PDF contract and send it for your review. Nothing is binding until you've reviewed and signed.</p>
+    </div>
+  </div>
+
+</section>
+<div class="cx-dossier" id="cxDossier" aria-hidden="true"></div>
+  </div>
+
+  
+<script>
+/* ═══ Wholesale-scale conservation engine (replaces old cup/bag calculator) ═══ */
+(function(){
+  const $=id=>document.getElementById(id);
+  const f0=n=>Math.round(n).toLocaleString('en-NZ');
+  const f2=n=>n.toLocaleString('en-NZ',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // Model constants (client-facing — no proprietary cost/margin data)
+  // Coffee-cup base — EDIT PER TARGET: provisional 30,000 cups/yr placeholder, confirm against the real Your workplace volume before sending.
+  // Conservative split for a mild-climate NZ zoo café (espresso-led, family mix); confirm with actuals.
+  const COFFEE_CUPS = 30000;   // EDIT PER TARGET (community × uptake × days)
+  const HOT_DRINKS = COFFEE_CUPS; // drives annual NGO + roasted-volume figures
+  const DOSE_G     = 18;       // grams per cup
+  // Conservation rate as a clean two-step: 5% of the sale below the standard
+  // price, the full 10% at the standard price and above. The 5% tier exists so a
+  // customer who cannot reach the standard price is held rather than priced out;
+  // below it the margin genuinely tightens once farmers, NGO, landing and roasting
+  // are paid, which is why the share steps down. The threshold price is never
+  // named on screen.
+  const RATE_LO    = 0.05;     // rate below the standard price
+  const RATE_HI    = 0.10;     // rate at the standard price and above
+  const RATE_STEP  = 46;       // standard price where the full 10% applies
+  function rateForPrice(p){
+    return p >= RATE_STEP ? RATE_HI : RATE_LO;
+  }
+  const STRETCH_C  = 12.0;     // reachable "going further" milestone (NoFilter + top-up)
+
+  var prevTier = -1;           // milestone state tracker (0 none,1 ten,2 stretch)
+  var prevTrackTier = -1;      // track-glow state tracker
+  var primed = false;          // suppress celebration on first paint; fire only on user moves
+
+  function compute(){
+    const price = +$('wholePrice').value || 0;     // SGD per kg roasted, landed
+    const topUp = +($('topUp') ? $('topUp').value : 0) || 0; // zoo co-contribution, cents/cup
+    $('wholePriceV').textContent = f2(price);
+    if($('topUpV')) $('topUpV').textContent = topUp.toFixed(1);
+    if($('flowTopupV')) $('flowTopupV').textContent = topUp.toFixed(1);
+    if($('flowTopup')) $('flowTopup').classList.toggle('active', topUp > 0.001);
+
+    const coffeePerCup = price * DOSE_G/1000;        // $ of coffee in one cup (what they pay)
+    const rate         = rateForPrice(price);        // conservation rate at this price
+    const nfCupC       = price * rate * DOSE_G/1000 * 100; // NoFilter cents/cup
+    const totalC       = nfCupC + topUp;             // combined conservation cents/cup
+    // Milestones must fire on what the reader SEES (one-decimal display), not the
+    // hidden raw precision — otherwise e.g. 8.28+1.7 = 9.98 reads as "10.0" on
+    // screen but stays just under a raw 9.995 threshold until the next 0.1 step.
+    const totalShown   = Math.round(totalC * 10) / 10; // matches the .toFixed(1) display
+    const ngoPerKg     = price * rate;
+    const cupsPerKg    = 1000/DOSE_G;
+
+    if($('rateNow'))      $('rateNow').textContent      = (rate*100).toFixed(rate*100 % 1 === 0 ? 0 : 1);
+
+    if($('perCupCoffee')) $('perCupCoffee').textContent = f2(coffeePerCup);
+    if($('ngoCents'))     $('ngoCents').textContent     = nfCupC.toFixed(1);
+    if($('ngoPerKg'))     $('ngoPerKg').textContent     = f2(ngoPerKg);
+    if($('kgPrice'))      $('kgPrice').textContent      = f2(price);
+    if($('cupsPerKg'))    $('cupsPerKg').textContent    = Math.round(cupsPerKg);
+
+    // combined readout + percent of cup
+    if($('centsHero')) $('centsHero').textContent = nfCupC.toFixed(1);
+    if($('combinedCents')) $('combinedCents').textContent = totalC.toFixed(1);
+    if($('flowTotalC')) $('flowTotalC').textContent = totalC.toFixed(1);
+    if($('splitNf'))  $('splitNf').textContent  = nfCupC.toFixed(1);
+    if($('splitZoo')) $('splitZoo').textContent = topUp.toFixed(1);
+    if($('cupPct'))   $('cupPct').textContent   = (totalC/100).toFixed(2);
+
+    // all-in per kg: coffee price + co-contribution (top-up cents/cup × cups/kg, /100 to SGD)
+    const topUpPerKg   = (topUp * cupsPerKg) / 100;
+    const allInKg      = price + topUpPerKg;
+    const consPerKg    = ngoPerKg + topUpPerKg;   // conservation share + pass-through top-up
+    if($('allInKg')) $('allInKg').textContent = allInKg.toFixed(2);
+    if($('consKg'))  $('consKg').textContent  = 'SGD ' + consPerKg.toFixed(2);
+    if($('allInBreak')){
+      $('allInBreak').textContent = topUpPerKg > 0.005
+        ? 'SGD ' + price.toFixed(2) + ' coffee + SGD ' + topUpPerKg.toFixed(2) + ' co-contribution'
+        : 'SGD ' + price.toFixed(2) + ' coffee';
+    }
+
+    // ═══ §08 quotation — reads the same live price/topUp state ═══
+    if($('qCoffeeLine')){
+      // ── per-machine term/mode pricing, catalog-driven (all machines) ──
+      // 36mo rental confirmed for CM5/CM8 (369.99/499.99). CM2/CM6, all 24mo,
+      // and all purchase are indicative/tokenised — do NOT present as contracted.
+      function tok(v, fallback){
+        var n = parseFloat(v);
+        return (isNaN(n) || String(v).indexOf('[[')===0) ? fallback : n;
+      }
+      var RATES = {
+        cm5: { rental: { 36: tok('[[RATE_CM5_36MO]]', 280), 24: tok('[[RATE_CM5_24MO]]', 350) }, purchase: null },
+        cm8: { rental: { 36: tok('[[RATE_CM8_36MO]]', 380), 24: tok('[[RATE_CM8_24MO]]', 500) }, purchase: null },
+        cm2: { rental: { 36: tok('[[RATE_CM2_36MO]]', 160), 24: tok('[[RATE_CM2_24MO]]', 200) }, purchase: null },
+        cm6: { rental: { 36: tok('[[RATE_CM6_36MO]]', 340), 24: tok('[[RATE_CM6_24MO]]', 460) }, purchase: null }
+      };
+      var terms = window.__eqTerms || {};
+      function rateFor(slug){
+        var st = terms[slug] || {mode:'rental',term:36};
+        var r = RATES[slug] || { rental:{36:0,24:0}, purchase:null };
+        if(st.mode === 'purchase'){
+          return { rate: (r.purchase==null?0:r.purchase), purchase:true, onApp:(r.purchase==null) };
+        }
+        var band = r.rental[st.term] != null ? r.rental[st.term] : r.rental[36];
+        return { rate: band, purchase:false, onApp:false };
+      }
+      const money=n=>n.toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2});
+      const unitFor = m => m.purchase ? ' one-time' : ' /mo';
+      const rateStrFor = m => m.onApp ? 'TBA' : 'SGD '+money(m.rate);
+      // resolve every catalog machine: qty, rate, subtotal
+      var MACHINES = window.__MACHINES || [{slug:'cm5'},{slug:'cm8'}];
+      var totalMachines = 0, fleetMonthly = 0, fleetOneTime = 0, anyOnApp = false, anyMonthly = false, anyOneTime = false;
+      MACHINES.forEach(function(mc){
+        var slug = mc.slug;
+        var q = (window.__qty && window.__qty[slug]!=null) ? window.__qty[slug] : 0;
+        var r = rateFor(slug);
+        var sub = q * r.rate;
+        mc._q = q; mc._r = r; mc._sub = sub;
+        totalMachines += q;
+        if(q>0){
+          if(r.onApp) anyOnApp = true;
+          else if(r.purchase){ fleetOneTime += sub; anyOneTime = true; }
+          else { fleetMonthly += sub; anyMonthly = true; }
+        }
+        // update the card: qty display, active state, subtotal, badge
+        var qEl=$('qtyCm'+slug.slice(2)); if(qEl) qEl.textContent=q;
+        var card=$('eqCard'+slug.charAt(0).toUpperCase()+slug.slice(1));
+        var subEl=$('eqSub'+slug.charAt(0).toUpperCase()+slug.slice(1));
+        var badge=$('eqBadge'+slug.charAt(0).toUpperCase()+slug.slice(1));
+        if(card){
+          card.classList.toggle('is-active', q>0);
+          if(subEl) subEl.textContent = q>0 ? (r.onApp ? q+' × TBA' : q+' × = SGD '+money(sub)+unitFor(r)) : '';
+          if(badge) badge.textContent = q>1 ? q+' in your fleet' : (q===1 ? 'In your fleet' : 'Add to fleet');
+          var figEl=card.querySelector('.q-eq-fig');
+          if(figEl){ figEl.innerHTML = r.onApp ? '<b>TBA</b>' : ('SGD <b>'+r.rate+'</b> <span class="q-eq-per">/mo each</span>'); }
+        }
+      });
+      var pct=Math.round(rateForPrice(price)*100);
+      // schedule line items for CM5/CM8 (CM2/CM6 schedule rows added in Move 2)
+      (function(){
+        var m5=null,m8=null;
+        MACHINES.forEach(function(mc){ if(mc.slug==='cm5')m5=mc; if(mc.slug==='cm8')m8=mc; });
+        if(m5 && $('qCm5Sub')){
+          var row5=$('qRowCm5'); if(row5) row5.hidden = (m5._q<=0);
+          $('qCm5Sub').textContent=m5._q+' × '+rateStrFor(m5._r);
+          $('qCm5Line').innerHTML= m5._r.onApp ? 'TBA' : 'SGD '+money(m5._sub)+'<span class="q-unit">'+unitFor(m5._r)+'</span>';
+        }
+        if(m8 && $('qCm8Sub')){
+          var row8=$('qRowCm8'); if(row8) row8.hidden = (m8._q<=0);
+          $('qCm8Sub').textContent=m8._q+' × '+rateStrFor(m8._r);
+          $('qCm8Line').innerHTML= m8._r.onApp ? 'TBA' : 'SGD '+money(m8._sub)+'<span class="q-unit">'+unitFor(m8._r)+'</span>';
+        }
+      })();
+      $('qCoolerSub').textContent = totalMachines>0 ? '1 per machine · '+totalMachines+' included' : 'no equipment selected';
+      $('qCoolerLine').textContent = totalMachines>0 ? totalMachines+' × included' : '—';
+      if($('qRowCoolers')) $('qRowCoolers').hidden = totalMachines===0;
+      // inclusions are honest per configuration: co-branding and fleet service ride the machines;
+      // the tablet stays FOC in coffee-only mode, conditional on a 24-month supply term
+      if($('qRowCobrand')) $('qRowCobrand').hidden = totalMachines===0;
+      if($('qRowFleet')) $('qRowFleet').hidden = totalMachines===0;
+      if($('qTabletSub')) $('qTabletSub').textContent = totalMachines===0
+        ? 'cups poured and conservation raised, updating live · with a 24-month coffee supply term'
+        : 'cups poured and conservation raised, updating live';
+      // fleet total — monthly (rental) and one-time (purchase) kept separate
+      (function(){
+        var lab=$('qFleetLab'), unitEl=$('qFleetUnit'), totEl=$('qFleetTotal');
+        if(totalMachines===0){
+          // coffee-only configuration — the equipment figure simply goes quiet
+          var heroFig=document.getElementById('qHeroEquipFig');
+          if(totEl) totEl.textContent=''; if(lab) lab.textContent='Equipment'; if(unitEl) unitEl.textContent='';
+          if(heroFig) heroFig.style.visibility='hidden'; var hn0=document.getElementById('qHeroEquipNote'); if(hn0) hn0.style.visibility='hidden';
+        } else if(anyOnApp && !anyMonthly && !anyOneTime){
+          var hf1=document.getElementById('qHeroEquipFig'); if(hf1) hf1.style.visibility=''; var hn1=document.getElementById('qHeroEquipNote'); if(hn1) hn1.style.visibility='';
+          if(totEl) totEl.textContent='—'; if(lab) lab.textContent='Equipment'; if(unitEl) unitEl.textContent=' · TBA';
+        } else if(anyMonthly && anyOneTime){
+          var hf2=document.getElementById('qHeroEquipFig'); if(hf2) hf2.style.visibility=''; var hn2=document.getElementById('qHeroEquipNote'); if(hn2) hn2.style.visibility='';
+          if(totEl) totEl.textContent=money(fleetMonthly);
+          if(lab) lab.textContent='Equipment'; if(unitEl) unitEl.textContent=' /mo · + SGD '+money(fleetOneTime)+' one-time';
+        } else if(anyOneTime){
+          var hf3=document.getElementById('qHeroEquipFig'); if(hf3) hf3.style.visibility=''; var hn3=document.getElementById('qHeroEquipNote'); if(hn3) hn3.style.visibility='';
+          if(totEl) totEl.textContent=money(fleetOneTime);
+          if(lab) lab.textContent='Equipment'; if(unitEl) unitEl.textContent=' one-time';
+        } else {
+          var hf4=document.getElementById('qHeroEquipFig'); if(hf4) hf4.style.visibility=''; var hn4=document.getElementById('qHeroEquipNote'); if(hn4) hn4.style.visibility='';
+          if(totEl) totEl.textContent=money(fleetMonthly);
+          if(lab) lab.textContent='Equipment'; if(unitEl) unitEl.textContent=' /mo';
+        }
+      })();
+      // coffee
+      $('qCoffeeSub').textContent='SGD '+price.toFixed(2)+' / kg · '+pct+'% to conservation';
+      $('qCoffeeLine').innerHTML='SGD '+price.toFixed(2)+'<span class="q-unit"> /kg</span>';
+      if($('qHeroCoffee')) $('qHeroCoffee').textContent=price.toFixed(2);
+      // sustainability top-up — separate line, only when engaged
+      const topUpRow=$('qTopUpRow');
+      if(topUpPerKg>0.005){
+        topUpRow.hidden=false;
+        $('qTopUpLine').innerHTML='SGD '+topUpPerKg.toFixed(2)+'<span class="q-unit"> /kg</span>';
+      } else { topUpRow.hidden=true; }
+      // annual conservation at 30k cups (~540kg) = consPerKg × annualKg
+      const annualKg=30000/cupsPerKg;
+      const consAnnual=consPerKg*annualKg;
+      $('qConsAnnual').innerHTML='~SGD '+consAnnual.toLocaleString('en-SG',{maximumFractionDigits:0})+'<span class="q-unit"> /yr</span>';
+      if($('qHeroCoffeeNote')) $('qHeroCoffeeNote').textContent='+ '+pct+'% to conservation · ~SGD '+consAnnual.toLocaleString('en-SG',{maximumFractionDigits:0})+'/yr to NGO partners';
+
+      // mirror into hidden form fields for Netlify capture
+      const setF=(id,v)=>{ const el=$(id); if(el) el.value=v; };
+      setF('fPrice', price.toFixed(2));
+      setF('fRate', pct+'%');
+      setF('fTopUp', topUpPerKg>0.005 ? topUpPerKg.toFixed(2) : '0.00');
+      setF('fCm5', (window.__qty&&window.__qty.cm5!=null)?window.__qty.cm5:0);
+      setF('fCm8', (window.__qty&&window.__qty.cm8!=null)?window.__qty.cm8:0);
+      setF('fFleet', money(fleetMonthly));
+      setF('fAllIn', (price+ (topUpPerKg>0.005?topUpPerKg:0)).toFixed(2));
+      setF('fConsAnnual', Math.round(consAnnual));
+      const sumEl=$('qSummary');
+      if(sumEl){
+        var fleetDesc = MACHINES.filter(function(mc){return mc._q>0;}).map(function(mc){
+          return mc._q+'× '+mc.name.replace('CaféMatic','CM');
+        }).join(', ');
+        sumEl.textContent = 'Sending: SGD '+price.toFixed(2)+'/kg ('+pct+'% conservation)'
+          + (topUpPerKg>0.005 ? ' + SGD '+topUpPerKg.toFixed(2)+' top-up' : '')
+          + ' · '+fleetDesc+' · fleet SGD '+money(fleetMonthly)+'/mo';
+      }
+      // ── live sticky quote update ──
+      (function(){
+        var bar=$('nfStickyQuote'); if(!bar) return;
+        var origins = (typeof window.__pickedOrigins==='function') ? window.__pickedOrigins().map(function(o){return o.name;}) : [];
+        var fleetParts = MACHINES.filter(function(mc){return mc._q>0;}).map(function(mc){return mc._q+'× '+mc.name.replace('CaféMatic','CM');});
+        var bits=[];
+        bits.push('SGD '+price.toFixed(2)+'/kg');
+        if(origins.length) bits.push(origins.length===1?origins[0]:origins.length+' coffees');
+        bits.push(fleetParts.length ? fleetParts.join(', ') : 'coffee only');
+        var itemsEl=$('nfSqItems'); if(itemsEl) itemsEl.innerHTML='<b>'+bits.join('</b> · <b>')+'</b>';
+        var totEl=$('nfSqTotal'), unitEl=$('nfSqUnit');
+        if(totalMachines>0){ if(totEl) totEl.textContent='SGD '+money(fleetMonthly); if(unitEl) unitEl.textContent='/mo equip'; }
+        else { if(totEl) totEl.textContent='SGD '+price.toFixed(2); if(unitEl) unitEl.textContent='/kg coffee'; }
+      })();
+    }
+
+    // combined stacked bar — visualises NoFilter + Zoo summing toward target/stretch
+    const BAR_MAX = 15; // ¢ — scale max for the bar (10¢ target, 12¢ stretch fit comfortably)
+    const stkNf  = $('stkNf');
+    const stkZoo = $('stkZoo');
+    if(stkNf && stkZoo){
+      var nfFrac  = Math.max(0, Math.min(1, nfCupC / BAR_MAX));
+      var zooFrac = Math.max(0, Math.min(1 - nfFrac, topUp / BAR_MAX));
+      stkNf.style.width  = (nfFrac*100).toFixed(2) + '%';
+      stkZoo.style.left  = (nfFrac*100).toFixed(2) + '%';
+      stkZoo.style.width = (zooFrac*100).toFixed(2) + '%';
+      // rounded right cap when there's a Zoo segment
+      stkZoo.classList.toggle('has-room', zooFrac > 0.001);
+      stkNf.classList.toggle('maxed', nfFrac >= 0.999 && zooFrac < 0.001);
+    }
+
+    // badge keyed off COMBINED total
+    const hit = totalShown >= 10;
+    const badge = $('tenBadge');
+    if(badge){
+      badge.textContent = hit ? '10¢ target reached' : (10 - totalC).toFixed(1)+'¢ to a round 10¢';
+      badge.className = 'ten-badge ' + (hit ? 'ten-hit' : 'ten-near');
+    }
+    const cupBig = $('cupCentsBig'); if(cupBig) cupBig.textContent = totalC.toFixed(1);
+
+    // ── live thumb bubble: NoFilter cents, positioned over the thumb ──
+    const SMIN=45, SMAX=55, span=SMAX-SMIN;
+    const frac = Math.max(0, Math.min(1, (price-SMIN)/span));
+    // warm the fill bar up to the thumb — pushing right visibly lights it.
+    // compensate for native thumb travel (TH/2 inset each end) so the fill edge
+    // sits under the thumb centre, matching the bubble/tick maths.
+    var barEl = $('trackBar');
+    if(barEl){
+      var wrapW = ($('scaleTrackWrap') && $('scaleTrackWrap').clientWidth) || 600;
+      var THp = 26;
+      var fillPx = frac*wrapW + (0.5-frac)*THp;
+      barEl.style.setProperty('--fillpct', (fillPx/wrapW*100).toFixed(1) + '%');
+    }
+    const bubble = $('thumbBubble');
+    const wrapEl = $('scaleTrackWrap');
+    if(bubble){
+      if($('bubbleCents')) $('bubbleCents').textContent = nfCupC.toFixed(1);
+      const TH=26;
+      // thumb centre in px across the track
+      if(wrapEl){
+        const trackW = wrapEl.clientWidth || 600;
+        let centrePx = frac*trackW + (0.5-frac)*TH;
+        const halfBub = bubble.offsetWidth/2 || 38;
+        // clamp so the bubble stays fully inside the wrap
+        centrePx = Math.max(halfBub+2, Math.min(trackW-halfBub-2, centrePx));
+        bubble.style.left = centrePx+'px';
+      }
+    }
+    // ── track-glow milestone states (combined @10c -> green; combined @stretch -> gold) ──
+    const wrap = $('scaleTrackWrap');
+    var trackTier = totalShown >= STRETCH_C ? 2 : (totalShown >= 10 ? 1 : 0);
+    if(wrap){
+      wrap.classList.toggle('glow-ten', trackTier===1);
+      wrap.classList.toggle('glow-stretch', trackTier===2);
+      if(primed && trackTier>prevTrackTier && trackTier>0){
+        wrap.classList.remove('just-crossed'); void wrap.offsetWidth; wrap.classList.add('just-crossed');
+      }
+    }
+    prevTrackTier = trackTier;
+
+    // milestone animation on the combined readout
+    var tier = totalShown >= STRETCH_C ? 2 : (totalShown >= 10 ? 1 : 0);
+    var cr = $('combinedReadout');
+    if(cr){
+      cr.classList.toggle('hit-ten', tier===1);
+      cr.classList.toggle('hit-stretch', tier===2);
+      if(primed && tier>prevTier && tier>0){ fireMilestone(cr, tier); }  // celebrate on upward crossing
+    }
+    prevTier = tier;
+
+    // annual conservation ledger uses the COMBINED contribution
+    const volEl   = $('volCups');
+    const cupsYr   = (volEl ? (+volEl.value||HOT_DRINKS) : HOT_DRINKS);
+    if($('volCupsBig')) $('volCupsBig').textContent = f0(cupsYr);
+    // drive the gold drag-fill + escalating glow from slider position
+    if(volEl){
+      const vmin = +volEl.min, vmax = +volEl.max;
+      const prog = Math.max(0, Math.min(1, (cupsYr - vmin) / (vmax - vmin)));
+      volEl.style.setProperty('--vp', (prog*100).toFixed(1)+'%');
+      volEl.style.setProperty('--glow', prog.toFixed(3));
+      volEl.classList.toggle('lit', prog > 0.02);
+      const ngoEl = $('ledgerNgo');
+      if(ngoEl) ngoEl.style.setProperty('--glow', prog.toFixed(3));
+    }
+    const roastedYr= cupsYr * DOSE_G/1000;
+    // Use the SAME rounded per-cup value the user sees on screen to drive the annual figure,
+    // so "displayed cents × cups = displayed dollars" is always verifiable.
+    const totalC_display = +totalC.toFixed(1);
+    const ngoYr    = totalC_display/100 * cupsYr;
+    const coffeeCostYr = coffeePerCup * cupsYr;
+    $('ledgerCups').textContent = f0(cupsYr);
+    $('ledgerNgo').textContent  = f0(ngoYr);
+    $('ledgerCents').textContent= totalC.toFixed(1);
+    $('ledgerKg').textContent   = f0(roastedYr);
+
+    // four-origin even split of the annual sum
+    const each = ngoYr/4;
+    ['o1','o2','o3','o4'].forEach(o=>{ const el=$(o+'Sum'); if(el) el.textContent=f0(each); });
+    const perCupEach = totalC/4;
+    document.querySelectorAll('.origin-percup').forEach(el=>{ el.textContent=perCupEach.toFixed(1); });
+
+    // hero twin-cards (cost + conservation only — no margin disclosed)
+    if($('hCost'))    $('hCost').textContent    = f0(coffeeCostYr);
+    if($('hPerCup'))  $('hPerCup').textContent  = 'SGD '+f2(coffeePerCup);
+    if($('hNgo'))     $('hNgo').textContent     = f0(ngoYr);
+    if($('hCupCents'))$('hCupCents').textContent= totalC.toFixed(1);
+    if($('hCupsYr'))  $('hCupsYr').textContent  = f0(cupsYr);
+
+    // marker position on the scale track — match the THUMB's true centre, not a
+    // raw percentage. Native range thumbs travel from (TH/2) to (trackW - TH/2),
+    // so the recommended tick must use the same thumb-width compensation the
+    // bubble uses above, or it sits slightly off from the dial.
+    const REC_PRICE = 45;  // floor anchor — left end of the price band
+    const recFrac = Math.max(0, Math.min(1, (REC_PRICE - SMIN) / span));
+    const markEl = $('tenMark');
+    if(markEl){
+      const wrapM = $('scaleTrackWrap');
+      if(wrapM && wrapM.clientWidth){
+        const TH2 = 26; // must match the thumb width used for the bubble
+        const trackWM = wrapM.clientWidth;
+        const centrePxM = recFrac*trackWM + (0.5-recFrac)*TH2;
+        markEl.style.left = (centrePxM / trackWM * 100) + '%';
+      } else {
+        markEl.style.left = (recFrac*100) + '%';
+      }
+    }
+  }
+
+  function fireMilestone(cr, tier){
+    var cents = cr.querySelector('.combined-cents');
+    if(cents){ cents.classList.remove('burst'); void cents.offsetWidth; cents.classList.add('burst'); }
+    cr.classList.remove('sweeping'); void cr.offsetWidth; cr.classList.add('sweeping');
+    // confetti now fired by the morph controller from the active slider (nfCelebrateAt), so not fired here
+  }
+
+  // ── themed celebration burst: leaves + coffee beans in the brand palette ──
+  // appended to <body> (the readout has overflow:hidden) and positioned from
+  // the readout's on-screen box, so particles can drift outward un-clipped.
+  var NF_PAL = ['#ed3326','#F4F2EE','#16a34a','#e89a3a','#1f5132']; // orange, cream, green, amber, deep green
+  function nfLeafSVG(c){
+    return '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">'+
+      '<path d="M12 2C7 4 3 8 3 14c0 5 4 8 9 8 0-6 2-10 6-13-4 .5-7 2-9 5 .5-5 2-9 3-12z" fill="'+c+'"/></svg>';
+  }
+  function nfBeanSVG(c){
+    return '<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">'+
+      '<ellipse cx="12" cy="12" rx="6.5" ry="9.5" fill="'+c+'"/>'+
+      '<path d="M12 3c-2 4-2 14 0 18" stroke="rgba(0,0,0,.35)" stroke-width="1.4" fill="none"/></svg>';
+  }
+  function nfCelebrate(cr, tier){ nfCelebrateAt($('wholePrice'), tier); }
+  function nfCelebrateAt(slider, tier){
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // origin: the given slider's thumb (defaults to the visible active morph slider). Fall back to viewport centre.
+    var ox, oy;
+    if(slider){
+      var sBox = slider.getBoundingClientRect();
+      var mn=+slider.min, mx=+slider.max, val=+slider.value;
+      var frac = mx>mn ? Math.max(0,Math.min(1,(val-mn)/(mx-mn))) : 0.5;
+      var TH=24; // thumb width
+      ox = sBox.left + TH/2 + frac*(sBox.width - TH);  // thumb centre X
+      oy = sBox.top - 6;                                // just above the bar
+    } else {
+      ox = window.innerWidth*0.5;
+      oy = window.innerHeight*0.35;
+    }
+    var layer = document.createElement('div');
+    layer.className = 'nf-burst-layer';
+    document.body.appendChild(layer);
+    var n = tier>=2 ? 44 : 30;           // generous: this is the moment
+    var dur = 1500;
+    for(var i=0;i<n;i++){
+      var p = document.createElement('span');
+      p.className = 'nf-particle';
+      var col = NF_PAL[(Math.random()*NF_PAL.length)|0];
+      p.innerHTML = (Math.random()<0.55 ? nfLeafSVG(col) : nfBeanSVG(col));
+      // fan upward-and-out: angle biased to the top half, random reach
+      var ang  = (-90 + (Math.random()*150-75)) * Math.PI/180; // -165°..-15°
+      var dist = 90 + Math.random()*170;
+      var dx = Math.cos(ang)*dist;
+      var dy = Math.sin(ang)*dist + (40+Math.random()*60); // gravity pulls them down after
+      var rot = (Math.random()*720-360)|0;
+      var d   = dur*(0.7+Math.random()*0.5);
+      p.style.left = (ox + (Math.random()*20-10)) + 'px';
+      p.style.top  = (oy + (Math.random()*10-5)) + 'px';
+      p.style.setProperty('--dx', dx.toFixed(0)+'px');
+      p.style.setProperty('--dy', dy.toFixed(0)+'px');
+      p.style.setProperty('--rot', rot+'deg');
+      p.style.animation = 'nfFloat '+d.toFixed(0)+'ms cubic-bezier(.2,.7,.3,1) forwards';
+      layer.appendChild(p);
+    }
+    setTimeout(function(){ if(layer.parentNode) layer.parentNode.removeChild(layer); }, dur+400);
+  }
+  window.nfCelebrateAt = nfCelebrateAt;
+
+  const slider=$('wholePrice');
+  if(slider){
+    function dismissNudge(){
+      var tw=$('scaleTrackWrap'); if(tw) tw.classList.remove('nudge');
+      var dp=$('dragPrompt'); if(dp) dp.classList.add('gone');
+    }
+    slider.addEventListener('input',function(){primed=true;dismissNudge();compute();});
+    if($('topUp')) $('topUp').addEventListener('input',function(){primed=true;dismissNudge();compute();});
+    if($('volCups')) $('volCups').addEventListener('input',function(){compute();});
+    $('whoReset') && $('whoReset').addEventListener('click',()=>{slider.value='46.00';if($('topUp'))$('topUp').value='0';prevTier=-1;prevTrackTier=-1;primed=false;compute();});
+
+    // reveal band: show the two notes on hover/drag anywhere in the price panel; highlight the live tier note
+    (function(){
+      var band=$('revealBand'), panel=$('scalePanel'), tw=$('scaleTrackWrap');
+      if(!band||!panel) return;
+      var hideT;
+      function show(){ clearTimeout(hideT); band.classList.add('show'); }
+      function hide(){ hideT=setTimeout(function(){band.classList.remove('show');},250); }
+      panel.addEventListener('mouseenter',show);
+      panel.addEventListener('mousemove',show);
+      panel.addEventListener('mouseleave',hide);
+      if(tw){ tw.addEventListener('pointerdown',show); }
+      window.addEventListener('pointerup',function(){clearTimeout(hideT);});
+      function tier(){
+        var lands=$('noteLands'); if(!lands) return;
+        lands.classList.toggle('live', (+slider.value) < 46);
+      }
+      slider.addEventListener('input',tier); tier();
+    })();
+
+    compute();
+    // reposition the bubble once layout has settled, and on resize
+    requestAnimationFrame(compute);
+    window.addEventListener('resize',compute);
+  }
+
+  // ═══ MORPH CONTROLLER — phases, lock-to-advance, kg→cup→year figure, orangutan year-state ═══
+  (function(){
+    var stage=$('morphStage'); if(!stage) return;
+    var DOSE=18, cupsPerKg=1000/DOSE;
+    var pSlider=$('wholePrice'), tuSlider=$('topUp'), volSlider=$('volCups');
+
+    /* ── price hover boxes: appear on cursor-over the slider, explain what it sets. ── */
+    (function(){
+      var track=$('uniWrap') || $('mPriceTrack'); if(!track) return;
+      var stg=$('morphStage');
+      function mk(side,eyebrow,body){
+        var d=document.createElement('div');
+        d.className='mgut mgut--'+side;
+        d.innerHTML='<p class="mgut-eyebrow">'+eyebrow+'</p>'+body;
+        document.body.appendChild(d); return d;
+      }
+      var gl=mk('l','Why you set the price','<p>No two workplaces carry the same budget, so the price is yours to set. What you choose to pay moves three things at once: what farmers at the forest edge earn, what flows to the NGOs protecting it, and what keeps NoFilter\u2019s lights on so the work continues.</p>');
+      var gr=mk('r','Where it goes','<p>On top of what we already pay for the coffee, every kilo carries a fixed conservation bonus: a share of <b>what you pay</b>, back to the NGOs and farmers behind it.</p><p>At the <b>SGD 44</b> floor we\u2019re able to give <b>5%</b>; from <b>SGD 46</b> we can share the full <b>10%</b>, roughly <b>8 to 9 cents</b> of every cup your team pours.</p>');
+      var GAP=60;
+      function placeGutters(){
+        var r=track.getBoundingClientRect();
+        var lw=gl.offsetWidth, rw=gr.offsetWidth;
+        var fits = (r.left-GAP-lw>8) && (r.right+GAP+rw<innerWidth-8);
+        if(!fits){ gl.classList.remove('is-on'); gr.classList.remove('is-on'); return false; }
+        gl.style.left=(r.left-GAP-lw)+'px';
+        gr.style.left=(r.right+GAP)+'px';
+        var fig=document.getElementById('morphFigure');
+        var anchorTop = fig ? fig.getBoundingClientRect().bottom + 26 : (r.top - 60);
+        gl.style.top=anchorTop+'px';
+        gr.style.top=anchorTop+'px';
+        return true;
+      }
+      var on=false;
+      function show(){ if(stg && stg.classList.contains('ph-topup')) return; if(placeGutters()){ on=true; gl.classList.add('is-on'); gr.classList.add('is-on'); } }
+      function hide(){ on=false; gl.classList.remove('is-on'); gr.classList.remove('is-on'); }
+      window.__nfPriceGutters={show:show,hide:hide};
+      track.addEventListener('mouseenter',show);
+      track.addEventListener('mouseleave',hide);
+      track.addEventListener('focusin',show);
+      track.addEventListener('focusout',hide);
+      var sec=document.getElementById('price');
+      if(sec) sec.addEventListener('scroll',function(){ if(on) placeGutters(); },{passive:true});
+      window.addEventListener('resize',function(){ if(on) placeGutters(); });
+    })();
+
+    /* ── top-up hover boxes: same mechanism, bound to the top-up slider ── */
+    (function(){
+      var track=$('uniWrap') || $('topUp'); if(!track) return;
+      var stg=$('morphStage');
+      function mk(side,eyebrow,body){
+        var d=document.createElement('div');
+        d.className='mgut mgut--'+side;
+        d.innerHTML='<p class="mgut-eyebrow">'+eyebrow+'</p>'+body;
+        document.body.appendChild(d); return d;
+      }
+      var gl=mk('l','What this is','<p>Want to hit a per-cup conservation target? This is the dial: a voluntary few cents per cup, on top of the price you just set.</p><p>Every cent goes to the conservation NGOs; none of it touches our margin. Skipping it changes nothing about your agreement.</p>');
+      var gr=mk('r','How it adds up','<p>Your price already sends its built-in share, the figure above. The top-up stacks on that, cent for cent.</p><p>Small numbers travel: at scale, a cent a cup is real money at the forest edge.</p>');
+      var GAP=60;
+      function placeGutters(){
+        var r=track.getBoundingClientRect();
+        var lw=gl.offsetWidth, rw=gr.offsetWidth;
+        var fits = (r.left-GAP-lw>8) && (r.right+GAP+rw<innerWidth-8);
+        if(!fits){ gl.classList.remove('is-on'); gr.classList.remove('is-on'); return false; }
+        gl.style.left=(r.left-GAP-lw)+'px';
+        gr.style.left=(r.right+GAP)+'px';
+        var fig=document.getElementById('morphFigure');
+        var anchorTop = fig ? fig.getBoundingClientRect().bottom + 26 : (r.top - 60);
+        gl.style.top=anchorTop+'px';
+        gr.style.top=anchorTop+'px';
+        return true;
+      }
+      var on=false;
+      function show(){ if(!stg || !stg.classList.contains('ph-topup')) return; if(placeGutters()){ on=true; gl.classList.add('is-on'); gr.classList.add('is-on'); } }
+      function hide(){ on=false; gl.classList.remove('is-on'); gr.classList.remove('is-on'); }
+      window.__nfTopupGutters={show:show,hide:hide};
+      track.addEventListener('mouseenter',show);
+      track.addEventListener('mouseleave',hide);
+      track.addEventListener('focusin',show);
+      track.addEventListener('focusout',hide);
+      var sec=document.getElementById('price');
+      if(sec) sec.addEventListener('scroll',function(){ if(on) placeGutters(); },{passive:true});
+      window.addEventListener('resize',function(){ if(on) placeGutters(); });
+    })();
+
+    var figNum=$('mFigNum'), figCur=$('mFigCur'), figUnit=$('mFigUnit'), figPer=$('mFigPer'),
+        eyebrow=$('morphEyebrow'), sub=$('morphSub'), cap=$('morphCap'),
+        lockBtn=$('morphLockBtn'), lockLabel=$('morphLockLabel'), backLink=$('morphBack'),
+        lockedRow=$('morphLocked'), figure=$('morphFigure');
+    var phase=0, lastFig=42, maxPhase=0;
+    var mPrevTier=-1, mPrimed=false, mPriceWasFull=false;
+
+    function activeSlider(){ return phase===0 ? pSlider : (phase===1 ? tuSlider : volSlider); }
+    function milestone(d){
+      // combined-contribution tiers: 10¢ (green) / 12¢ (gold stretch), matching the deck's STRETCH_C
+      var shown = Math.round(d.combined*10)/10;
+      var tier = shown>=12 ? 2 : (shown>=10 ? 1 : 0);
+      // glow persists on the active slider; cross-pulse + burst fire on upward crossing
+      var uniT=document.getElementById('uniThumb');
+      [pSlider,tuSlider,volSlider,uniT].forEach(function(s){ if(s){ s.classList.remove('mglow-ten','mglow-stretch'); } });
+      var act=activeSlider();
+      if(uniT && phase!==2) act=uniT;
+      if(act && tier===1) act.classList.add('mglow-ten');
+      if(act && tier===2) act.classList.add('mglow-stretch');
+      if(mPrimed && tier>mPrevTier && tier>0 && act){
+        var cls = tier>=2 ? 'mcross-stretch' : 'mcross-ten';
+        act.classList.remove('mcross-ten','mcross-stretch'); void act.offsetWidth; act.classList.add(cls);
+        if(typeof window.nfCelebrateAt==='function') window.nfCelebrateAt(act, tier);
+      }
+      mPrevTier=tier;
+      // combined chip colour + text
+      var chip=$('morphCombined');
+      if(chip){
+        chip.classList.toggle('at-ten', tier===1);
+        chip.classList.toggle('at-stretch', tier===2);
+        if(tier>=2)      chip.textContent = 'Past the 12¢ stretch — thank you ✦';
+        else if(tier===1) chip.textContent = '10¢ a cup, all to the NGO ✓';
+        else if(d.topUp>0) chip.textContent = 'Together · '+d.combined.toFixed(1)+'¢ a cup to conservation';
+        else             chip.textContent = '';
+      }
+    }
+
+    function derived(){
+      var price=+pSlider.value||42;
+      var topUp=+(tuSlider?tuSlider.value:0)||0;
+      var vol=+(volSlider?volSlider.value:30000)||30000;
+      var rate=price>=46?0.10:0.05;
+      var baseCents=price*rate*DOSE/1000*100;
+      var combined=baseCents+topUp;
+      var annual=(+combined.toFixed(1))/100*vol;   // match displayed-cents×cups
+      return {price:price,topUp:topUp,vol:vol,rate:rate,baseCents:baseCents,combined:combined,annual:annual};
+    }
+    function fmt0(n){ return Math.round(n).toLocaleString('en-US'); }
+
+    var tweenId=null;
+    function tween(el,from,to,dur,fmtFn){
+      cancelAnimationFrame(tweenId); var start=performance.now();
+      (function step(now){ var t=Math.min(1,(now-start)/dur); var e=1-Math.pow(1-t,3);
+        el.textContent=fmtFn(from+(to-from)*e); if(t<1) tweenId=requestAnimationFrame(step); })(performance.now());
+    }
+
+    function chip(label, editPhase){
+      var span=document.createElement('span'); span.className='mlchip'; span.innerHTML=label+' ';
+      var b=document.createElement('button'); b.textContent='edit';
+      b.addEventListener('click',function(){ goPhase(editPhase); });
+      span.appendChild(b); return span;
+    }
+
+    function paint(animate){
+      var d=derived();
+      // echoes
+      if($('mPriceEcho')) $('mPriceEcho').textContent=d.price.toFixed(2);
+      if($('mTopupEcho')) $('mTopupEcho').textContent = d.topUp>0 ? (' · +'+d.topUp.toFixed(1)+'¢ per cup') : '';
+      if($('mVolEcho'))   $('mVolEcho').textContent=fmt0(d.vol);
+      // gold fill on volume slider
+      if(volSlider){ var vp=(d.vol-20000)/(300000-20000); volSlider.style.setProperty('--vp',(Math.max(0,Math.min(1,vp))*100).toFixed(1)+'%'); }
+      // figure per phase
+      if(phase===0){
+        figCur.style.display=''; figCur.textContent='SGD ';
+        figUnit.textContent=''; figPer.style.display=''; figPer.textContent='/kg';
+        if(animate) tween(figNum,lastFig,d.price,700,function(v){return v.toFixed(2);}); else figNum.textContent=d.price.toFixed(2);
+        lastFig=d.price;
+        sub.classList.remove('hide');
+        sub.innerHTML='to conservation, built into every cup';
+        var f2=$('mFigNum2'); if(f2) f2.textContent=d.baseCents.toFixed(1);
+        var ld0=$('mFigLead'); if(ld0) ld0.innerHTML='';
+        // ── price-increase nudge ──
+        var track=$('mPriceTrack'), ps=$('wholePrice'), enc=$('mPriceEncourage');
+        if(ps){
+          var pmin=+ps.min, pmax=+ps.max, pfrac=Math.max(0,Math.min(1,(d.price-pmin)/(pmax-pmin)));
+          ps.style.setProperty('--pp',(pfrac*100).toFixed(1)+'%');
+          var fr=Math.round(232+(238-232)*pfrac), fg=Math.round(184+(77-184)*pfrac), fb=Math.round(75+(23-75)*pfrac);
+          ps.style.setProperty('--pfill','rgb('+fr+','+fg+','+fb+')');
+          var atFull = d.price>=46;
+          if(track) track.classList.toggle('at-full', atFull);
+          if(enc){
+            enc.classList.toggle('at-full', atFull);
+            if(atFull){
+              var dCup=0.10*DOSE/1000*100;            /* ¢/cup per extra SGD 1/kg at full 10% */
+              var dYr=Math.round(dCup/100*d.vol);     /* SGD/yr at the chosen cup volume */
+              enc.textContent='\u2713 Full 10% \u00b7 each extra SGD 1 \u2248 +'+dCup.toFixed(1).replace(/\.0$/,'')+'\u00a2 a cup, ~SGD '+dYr+'/yr more to the forests';
+            }
+            else {
+              var away=(46-d.price);
+              enc.textContent='SGD '+away.toFixed(2)+' more unlocks the full 10% →';
+            }
+          }
+          // celebration burst on crossing into the full-10% band
+          if(mPrimed && atFull && !mPriceWasFull && typeof window.nfCelebrateAt==='function'){
+            ps.classList.remove('mcross-ten'); void ps.offsetWidth; ps.classList.add('mcross-ten');
+            window.nfCelebrateAt(ps, 1);
+          }
+          mPriceWasFull = atFull;
+        }
+      } else if(phase===1){
+        figCur.style.display='none';
+        figUnit.textContent='¢'; figPer.style.display=''; figPer.textContent='/cup';
+        if(animate) tween(figNum,lastFig,d.combined,700,function(v){return v.toFixed(1);}); else figNum.textContent=d.combined.toFixed(1);
+        lastFig=d.combined;
+        var ld1=$('mFigLead');
+        if(ld1) ld1.innerHTML='<span class="lb">'+d.baseCents.toFixed(1)+'¢</span><span class="lead-lab">built in</span><span class="lead-op">+</span><span class="lt">'+d.topUp.toFixed(1)+'¢</span><span class="lead-lab">your top-up</span><span class="lead-op">=</span>';
+        sub.classList.add('hide');
+      } else {
+        figCur.style.display=''; figCur.textContent='\u2248 SGD ';
+        figUnit.textContent=''; figPer.style.display=''; figPer.textContent='/yr';
+        if(animate) tween(figNum,lastFig,d.annual,1100,function(v){return fmt0(v);}); else figNum.textContent=fmt0(d.annual);
+        var vc2=$('volCups'), ld2=$('mFigLead');
+        if(ld2) ld2.innerHTML='<span>'+fmt0(vc2?+vc2.value:30000)+'</span><span class="lead-lab">cups</span><span class="lead-op">×</span><span class="lw">'+d.combined.toFixed(1)+'¢</span><span class="lead-op">=</span>';
+        lastFig=d.annual;
+        sub.classList.add('hide');
+      }
+      // phase identity: headline + tonal class
+      var phaseTitles=['Price your coffee, choose your impact','Top up your contribution, or skip it','A rough sense of your year with NoFilter'];
+      if($('qStepName')) $('qStepName').textContent=phaseTitles[phase];
+      stage.classList.toggle('ph-topup', phase===1);
+      // eyebrow + cap
+      if(phase===0){ eyebrow.textContent=''; cap.textContent=''; }
+      if(phase===1){ eyebrow.textContent='From your SGD '+d.price.toFixed(2)+'/kg'; cap.textContent='Looking to hit an impact target per cup? Top up directly below.'; }
+      if(phase===2){ eyebrow.textContent=''; cap.textContent='Slide your likely cup volume to see how the year adds up.'; }
+      cap.style.display = cap.textContent ? '' : 'none';
+      // instruction line only on the price screen
+      var howto=$('morphHowto'); if(howto) howto.style.display = phase===0 ? '' : 'none';
+      // control visibility
+      $('mCtlPrice').classList.toggle('hide', phase!==0);
+      $('mCtlTopup').classList.toggle('hide', phase!==1);
+      $('mCtlVol').classList.toggle('hide', phase!==2);
+      // figure size + year state
+      figure.style.fontSize = phase===2 ? 'clamp(38px,7vw,88px)' : 'clamp(44px,8.5vw,104px)';
+      stage.classList.toggle('year', phase===2);
+      stage.classList.toggle('cap-top', phase===0);   // caption above the hero only on the price phase
+      // rail
+      document.querySelectorAll('.morph-rail .seg').forEach(function(s,i){ s.classList.toggle('active',i===phase); s.classList.toggle('done',i<phase); });
+      $('mrl0').classList.toggle('done', phase>0);
+      $('mrl1').classList.toggle('done', phase>1);
+      // lock button
+      if(phase===0){ lockLabel.textContent='Lock in the price'; lockBtn.style.display=''; lockBtn.style.visibility=''; lockBtn.querySelector('.mic').innerHTML='&#128274;'; }
+      if(phase===1){ lockLabel.textContent= d.topUp>0 ? 'Lock in the top-up' : 'Skip, no top-up'; lockBtn.style.display=''; lockBtn.style.visibility=''; lockBtn.querySelector('.mic').innerHTML= d.topUp>0?'&#128274;':'&rarr;'; }
+      if(phase===2){ lockBtn.style.display=''; lockBtn.style.visibility='hidden'; }
+      backLink.classList.remove('hide'); backLink.style.visibility=(phase===0?'hidden':'');
+      // locked chips
+      lockedRow.innerHTML='';
+      if(phase>=2) lockedRow.appendChild(chip('Price · SGD '+d.price.toFixed(2)+'/kg · '+(d.rate*100).toFixed(0)+'%',0));
+      if(phase>=2) lockedRow.appendChild(chip('Top-up · '+(d.topUp>0?'+'+d.topUp.toFixed(1)+'¢':'none'),1));
+      milestone(d);
+    }
+
+    function goPhase(p){
+      var animate = p!==phase;
+      phase=p;
+      if(p>maxPhase) maxPhase=p;
+      pSlider.disabled = p>0;
+      if(tuSlider) tuSlider.disabled = p>1;
+      // reveal the downstream quote once the builder has been completed (reached the year at least once)
+      var ds=$('qDownstream'), cue=$('qGateCue'), sb=$('qSubmitBtn');
+      if(p>=2 || maxPhase>=2){
+        if(ds) ds.classList.add('unlocked'); if(cue) cue.classList.add('gone');
+        if(sb){ sb.disabled=false; sb.setAttribute('aria-disabled','false'); sb.textContent='Send for review →'; }
+        var sq=$('nfStickyQuote'); if(sq){ sq.hidden=false; if(typeof compute==='function') compute(); }
+      } else {
+        if(ds) ds.classList.remove('unlocked'); if(cue) cue.classList.remove('gone');
+        if(sb){ sb.disabled=true; sb.setAttribute('aria-disabled','true'); sb.textContent='Complete the builder first'; }
+      }
+      paint(animate);
+      // one forward control per state: the deck Next appears only once the builder is complete
+      var dn0=$('deckNext0'); if(dn0) dn0.style.display = (p>=2 || maxPhase>=2) ? '' : 'none';
+      // top-up explainers are hover/focus-only again (the equation line explains the number); ensure they retire on phase change
+      if(window.__nfTopupGutters && p!==1) window.__nfTopupGutters.hide();
+      if(window.__nfPriceGutters && p!==0) window.__nfPriceGutters.hide();
+      var rid=(function(){ var n=document.getElementById('qStepName'); return n&&n.parentElement ? n.parentElement.querySelector('.q-head-copy') : null; })();
+      if(rid) rid.classList.toggle('rider-off', p!==0);
+    }
+    window.__nfGoPhase=goPhase;
+    // repaint morph whenever the shared sliders move (compute() already wired separately)
+    pSlider.addEventListener('input',function(){ mPrimed=true; paint(false);
+      pSlider.classList.remove('thumb-pulse');
+      if(figure){ figure.classList.remove('mbump'); void figure.offsetWidth; figure.classList.add('mbump'); } });
+    if(tuSlider) tuSlider.addEventListener('input',function(){ mPrimed=true; tuSlider.classList.remove('thumb-pulse'); paint(false); });
+    if(volSlider) volSlider.addEventListener('input',function(){ paint(false); });
+
+    lockBtn.addEventListener('click',function(){
+      if(phase===0){ goPhase(1); }
+      else if(phase===1){ goPhase(2); }
+    });
+    backLink.addEventListener('click',function(){ goPhase(Math.max(0,phase-1)); });
+
+    // progress rail: click any already-visited step to jump back to it
+    document.querySelectorAll('.morph-rail .seg').forEach(function(seg){
+      seg.addEventListener('click',function(){
+        var target=+seg.dataset.seg;
+        if(target<=maxPhase) goPhase(target);   // only to visited steps (backward or current)
+      });
+    });
+
+    paint(false);
+    // reopen path: the wizard returns to its first sub-step
+    window.__morphReset=function(){ try{ goPhase(0); }catch(e){} };
+  })();
+
+
+  // ═══ §08 equipment steppers + servicing demo ═══
+  (function(){
+    // ── machine catalog (single source of truth; add/remove machines here) ──
+    // qtyDefault: all machines start unselected; the fleet is theirs to build.
+    // Rates: 36mo confirmed for 5/8;
+    // others + 24mo + purchase are tokenised/indicative in compute's RATES.
+    window.__MACHINES = [
+      { slug:'cm5', name:'CaféMatic 5', qtyDefault:0 },
+      { slug:'cm8', name:'CaféMatic 8', qtyDefault:0 },
+      { slug:'cm2', name:'CaféMatic 2', qtyDefault:0 },
+      { slug:'cm6', name:'CaféMatic 6', qtyDefault:0 }
+    ];
+    window.__qty = {};       // { cm5:1, cm8:1, cm2:0, cm6:0 }
+    window.__eqTerms = {};   // { cm5:{mode,term}, ... }
+    window.__MACHINES.forEach(function(mc){
+      window.__qty[mc.slug] = mc.qtyDefault;
+      window.__eqTerms[mc.slug] = { mode:'rental', term:36 };
+    });
+    // back-compat: some code still reads window.__qtyCm5 / __qtyCm8 directly
+    Object.defineProperty(window,'__qtyCm5',{get:function(){return window.__qty.cm5;},set:function(v){window.__qty.cm5=v;},configurable:true});
+    Object.defineProperty(window,'__qtyCm8',{get:function(){return window.__qty.cm8;},set:function(v){window.__qty.cm8=v;},configurable:true});
+    (function(){
+      document.querySelectorAll('.q-eq-terms').forEach(function(wrap){
+        var m = wrap.getAttribute('data-m');
+        if(!m || !window.__eqTerms[m]) return;
+        var lenWrap = wrap.querySelector('.q-eq-lengths');
+        function syncLenVisibility(){
+          if(lenWrap) lenWrap.classList.toggle('is-hidden', window.__eqTerms[m].mode !== 'rental');
+        }
+        wrap.querySelectorAll('.q-eq-mode').forEach(function(b){
+          b.addEventListener('click',function(){
+            window.__eqTerms[m].mode = b.getAttribute('data-mode');
+            wrap.querySelectorAll('.q-eq-mode').forEach(function(x){
+              var on=x===b; x.classList.toggle('is-on',on); x.setAttribute('aria-checked',on?'true':'false');
+            });
+            syncLenVisibility();
+            if(typeof compute==='function') compute();
+          });
+        });
+        wrap.querySelectorAll('.q-eq-len').forEach(function(b){
+          b.addEventListener('click',function(){
+            window.__eqTerms[m].term = parseInt(b.getAttribute('data-term'),10);
+            wrap.querySelectorAll('.q-eq-len').forEach(function(x){
+              var on=x===b; x.classList.toggle('is-on',on); x.setAttribute('aria-checked',on?'true':'false');
+            });
+            if(typeof compute==='function') compute();
+          });
+        });
+        syncLenVisibility();
+      });
+    })();
+    // ── choose-your-coffees: origin multi-select ──
+    // At least one origin required. Selected origins feed the handoff and
+    // (later) the contract's Schedule B. Batang Toru picked by default.
+    (function(){
+      var track = document.getElementById('cxTrack');
+      var hint = document.getElementById('qOriginHint');
+      if(!track) return;
+      var vp = track.parentElement;
+      var GAP = 14;
+      var COFFEES = [
+        {name:'Batang Toru', sched:'batang toru', note:'N. SUMATRA · PRCF & SRI', color:'#2f5d3a',
+         img:'https://nofilter-shared.netlify.app/bag-batang-toru.png', video:'https://nofilter-shared.netlify.app/batang-toru-banner.mp4', poster:'https://nofilter-shared.netlify.app/sabar-agroforest.jpg',
+         desc:'The buffer at the edge of Batang Toru, the only home of the Tapanuli orangutan. Shade-grown, farmers paid to keep the forest edge where it is.',
+         notes:['Dark chocolate','Red plum','Cedar'], acid:2, body:4, roast:3, proc:'Wet-hulled (giling basah)', coord:'1°38′18″N · 99°15′56″E', origin:'Sipirok, South Tapanuli · Indonesia', forest:'Batang Toru ecosystem', partner:'PRCF · SRI', on:true},
+        {name:'Batang Gadis', sched:'batang gadis', note:'N. SUMATRA · SRI', color:'#b8531a',
+         img:'https://nofilter-shared.netlify.app/bag-batang-gadis.png', video:'https://nofilter-shared.netlify.app/batang-gadis-banner.mp4',
+         desc:'The frontier of Batang Gadis National Park. Community-led agroforestry holds a hard line against clearing at the park\u2019s edge.',
+         notes:['Brown sugar','Orange','Almond'], acid:3, body:3, roast:3, proc:'Wet-hulled (giling basah)', coord:'0°31′50″N · 99°46′28″E', origin:'Ulu Pungkut, Mandailing Natal · Indonesia', forest:'Batang Gadis National Park buffer', partner:'SRI · Komanja', on:false},
+        {name:'Gayo Lues', sched:'gayo lues', note:'ACEH · OIC', color:'#9c7212',
+         img:'https://nofilter-shared.netlify.app/bag-gayo-lues.png', video:'https://nofilter-shared.netlify.app/gayo-lues-banner.mp4',
+         desc:'High-grown in Gayo Lues, on the edge of the Leuser Ecosystem, one of the last places elephant, tiger, rhino and orangutan still share ground.',
+         notes:['Syrupy','Dried fig','Cinnamon'], acid:3, body:5, roast:3, proc:'Wet-hulled, the Gayo way', coord:'––°––′N · –––°––′E', origin:'Gayo Lues, Aceh · Indonesia', forest:'Leuser Ecosystem edge', partner:'OIC', on:false},
+        {name:'Arakan Mountains', sched:'arakan', note:'MYANMAR · FFM & ACCA', color:'#1f5661',
+         img:'https://nofilter-shared.netlify.app/bag-arakan.png', video:'https://nofilter-shared.netlify.app/batang-arakan-banner.mp4',
+         desc:'The Asho Chin highlands, where ACCA and Fauna & Flora Myanmar keep the Mann Wildlife Sanctuary intact.',
+         notes:['Grapefruit','Candied nuts','Milk chocolate'], acid:5, body:2, roast:2, proc:'Fully washed', coord:'19°48′N · 94°20′30″E', origin:'Pauk Sa, Magway Region · Myanmar', forest:'Mann Wildlife Sanctuary, co-managed', partner:'ACCA · Fauna & Flora', cert:'Wildlife Friendly · PGS Organic', on:false}
+      ];
+      var openIdx = -1, cells = [];
+
+      function build(){
+        track.innerHTML=''; cells=[];
+        COFFEES.forEach(function(c,i){
+          var el=document.createElement('div'); el.className='cx-cell';
+          el.innerHTML='<div class="cx-tile'+(c.on?' is-picked':'')+'" data-origin="'+c.name+'" data-sched="'+c.sched+'" role="checkbox" tabindex="0" aria-checked="'+(c.on?'true':'false')+'">'
+            +'<div class="cx-tick">✓</div>'
+            +'<div class="cx-bar" style="background:'+c.color+'"></div>'
+            +'<div class="cx-photo"><img src="'+c.img+'" alt="'+c.name+'" onerror="this.style.opacity=0"></div>'
+            +'<div class="cx-name">'+c.name+'</div>'
+            +'<div class="cx-chips">'+c.notes.map(function(n){return '<span class="cx-chip">'+n+'</span>';}).join('')+'</div>'
+            +'<div class="cx-scales">'
+              +[['Acidity',c.acid],['Body',c.body],['Roast',c.roast]].map(function(r){
+                var dots=''; for(var d=1;d<=5;d++) dots+='<span class="cx-dot'+(d<=r[1]?' on':'')+'"></span>';
+                return '<div class="cx-scale"><span class="cx-scale-lab">'+r[0]+'</span><span class="cx-dots">'+dots+'</span></div>';
+              }).join('')
+            +'</div>'
+            +'<div class="cx-foot"><span class="cx-status">'+(c.on?'In order':'Tap to add')+'</span>'
+            +'<button class="cx-details" type="button">Details</button></div></div>';
+          track.appendChild(el); cells.push({el:el,kind:'tile',i:i});
+          var tile=el.querySelector('.cx-tile');
+          tile.addEventListener('click',function(e){ if(e.target.closest('.cx-details'))return; select(i); });
+          tile.addEventListener('keydown',function(e){ if(e.key===' '||e.key==='Enter'){e.preventDefault();select(i);} });
+          el.querySelector('.cx-details').addEventListener('click',function(e){ e.stopPropagation(); openIdx===i?closeDetail():openDetail(i); });
+        });
+        var d=document.createElement('div'); d.className='cx-cell'; d.style.opacity='0'; d.setAttribute('data-detail','1');
+        track.appendChild(d); cells.push({el:d,kind:'detail',i:-1});
+      }
+      function tileW(){ return (vp.clientWidth - GAP*3)/4; }
+      function layout(animate){
+        if(vp.clientWidth < 60){ requestAnimationFrame(function(){ layout(false); }); return; } // not laid out yet — retry
+        if(openIdx>=0){ lastOpenedIdx=openIdx; }
+        var w=tileW();
+        cells.forEach(function(c){ c.el.style.width=w+'px'; });
+        var tileH=cells[0].el.querySelector('.cx-tile').offsetHeight;
+        if(!tileH || tileH<60){ tileH=Math.round(w*4/3+96); } // fallback: photo 3:4 + text block
+        var detailCell=cells[cells.length-1];
+        detailCell.el.style.height=tileH+'px';
+        track.style.height=tileH+'px';
+        var order=[];
+        COFFEES.forEach(function(c,i){ order.push(cells[i]); if(openIdx===i) order.push(detailCell); });
+        if(openIdx<0) order.push(detailCell);
+        var count=order.length, totalW=count*w+(count-1)*GAP, startX=0;
+        var detailPos=order.indexOf(detailCell);
+        if(openIdx>=0){
+          var detailCenter=detailPos*(w+GAP)+w/2;
+          startX=vp.clientWidth/2-detailCenter;
+          var minX=vp.clientWidth-totalW;
+          startX=Math.max(Math.min(startX,0),Math.min(0,minX));
+        } else {
+          // closed state: centre the visible tiles (detail cell is parked off-view at the end)
+          var tilesW=COFFEES.length*w+(COFFEES.length-1)*GAP;
+          startX=Math.max(0,(vp.clientWidth-tilesW)/2);
+        }
+        order.forEach(function(c,pos){
+          var x=startX+pos*(w+GAP);
+          if(c.kind==='detail' && openIdx<0){ x=startX+lastOpenedIdx*(w+GAP); } // collapse home into its own tile, not off-right
+          var delay=animate?Math.min(Math.abs(pos-detailPos)*35,140):0;
+          c.el.style.transition=animate?('transform .6s cubic-bezier(.5,0,.15,1) '+delay+'ms, opacity .5s ease'):'none';
+          var scale=(openIdx>=0 && c.kind==='tile')?0.9:1;
+          c.el.style.transform='translateX('+x+'px) scale('+scale+')';
+          c.el.style.transformOrigin='center center';
+          var vis=1;
+          if(openIdx>=0){ // edge fade only applies when a detail is open and tiles are pushed
+            var left=x,right=x+w;
+            if(right<w*0.5||left>vp.clientWidth-w*0.5) vis=0;
+            else if(left<0||right>vp.clientWidth) vis=0.35;
+            if(c.kind==='tile') vis=Math.min(vis,0.7);
+          }
+          var _op=(c.kind==='detail'&&openIdx<0)?0:vis;
+          c.el.style.opacity=_op;
+          c.el.style.pointerEvents=_op<0.05?'none':'auto'; // invisible cells must not swallow clicks (the closed detail cell rests on its home tile)
+          if(!animate){ void c.el.offsetWidth; c.el.style.transition=''; }
+        });
+        // align the screen CTA's right edge with the last tile's right edge
+        try{
+          var scr=vp.closest('.deck-screen'), nb=scr?scr.querySelector('.deck-actions .deck-next'):null;
+          if(nb && openIdx<0){
+            var vr=vp.getBoundingClientRect();
+            var tileRight=vr.left+startX+tilesW;
+            nb.style.marginRight='0px';
+            var ar=nb.getBoundingClientRect();
+            nb.style.marginRight=Math.max(0,Math.round(ar.right-tileRight))+'px';
+            var rc=scr.querySelector('.q-step-head .q-head-copy');
+            if(rc){
+              rc.style.paddingRight='0px';
+              var rr=rc.getBoundingClientRect();
+              rc.style.paddingRight=Math.max(0,Math.round(rr.right-tileRight))+'px';
+            }
+          }
+        }catch(e){}
+      }
+      function fillDetail(c){
+        var d=cells[cells.length-1].el;
+        d.innerHTML='<div class="cx-detailcard" style="background:'+c.color+'">'
+          +'<button class="cx-dc-close" type="button">✕</button>'
+          +'<p class="cx-dc-eyebrow">Conservation coffee</p>'
+          +'<h3 class="cx-dc-name">'+c.name+'</h3>'
+          +'<p class="cx-dc-desc">'+c.desc+'</p>'
+          +'<div class="cx-dc-specs">'+[['Origin',c.origin],['Forest',c.forest],['Partner',c.partner],['Process',c.proc],['Certified',c.cert]].filter(function(r){return r[1];}).map(function(r){
+            return '<div class="cx-dc-row"><span class="cx-dc-k">'+r[0]+'</span><span class="cx-dc-v">'+r[1]+'</span></div>';
+          }).join('')+'</div>'
+          +'<p class="cx-dc-coord">'+c.coord+'</p>'
+          +'<div class="cx-dc-actions">'
+          +'<button class="cx-dc-add" type="button" style="background:#F4F2EE;color:'+c.color+'">'+(c.on?'✓ In order · remove':'Add to order')+'</button>'
+          +(c.video?'<button class="cx-dc-more" type="button">Find out more &rarr;</button>':'')
+          +'</div></div>';
+        d.querySelector('.cx-dc-close').addEventListener('click',closeDetail);
+        d.querySelector('.cx-dc-add').addEventListener('click',function(){
+          var btn=d.querySelector('.cx-dc-add');
+          if(togglePick(COFFEES.indexOf(c))) fillDetail(c);
+          else flashKeep(btn,function(){ fillDetail(c); });
+        });
+        var moreBtn=d.querySelector('.cx-dc-more');
+        if(moreBtn) moreBtn.addEventListener('click',function(e){ e.stopPropagation(); openDossier(COFFEES.indexOf(c)); });
+      }
+      function refreshTiles(){
+        COFFEES.forEach(function(c,i){
+          var t=cells[i].el.querySelector('.cx-tile');
+          t.classList.toggle('is-picked',c.on);
+          t.setAttribute('aria-checked',c.on?'true':'false');
+          t.querySelector('.cx-status').textContent=c.on?'In order':'Tap to add';
+          t.classList.toggle('is-active',openIdx===i||dossierIdx===i);
+        });
+      }
+      function refreshHint(){
+        if(!hint) return;
+        var n=COFFEES.filter(function(c){return c.on;}).length;
+        if(n===0){ hint.textContent='Pick at least one origin to back.'; hint.classList.add('is-warn'); }
+        else { hint.textContent=n+(n===1?' origin selected.':' origins selected.'); hint.classList.remove('is-warn'); }
+      }
+      function togglePick(i){
+        var c=COFFEES[i];
+        if(c.on && COFFEES.filter(function(x){return x.on;}).length<=1) return false;
+        c.on=!c.on; refreshTiles(); refreshHint();
+        if(typeof compute==='function') compute();
+        return true;
+      }
+      function flashKeep(el,restore){
+        if(!el) return; el.textContent='Keep at least one origin';
+        clearTimeout(el.__ft); el.__ft=setTimeout(restore,1200);
+      }
+      function select(i){
+        if(!togglePick(i)){
+          var st=cells[i].el.querySelector('.cx-status');
+          flashKeep(st,function(){ st.textContent='In order'; });
+        }
+      }
+      function openDetail(i){ if(dossierIdx>=0) closeDossier(); openIdx=i; fillDetail(COFFEES[i]); refreshTiles(); layout(true); }
+      function closeDetail(){ openIdx=-1; refreshTiles(); layout(true); }
+
+      var dossier=document.getElementById('cxDossier'), dossierIdx=-1, morph=null, morphT; var lastOrigin=null; var lastOpenedIdx=0; /* tile the detail card collapses home into */ /* card slot the panel flew from — reused by the exact-reverse close */
+      /* [generic Part 2 adaptation] in focus mode the scroller is #price.nf-focus-sec (position:fixed;overflow-y:auto),
+         not the window — route the dossier's auto-scroll through the active container so opening travels to the
+         panel and closing returns to the bags, exactly as on the shop page where window is the scroller. */
+      function nfScrollTo(el){ if(!el) return; var fs=document.querySelector('#price.nf-focus-sec');
+        if(fs){ var t=fs.scrollTop+(el.getBoundingClientRect().top-fs.getBoundingClientRect().top)-100; try{ fs.scrollTo({top:Math.max(0,t),behavior:'smooth'}); }catch(e){ fs.scrollTop=Math.max(0,t); } }
+        else { try{ window.scrollTo({top:Math.max(0,el.getBoundingClientRect().top+window.scrollY-100),behavior:'smooth'}); }catch(e){} } }
+      function fmtAmt(v){ return (Math.round(v*100)%100===0)? String(Math.round(v)) : v.toFixed(2); }
+      function cxCountUp(el,to,dur){ var from=parseFloat(el.textContent)||0,s=performance.now(); (function st(t){ t=t||performance.now(); var p=Math.min(1,(t-s)/dur),e=1-Math.pow(1-p,3); el.textContent=fmtAmt(from+(to-from)*e); if(p<1)requestAnimationFrame(st); })(); }
+      /* ═══ verbatim from Marketing/NoFilter-Website/shop.html — origin dossier (ensureMorph/buildDossier/openDossier/closeDossier). Adapted: addBtn listener guarded (no buy block when COFFEES carry no sizes); helpers fmtAmt/cxCountUp brought along. ═══ */
+      function ensureMorph(){ if(!morph){ morph=document.createElement('div'); morph.className='cx-morph'; document.body.appendChild(morph); } return morph; }
+      function syncDossierHeight(){ if(dossierIdx>=0 && dossier){ dossier.style.transition='none'; dossier.style.maxHeight=dossier.scrollHeight+'px'; void dossier.offsetWidth; dossier.style.transition=''; } }
+      function buildDossier(c,i){
+        var sizes=c.sizes||[]; var cur=c.cur||'SGD';
+        var sizePills = sizes.map(function(s,si){ return '<button class="cx-db-size'+(si===0?' is-sel':'')+'" type="button" data-s="'+si+'">'+s.lab.toUpperCase()+'</button>'; }).join('');
+        dossier.innerHTML='<div class="cx-dsheet" style="background:'+c.color+'">'
+          +'<button class="cx-db-close cx-sheet-close" type="button">Close ✕</button>'
+          +'<div class="cx-drow">'
+            +'<div class="cx-film-frame"><div class="cx-dv"><video src="'+c.video+'"'+(c.poster?' poster="'+c.poster+'"':'')+' muted loop playsinline preload="metadata"></video><span class="cx-dv-coord">'+c.coord+'</span></div></div>'
+            +'<div class="cx-db">'
+              +'<p class="cx-db-eyebrow">Conservation coffee &middot; '+c.note+'</p>'
+              +'<h3 class="cx-db-name">'+c.name+'</h3>'
+              +'<p class="cx-db-desc">'+c.desc+'</p>'
+              +'<div class="cx-db-notes">'+c.notes.map(function(n){return '<span class="cx-db-chip">'+n+'</span>';}).join('')+'</div>'
+              +(sizes.length?'<div class="cx-db-buy">'
+                  +'<div class="cx-price-row">'
+                    +'<div class="cx-price"><small class="cx-price-lab">'+sizes[0].lab+'</small>'+cur+' <span class="cx-price-n">'+sizes[0].price+'</span></div>'
+                    +'<div class="cx-db-sizes">'+sizePills+'</div>'
+                    +'<div class="cx-db-qty"><button class="cx-db-step" type="button" data-d="-1" aria-label="Less">&minus;</button><span class="cx-db-n">1</span><button class="cx-db-step" type="button" data-d="1" aria-label="More">+</button></div>'
+                  +'</div>'
+                  +'<div class="cx-db-imp2">'
+                    +'<span class="cx-db-imp-left">'
+                      +'<span class="cx-seal"><svg viewBox="0 0 104 104"><defs><path id="cxSealPath'+i+'" d="M52,52 m-40,0 a40,40 0 1,1 80,0 a40,40 0 1,1 -80,0"/></defs><text><textPath href="#cxSealPath'+i+'" startOffset="0">· 10% OF EVERY BAG · TO THE FOREST </textPath></text></svg><span class="cx-seal-center"><span class="cx-seal-pct">10<small>%</small></span></span></span>'
+                      +'<span class="cx-seal-amt"><span class="cx-seal-k">This order gives</span><b>'+cur+' <span class="cx-imp-amt">0</span></b><span class="cx-seal-to">to '+c.partner+'</span></span>'
+                    +'</span>'
+                    +'<button class="cx-db-add" type="button">Add to cart →</button>'
+                  +'</div>'
+                +'</div>':'')
+              +'<a class="cx-morelink" href="#">Read the full origin story &rarr;</a>'
+            +'</div>'
+          +'</div>'
+        +'</div>';
+        dossier.querySelector('.cx-db-close').addEventListener('click',closeDossier);
+        var nEl=dossier.querySelector('.cx-db-n');
+        var amtEl=dossier.querySelector('.cx-imp-amt');
+        var priceN=dossier.querySelector('.cx-price-n'), priceLab=dossier.querySelector('.cx-price-lab');
+        var addBtn=dossier.querySelector('.cx-db-add');
+        var selSize=0;
+        function qtyNow(){ return Math.max(1,parseInt(nEl.textContent,10)||1); }
+        function updPrice(){ if(sizes[selSize]){ if(priceN)priceN.textContent=sizes[selSize].price*qtyNow(); if(priceLab)priceLab.textContent=(qtyNow()>1?qtyNow()+' × ':'')+sizes[selSize].lab; } }
+        function updImpact(animate){ if(amtEl && sizes[selSize]){ var v=sizes[selSize].price*0.10*qtyNow(); if(animate)cxCountUp(amtEl,v,900); else amtEl.textContent=fmtAmt(v); } }
+        function resetAdd(){ addBtn.textContent='Add to cart →'; }
+        dossier.querySelectorAll('.cx-db-size').forEach(function(b){
+          b.addEventListener('click',function(){ selSize=parseInt(b.getAttribute('data-s'),10);
+            dossier.querySelectorAll('.cx-db-size').forEach(function(x){x.classList.remove('is-sel');}); b.classList.add('is-sel'); updPrice(); updImpact(true); resetAdd(); });
+        });
+        dossier.querySelectorAll('.cx-db-step').forEach(function(b){
+          b.addEventListener('click',function(){ nEl.textContent=Math.max(1,qtyNow()+parseInt(b.getAttribute('data-d'),10)); updPrice(); updImpact(true); resetAdd(); });
+        });
+        dossier.__revealImpact=function(){ if(amtEl){ amtEl.textContent='0'; updImpact(true); } };
+        if(addBtn){ addBtn.addEventListener('click',function(){
+          var s=sizes[selSize]; CART.setQty(lineId(c,s.lab), qtyNow(), {name:c.name,size:s.lab,price:s.price,color:c.color});
+          addBtn.textContent='✓ Added — view cart'; showToast('Added to your cart');
+        }); }
+      }
+      // two-beat: the wedged-in compact card DROPS DOWN then WIDENS into the dossier
+      function openDossier(i){
+        if(!dossier) return;
+        document.body.classList.add('cx-dossier-open');
+        dossier.style.transform=''; dossier.style.opacity=''; /* clear collapse transient from a prior close */ /* focus deck grows+scrolls while open */
+        var c=COFFEES[i];
+        var inlineCard = cells[cells.length-1].el.querySelector('.cx-detailcard');
+        var f = inlineCard ? inlineCard.getBoundingClientRect() : cells[i].el.getBoundingClientRect();
+        lastOrigin={left:f.left,top:f.top,width:f.width,height:f.height};
+        buildDossier(c,i);
+        dossierIdx=i;
+        dossier.style.maxWidth='none'; dossier.style.borderRadius='0';
+        dossier.style.width='min(1240px,94vw)'; dossier.style.marginLeft='auto'; dossier.style.marginRight='auto';
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        dossier.classList.add('is-open','is-flying','is-morphing');
+        dossier.setAttribute('aria-hidden','false');
+        dossier.style.transition='none'; dossier.style.maxHeight=dossier.scrollHeight+'px'; void dossier.offsetWidth;
+        var sheetEl = dossier.querySelector('.cx-dsheet');
+        var l = (sheetEl||dossier).getBoundingClientRect();
+        var vid = dossier.querySelector('video');
+        var m=ensureMorph();
+        m.style.display='block'; m.style.background=c.color; m.style.borderRadius='16px';
+        m.style.left=f.left+'px'; m.style.top=f.top+'px'; m.style.width=f.width+'px'; m.style.height=f.height+'px';
+        m.style.transition='none'; m.style.opacity='1'; m.innerHTML='';
+        var clone=null;
+        if(inlineCard){ clone=inlineCard.cloneNode(true); clone.style.background='transparent'; clone.style.height='100%'; clone.style.transition='opacity .16s ease'; m.appendChild(clone); }
+        void m.offsetWidth;
+        closeDetail();
+        if(inlineCard){ inlineCard.style.transition='opacity .1s ease'; inlineCard.style.opacity='0'; }
+        if(reduce){ dossier.classList.remove('is-flying','is-morphing'); m.style.display='none'; m.innerHTML=''; dossier.style.transition=''; if(dossier.__revealImpact) dossier.__revealImpact(); if(vid&&vid.play)vid.play().catch(function(){}); if(vp && vp.style.display!=='none' && !document.querySelector('#price.nf-focus-sec')){ var vpS=vp.getBoundingClientRect().height+(parseFloat(getComputedStyle(vp).marginTop)||0)+(parseFloat(getComputedStyle(vp).marginBottom)||0); vp.style.display='none'; try{ window.scrollBy(0,-vpS); }catch(e){} } try{ nfScrollTo(dossier); }catch(e){} return; }
+        var expanded=false, finished=false;
+        var landed=function(){
+          if(finished) return; finished=true;
+          m.removeEventListener('transitionend',onEnd); clearTimeout(morphT);
+          m.style.display='none'; m.style.opacity='0'; m.innerHTML='';
+          if(dossierIdx!==i) return;
+          dossier.classList.remove('is-flying'); dossier.classList.remove('is-morphing');
+          dossier.style.transition='';
+          if(dossier.__revealImpact) dossier.__revealImpact();
+          if(vid&&vid.play){var p=vid.play();if(p&&p.catch)p.catch(function(){});}
+          // full clearance: pull the tile carousel out of flow so ONLY the dossier shows; compensate scroll so nothing jumps
+          if(vp && vp.style.display!=='none' && !document.querySelector('#price.nf-focus-sec')){ var vpSpace=vp.getBoundingClientRect().height+(parseFloat(getComputedStyle(vp).marginTop)||0)+(parseFloat(getComputedStyle(vp).marginBottom)||0); vp.style.display='none'; try{ window.scrollBy(0,-vpSpace); }catch(e){} }
+          setTimeout(function(){ if(dossierIdx!==i) return; try{ nfScrollTo(dossier); }catch(e){} }, 260);
+        };
+        var expand=function(){
+          if(expanded) return; expanded=true;
+          if(clone) clone.style.opacity='0';
+          setTimeout(function(){
+            m.style.transition='left .52s cubic-bezier(.4,0,.15,1), width .52s cubic-bezier(.4,0,.15,1), height .52s cubic-bezier(.4,0,.15,1), border-radius .52s ease';
+            m.style.left=l.left+'px'; m.style.width=l.width+'px'; m.style.height=l.height+'px'; m.style.borderRadius='18px';
+          }, 150);
+        };
+        var onEnd=function(e){
+          if(e.propertyName==='top' && !expanded){ expand(); }
+          else if(expanded && (e.propertyName==='width'||e.propertyName==='height')){ landed(); }
+        };
+        m.addEventListener('transitionend',onEnd);
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          m.style.transition='top .38s cubic-bezier(.45,0,.35,1)';
+          m.style.top=l.top+'px';
+        }); });
+        clearTimeout(morphT); morphT=setTimeout(function(){ if(!expanded)expand(); setTimeout(landed,760); }, 1800);
+      }
+      function closeDossier(){
+        if(dossierIdx<0 || !dossier) return;
+        clearTimeout(morphT);
+        if(morph){ morph.style.display='none'; morph.style.opacity='0'; morph.innerHTML=''; }
+        var closingIdx=dossierIdx, c=COFFEES[closingIdx];
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var vid=dossier.querySelector('video'); if(vid){ try{vid.pause();}catch(e){} }
+        dossier.classList.remove('is-flying','is-morphing','is-open');
+        dossier.setAttribute('aria-hidden','true');
+        /* [generic Part 2] REVERSE OF THE OPEN — run the Details wedge again so the neighbouring tiles
+           open a slot and the vertical detail card comes back into the row (the SAME make-space mechanism
+           as first clicking Details), while the horizontal panel contracts up into that returning card. */
+        if(vp && vp.style.display==='none'){ vp.style.display=''; }
+        dossierIdx=-1;                                   // clear first so the wedge doesn't recurse into closeDossier
+        openIdx=closingIdx; fillDetail(c); refreshTiles(); layout(true);   // tiles make space; the card returns to its slot
+        if(reduce){
+          dossier.style.transition='none'; dossier.style.maxHeight='0px'; dossier.style.opacity='0';
+          try{ nfScrollTo(vp); }catch(e){}
+          document.body.classList.remove('cx-dossier-open');
+          return;
+        }
+        // the horizontal panel narrows + lifts toward the row as the card lands in its slot
+        dossier.style.transformOrigin='top center';
+        dossier.style.transition='transform .48s cubic-bezier(.5,0,.15,1), opacity .38s ease';
+        dossier.style.transform='translateY(-22px) scale(.42)';
+        dossier.style.opacity='0';
+        // travel up to the row so the returned card and the tiles making space is what you see
+        setTimeout(function(){ try{ nfScrollTo(vp); }catch(e){} }, 80);
+        // close the panel's empty space once it has contracted away
+        setTimeout(function(){ dossier.style.transition='max-height .3s ease'; dossier.style.maxHeight='0px'; }, 380);
+        // beat 2 — the returned vertical card now folds in on itself and the tiles close up: back to the plain pre-details row
+        setTimeout(function(){ openIdx=-1; refreshTiles(); layout(true); }, 560);
+        // reset transient styles + release the grown deck once everything has settled on the regular page
+        setTimeout(function(){ dossier.style.transition='none'; dossier.style.transform=''; dossier.style.opacity=''; document.body.classList.remove('cx-dossier-open'); }, 1080);
+      }
+
+      
+
+      window.__pickedOrigins = function(){
+        return COFFEES.filter(function(c){return c.on;}).map(function(c){ return {name:c.name, sched:c.sched}; });
+      };
+      window.addEventListener('resize',function(){ layout(false); });
+      if('ResizeObserver' in window){ new ResizeObserver(function(){ layout(false); }).observe(vp); }
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape' && openIdx>=0) closeDetail(); });
+      build(); refreshHint();
+      requestAnimationFrame(function(){ layout(false); });
+    })();
+    var stepBtns = document.querySelectorAll('.q-step-btn');
+    function syncMachinesCta(){
+      var btn=document.querySelector('.deck-next[data-goto="2"]'); if(!btn) return;
+      var total=0; for(var k in window.__qty){ total+=window.__qty[k]||0; }
+      var skip = total===0;
+      btn.innerHTML = skip ? 'Skip machines &rarr;' : 'Confirm machines &rarr;';
+      btn.classList.toggle('deck-next--skip', skip);
+    }
+    if(stepBtns.length){
+      stepBtns.forEach(function(b){
+        b.addEventListener('click',function(){
+          var m=b.getAttribute('data-m'), d=parseInt(b.getAttribute('data-d'),10);
+          if(!(m in window.__qty)) return;
+          var next = Math.max(0, Math.min(9, window.__qty[m]+d));
+          // coffee-only is a valid configuration — no minimum machine count
+          window.__qty[m]=next;
+          if(typeof compute==='function') compute();
+          syncMachinesCta();
+        });
+      });
+      syncMachinesCta();
+    }
+    // staggered scroll-in entrance for the machine cards
+    (function(){
+      var cards=[].slice.call(document.querySelectorAll('.q-eq-card'));
+      if(!cards.length) return;
+      if(!('IntersectionObserver' in window)){ cards.forEach(function(c){c.classList.add('q-eq-in');}); return; }
+      var io=new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){
+            var i=cards.indexOf(en.target);
+            setTimeout(function(){ en.target.classList.add('q-eq-in'); }, i*140);
+            io.unobserve(en.target);
+          }
+        });
+      },{threshold:.2});
+      cards.forEach(function(c){ io.observe(c); });
+    })();
+    // servicing email-thread animation
+    var thread=document.getElementById('qThread');
+    if(thread){
+      var mails=[].slice.call(thread.querySelectorAll('.q-mail'));
+      var delays=[500,1700,2800,3700,4900];
+      var timers=[];
+      function play(){
+        timers.forEach(clearTimeout); timers=[];
+        mails.forEach(function(m){m.classList.remove('in');});
+        mails.forEach(function(m,i){ timers.push(setTimeout(function(){m.classList.add('in');}, delays[i])); });
+        timers.push(setTimeout(play, delays[delays.length-1]+4500));
+      }
+      var replay=document.getElementById('qSvcReplay');
+      if(replay) replay.addEventListener('click',play);
+      if('IntersectionObserver' in window){
+        var io=new IntersectionObserver(function(es){
+          es.forEach(function(e){ if(e.isIntersecting){ play(); io.disconnect(); } });
+        },{threshold:.25});
+        io.observe(thread);
+      } else { play(); }
+    }
+
+    // form submission → Netlify Forms, then show thank-you
+    var qForm=document.getElementById('qForm');
+    if(qForm){
+      qForm.addEventListener('submit',function(ev){
+        ev.preventDefault();
+        // guard: block submission until the coffee builder is complete
+        var sb=document.getElementById('qSubmitBtn');
+        if(sb && sb.disabled){
+          var ms=document.getElementById('morphStage');
+          if(ms) ms.scrollIntoView({behavior:'smooth',block:'center'});
+          return;
+        }
+        // ── persist selections for the contract endpoint (File 2) ──
+        // Reuses the values compute() already mirrored into the hidden fields;
+        // does not re-derive. Faithful to Your workplace's fleet+price shape.
+        try {
+          var val = function(id){ var el=document.getElementById(id); return el ? el.value : null; };
+          var num = function(id){ var v=parseFloat(val(id)); return isNaN(v) ? null : v; };
+          var qty = function(id){ var v=parseInt(val(id),10); return isNaN(v) ? 0 : v; };
+          var selections = {
+            v: 2,                       // schema version (2 = Your workplace fleet shape)
+            ts: Date.now(),
+            coffeePrice: num('fPrice'),          // SGD/kg the client set
+            conservationRate: val('fRate'),      // "5%" / "10%"
+            topUp: num('fTopUp'),                // SGD/kg voluntary top-up
+            allInPerKg: num('fAllIn'),
+            annualConservation: num('fConsAnnual'),
+            fleet: (window.__MACHINES||[]).map(function(mc){
+              var st = (window.__eqTerms&&window.__eqTerms[mc.slug])?window.__eqTerms[mc.slug]:{mode:'rental',term:36};
+              return {
+                machine: mc.name.replace('é','e'),
+                qty: (window.__qty&&window.__qty[mc.slug]!=null)?window.__qty[mc.slug]:0,
+                mode: st.mode,
+                termMonths: st.mode==='rental' ? st.term : null
+              };
+            }).filter(function(m){ return m.qty>0; }),
+            fleetMonthly: val('fFleet'),         // formatted monthly total
+            origins: (typeof window.__pickedOrigins === 'function') ? window.__pickedOrigins() : []
+            // NOTE: term/mode + origin selection are added in later steps;
+            // the contract's syncContract() reconciliation reads this shape.
+          };
+          localStorage.setItem('nf-part2-selections', JSON.stringify(selections));
+        } catch(e){ /* storage blocked (e.g. file://) — non-fatal, POST still runs */ }
+
+        var data=new FormData(qForm);
+        var enc=new URLSearchParams(data).toString();
+        // Hand off to the contract endpoint (File 2). [[CONTRACT_URL]] is a
+        // deploy-time token; if still unbuilt we skip the open rather than 404.
+        var openContract = function(){
+          var url = '[[CONTRACT_URL]]';
+          if (url && url.indexOf('[[') !== 0) {
+            try { window.open(url, '_blank', 'noopener'); } catch(e){ /* no-op */ }
+          }
+        };
+        fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:enc})
+          .then(function(){ openContract(); reveal(); })
+          .catch(function(){ openContract(); reveal(); }); // local/file: still hand off + confirm
+      });
+    }
+    function reveal(){
+      var f=document.getElementById('qForm'), t=document.getElementById('qThanks');
+      if(f) f.hidden=true;
+      var sb=document.getElementById('qSubmitBtn');
+      if(sb && sb.parentElement) sb.parentElement.style.display='none';
+      // full-card takeover: the received state fills the settle over the reel
+      var sheet=document.querySelector('.q-sheet.q-settle');
+      if(sheet && t){ sheet.classList.add('q-sent'); sheet.appendChild(t); }
+      if(t){ t.hidden=false; }
+      if(sheet && sheet.scrollIntoView) sheet.scrollIntoView({behavior:'smooth',block:'center'});
+      // hold the received card while its choreography lands; then close the builder, release, glide
+      setTimeout(function(){
+        window.__nfSubmitted=true;
+        try{
+          var qd=document.querySelector('.q-doc');
+          if(qd) qd.classList.add('nf-doorgate');
+          var dc=document.querySelector('.nf-doorcard');
+          if(dc){
+            dc.style.display='';
+            var tt=dc.querySelector('.nf-doorcard-title'); if(tt) tt.innerHTML='Selections received.';
+            var lede=dc.querySelector('.nf-doorcard-lede'); if(lede) lede.textContent="We'll bundle your selections into a PDF contract and send it for your review.";
+            var sub=dc.querySelector('.nf-doorcard-sub'); if(sub) sub.textContent="We'll be in touch shortly. Nothing is binding until reviewed and signed.";
+            var db=dc.querySelector('.nf-door'); if(db) db.style.display='none';
+            dc.style.cursor='default';
+            dc.classList.add('nf-doorcard--received');
+            var eb=dc.querySelector('.nf-doorcard-eyebrow'); if(eb) eb.textContent='Sent \u00b7 awaiting review';
+            if(!dc.querySelector('.nf-doorcard-seal')){ var seal=document.createElement('div'); seal.className='nf-doorcard-seal'; seal.setAttribute('aria-hidden','true'); seal.innerHTML='<svg viewBox="0 0 120 120" width="122" height="122" fill="none" aria-hidden="true"><circle cx="60" cy="60" r="54" stroke="rgba(194,214,182,.5)" stroke-width="1.5"/><circle cx="60" cy="60" r="42" fill="rgba(194,214,182,.09)" stroke="rgba(194,214,182,.28)" stroke-width="1"/><path d="M41 61 L54 74 L80 46" stroke="#cfe0c4" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'; dc.appendChild(seal); }
+            if(!dc.querySelector('.nf-door-unlock')){
+              var ub=document.createElement('button'); ub.type='button'; ub.className='nf-door-unlock';
+              ub.setAttribute('aria-label','Reopen your selections');
+              ub.title='Made an error? Reopen and resend';
+              ub.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg><span>Amend &amp; resend</span>';
+              ub.addEventListener('click',function(ev){ ev.stopPropagation(); if(window.__nfReopenSelections) window.__nfReopenSelections(); });
+              dc.appendChild(ub);
+            }
+          }
+        }catch(e){}
+        if(window.__nfReleaseDocument) window.__nfReleaseDocument();
+        // let the un-collapsed document settle before gliding, or the scroll dies in the reflow
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          setTimeout(function(){
+            var next=document.getElementById('talkClose');
+            if(next && next.scrollIntoView) next.scrollIntoView({behavior:'smooth',block:'start'});
+          }, 60);
+        });});
+      }, 3800);
+    }
+    // error path: the unlock on the completed doorcard reopens the widescreen builder from the top
+    window.__nfReopenSelections=function(){
+      window.__nfSubmitted=false;
+      var sheet=document.querySelector('.q-sheet.q-settle'); if(sheet) sheet.classList.remove('q-sent');
+      var t=document.getElementById('qThanks'); if(t) t.hidden=true;
+      var f=document.getElementById('qForm'); if(f) f.hidden=false;
+      var sb=document.getElementById('qSubmitBtn'); if(sb && sb.parentElement) sb.parentElement.style.display='';
+      // back to the first screen AND the wizard's first sub-step, then re-enter the widescreen builder
+      var d0=document.querySelector('.deck-dot'); if(d0) d0.click();
+      if(window.__morphReset) window.__morphReset();
+      if(window.__nfReengageFocus) window.__nfReengageFocus();
+    };
+  })();
+
+  // Reveal-on-scroll for .rv elements (restored — was lost with the old calculator script)
+  (function(){
+    var els = document.querySelectorAll('.rv:not(.in)');
+    if(!('IntersectionObserver' in window)){
+      els.forEach(function(e){ e.classList.add('in'); });
+      return;
+    }
+    var rio = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('in'); rio.unobserve(en.target); }
+      });
+    }, {threshold:0.12, rootMargin:'0px 0px -8% 0px'});
+    els.forEach(function(e){ rio.observe(e); });
+  })();
+
+  // Load deferred iframes (live counter, GIS map) only when scrolled into view
+  (function(){
+    var frames = document.querySelectorAll('iframe[data-counter-src]');
+    if(!frames.length) return;
+    function load(f){ if(!f.src){ f.src = f.getAttribute('data-counter-src'); } }
+    if(!('IntersectionObserver' in window)){ frames.forEach(load); return; }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ load(en.target); io.unobserve(en.target); } });
+    }, {threshold:0.25});
+    frames.forEach(function(f){ io.observe(f); });
+  })();
+
+  // ---- Footprint placement editor (toggle) ----
+  (function(){
+    var wrap = document.querySelector('.seam-walk');
+    if(!wrap) return;
+    var svg = wrap.querySelector('svg');
+    if(!svg) return;
+
+    // Toggle button
+    var btn = document.createElement('button');
+    btn.textContent = '✥ Edit prints';
+    btn.style.cssText = 'position:fixed;left:18px;bottom:18px;z-index:100000;font:600 12px/1 monospace;letter-spacing:.05em;padding:9px 13px;border-radius:8px;border:2px solid #1c1d1c;background:#fff;color:#1c1d1c;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.25);';
+    document.body.appendChild(btn);
+
+    // Readout panel
+    var panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed;left:18px;bottom:60px;z-index:100000;display:none;width:340px;max-height:50vh;overflow:auto;background:#1c1d1c;color:#eee;font:12px/1.5 monospace;padding:12px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.4);';
+    document.body.appendChild(panel);
+
+    var editing=false, selected=null;
+    var VB = svg.viewBox.baseVal; // x,y,width,height in user units
+
+    function feet(){ return Array.prototype.slice.call(svg.querySelectorAll('use')); }
+
+    function clientToSvg(clientX, clientY){
+      var r = svg.getBoundingClientRect();
+      var ux = VB.x + (clientX - r.left)/r.width * VB.width;
+      var uy = VB.y + (clientY - r.top)/r.height * VB.height;
+      return {x:ux, y:uy};
+    }
+
+    function getF(u){
+      return {
+        foot: (u.getAttribute('href')||u.getAttribute('xlink:href')||'').replace('#',''),
+        x: parseFloat(u.getAttribute('x'))||0,
+        y: parseFloat(u.getAttribute('y'))||0,
+        w: parseFloat(u.getAttribute('width'))||64,
+        h: parseFloat(u.getAttribute('height'))||104,
+        rot: (function(){ var m=(u.getAttribute('transform')||'').match(/rotate\(([-\d.]+)/); return m?parseFloat(m[1]):0; })()
+      };
+    }
+    function applyRot(u){
+      var f=getF(u);
+      u.setAttribute('transform','rotate('+f.rot+' '+(f.x+f.w/2)+' '+(f.y+f.h/2)+')');
+    }
+
+    function refresh(){
+      var arr = feet().map(getF);
+      var lines = arr.map(function(f){
+        return "{foot:'"+f.foot+"', x:"+Math.round(f.x)+", y:"+Math.round(f.y)+", rot:"+Math.round(f.rot)+"}";
+      });
+      panel.innerHTML = '<div style="color:#ed3326;margin-bottom:8px;font-weight:bold;">FOOTPRINTS ('+arr.length+') — drag to move · scroll wheel over a print to rotate · D=duplicate · Del=delete</div>'
+        + '<pre style="white-space:pre-wrap;margin:0 0 10px;">['+lines.join(',\n ')+']</pre>'
+        + '<button id="fpCopy" style="font:600 12px monospace;padding:7px 12px;border-radius:6px;border:none;background:#ed3326;color:#fff;cursor:pointer;">Copy coordinates</button>';
+      var cb=panel.querySelector('#fpCopy');
+      if(cb) cb.onclick=function(){ var txt='['+lines.join(',\n ')+']'; navigator.clipboard&&navigator.clipboard.writeText(txt); cb.textContent='Copied ✓'; setTimeout(function(){cb.textContent='Copy coordinates';},1200); };
+    }
+
+    function select(u){
+      selected=u;
+      feet().forEach(function(f){ f.style.outline=''; });
+      if(u){ /* visual hint via opacity */ feet().forEach(function(f){ f.style.opacity = f===u? '0.9':'0.35'; }); }
+      refresh();
+    }
+
+    function enable(){
+      editing=true; btn.textContent='✔ Done'; btn.style.background='#ed3326'; btn.style.color='#fff';
+      panel.style.display='block';
+      wrap.classList.add('in'); // make sure feet are visible
+      wrap.style.pointerEvents='auto'; wrap.style.zIndex='99998';
+      feet().forEach(function(u){
+        u.style.cursor='grab'; u.style.opacity='0.55'; u.style.pointerEvents='auto';
+      });
+      refresh();
+    }
+    function disable(){
+      editing=false; btn.textContent='✥ Edit prints'; btn.style.background='#fff'; btn.style.color='#1c1d1c';
+      panel.style.display='none';
+      wrap.style.pointerEvents='none'; wrap.style.zIndex='0';
+      feet().forEach(function(u){ u.style.cursor=''; u.style.opacity=''; u.style.outline=''; });
+      selected=null;
+    }
+    btn.onclick=function(){ editing?disable():enable(); };
+
+    // Drag
+    var drag=null;
+    svg.addEventListener('pointerdown', function(e){
+      if(!editing) return;
+      var u = e.target.closest('use'); if(!u) return;
+      select(u);
+      var f=getF(u), p=clientToSvg(e.clientX,e.clientY);
+      drag={u:u, dx:p.x-f.x, dy:p.y-f.y};
+      u.setPointerCapture(e.pointerId); u.style.cursor='grabbing';
+      e.preventDefault();
+    });
+    svg.addEventListener('pointermove', function(e){
+      if(!editing||!drag) return;
+      var p=clientToSvg(e.clientX,e.clientY);
+      drag.u.setAttribute('x', Math.round(p.x-drag.dx));
+      drag.u.setAttribute('y', Math.round(p.y-drag.dy));
+      applyRot(drag.u); refresh();
+    });
+    svg.addEventListener('pointerup', function(e){
+      if(drag){ drag.u.style.cursor='grab'; drag=null; }
+    });
+
+    // Rotate via wheel over a print
+    svg.addEventListener('wheel', function(e){
+      if(!editing) return;
+      var u=e.target.closest('use'); if(!u) return;
+      e.preventDefault(); select(u);
+      var f=getF(u); var nr=f.rot + (e.deltaY>0?3:-3);
+      u.setAttribute('transform','rotate('+nr+' '+(f.x+f.w/2)+' '+(f.y+f.h/2)+')');
+      refresh();
+    }, {passive:false});
+
+    // Keyboard: D duplicate, Delete remove
+    document.addEventListener('keydown', function(e){
+      if(!editing||!selected) return;
+      if(e.key==='d'||e.key==='D'){
+        var f=getF(selected);
+        var clone=selected.cloneNode(true);
+        clone.setAttribute('x', f.x+20); clone.setAttribute('y', f.y+20);
+        clone.style.opacity='0.55'; clone.style.cursor='grab'; clone.style.pointerEvents='auto';
+        selected.parentNode.appendChild(clone);
+        applyRot(clone); select(clone); refresh();
+      } else if(e.key==='Delete'||e.key==='Backspace'){
+        if(feet().length>1){ selected.remove(); select(null); refresh(); }
+      }
+    });
+  })();
+
+  // Walk the hand trail in when the bridge tile scrolls into view
+  (function(){
+    var t = document.querySelector('.seam-walk');
+    if(!t) return;
+    if(!('IntersectionObserver' in window)){ t.classList.add('in'); return; }
+    var io2 = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io2.unobserve(en.target); } });
+    }, {threshold:0.4});
+    io2.observe(t);
+  })();
+})();
+
+
+/* ══ deck controller: hard-linear gated screens ══ */
+console.log('[NF] stepJ build v140');
+setInterval(function(){
+  var s=document.querySelector('.deck-screen.is-active');
+  var t=document.getElementById('cxTrack');
+  if(s && s.dataset.screen==='1' && t && t.offsetHeight<60){ window.dispatchEvent(new Event('resize')); }
+},400);
+(function(){
+  function initDeck(){
+    var screens=[].slice.call(document.querySelectorAll('.deck-screen'));
+    var dots=[].slice.call(document.querySelectorAll('#deckDots .deck-dot'));
+    // move the submit card into the funnel's final screen; gate sections after the builder until send/skip
+    var submitCard=document.getElementById('qSubmitCard');
+    if(submitCard && screens[3]){
+      var sheet=screens[3].querySelector('.q-sheet');
+      // single-sheet letter: the confirm/send form lives OUTSIDE the sheet, below it (an artifact has no form fields)
+      if(sheet && submitCard.parentNode!==screens[3]){
+        sheet.parentNode.insertBefore(submitCard, sheet.nextSibling);
+      } else if(sheet){
+        // ensure it sits after the sheet, not inside
+        screens[3].appendChild(submitCard);
+      }
+      submitCard.classList.add('nf-postgate');
+      // cinematic settle: hero stats over footage, compact manifest beneath — step 4 speaks step 1's language
+      if(sheet && !sheet.classList.contains('q-settle')){
+        sheet.classList.add('q-settle');
+        // footage layer inside the card (the house container for footage everywhere else)
+        if(!sheet.querySelector('.stl-media')){
+          var med=document.createElement('div'); med.className='stl-media';
+          med.innerHTML='<video autoplay muted loop playsinline src="https://nofilter-shared.netlify.app/settle-recap.mp4"></video><div class="stl-scrim"></div>';
+          sheet.insertBefore(med, sheet.firstChild);
+        }
+        // promote the totals pair to the top as the hero strip
+        var tot=sheet.querySelector('.q-total');
+        if(tot){ sheet.insertBefore(tot, sheet.children[1]||null); tot.classList.add('stl-hero'); }
+        // wrap each group + its rows into a manifest column
+        var manifest=document.createElement('div'); manifest.className='stl-manifest';
+        var groups=[].slice.call(sheet.querySelectorAll('.q-group'));
+        groups.forEach(function(g){
+          var col=document.createElement('div'); col.className='stl-col';
+          var n=g.nextElementSibling;
+          var head=g.cloneNode(true);
+          head.textContent=head.textContent.split('·')[0].trim(); // card title, no editorial tail
+          col.appendChild(head);
+          var toMove=[];
+          while(n && !(n.classList && n.classList.contains('q-group')) && !(n.classList && (n.classList.contains('q-total')||n.classList.contains('q-inv-foot')||n.classList.contains('q-inv-signoff')||n.classList.contains('q-fine')))){
+            toMove.push(n); n=n.nextElementSibling;
+          }
+          toMove.forEach(function(m){ col.appendChild(m); });
+          g.remove();
+          manifest.appendChild(col);
+        });
+        sheet.appendChild(manifest);
+        // the act joins the manifest grid: confirm panel fills the space under coffee + machines
+        manifest.appendChild(submitCard);
+      }
+      // stamp the live date(s)
+      (function(){
+        var dt=document.getElementById('qInvDate');
+        var d2=document.getElementById('qInvDate2');
+        var s=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+        if(dt){ dt.textContent=s; }
+        if(d2){ d2.textContent=s; }
+      })();
+      // the send action closes the inclusions column, wired to the form via the form attribute
+      var sbtn=document.getElementById('qSubmitBtn'), form=document.getElementById('qForm');
+      if(sbtn && form){
+        var sw=document.createElement('div');
+        sw.style.cssText='display:flex;justify-content:flex-end;margin-top:18px;';
+        var colsAll=document.querySelectorAll('.stl-manifest .stl-col');
+        var lastCol=colsAll.length?colsAll[colsAll.length-1]:null;
+        sbtn.setAttribute('form','qForm');
+        (lastCol||form).appendChild(sw); sw.appendChild(sbtn);
+      }
+      (function(){
+        // no dotted leaders — clean two-column figure alignment instead
+      })();
+    }
+    var gatedSections=[];
+    (function(){
+      var sec=document.getElementById('price');
+      if(sec){
+        document.body.classList.add('nf-gated');
+        // tease the first section after the builder (the actual "rest of the proposal"), collapse the rest
+        var n=sec.nextElementSibling, teased=null;
+        while(n){
+          if(!teased){ teased=n; n.classList.add('nf-tease'); }
+          else { n.classList.add('nf-postgate'); }
+          gatedSections.push(n); n=n.nextElementSibling;
+        }
+        // the footer lives at body level, outside the wrapper — collapse it fully
+        var wrap=sec.parentElement;
+        if(wrap && wrap.parentElement===document.body){
+          var m=wrap.nextElementSibling;
+          while(m){ if(m.tagName!=='SCRIPT' && m.tagName!=='STYLE' && !m.classList.contains('nf-exit') && getComputedStyle(m).position!=='fixed'){ m.classList.add('nf-postgate'); gatedSections.push(m); } m=m.nextElementSibling; }
+        }
+        // floating unlock chip over the fade
+        var mark=document.createElement('button');
+        mark.type='button'; mark.className='nf-gatemark'; mark.id='nfGateMark';
+        mark.innerHTML='<span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>The rest of the proposal &middot; continues below</span>';
+        mark.addEventListener('click',function(){
+          try{ var d=document.querySelector('.nf-doorcard'); if(d && d.scrollIntoView) d.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+        });
+        if(teased){ teased.insertAdjacentElement('beforebegin', mark); }
+        else { sec.insertAdjacentElement('afterend', mark); }
+      }
+    })();
+    var released=false;
+    function releaseDocument(){
+      if(released){ if(window.__nfExitFocus) window.__nfExitFocus(); return; }
+      released=true;
+      document.body.classList.remove('nf-gated');
+      gatedSections.forEach(function(el){
+        el.classList.remove('nf-postgate'); el.classList.remove('nf-blurgate');
+        if(el.classList.contains('nf-tease')){
+          el.classList.add('nf-tease-open');
+          setTimeout(function(){ el.classList.remove('nf-tease'); el.classList.remove('nf-tease-open'); },1500);
+        }
+      });
+      var mark=document.getElementById('nfGateMark');
+      if(mark){ mark.style.opacity='0'; setTimeout(function(){ mark.remove(); },600); }
+      if(window.__nfExitFocus) window.__nfExitFocus();
+    }
+    window.__nfReleaseDocument=releaseDocument;
+    // send or skip releases the document
+    (function(){
+      var form=document.getElementById('qForm');
+      // release is driven by the thanks sequence (reveal), not raw submit, so the settle stays composed
+      if(screens[3]){
+        var skip=document.createElement('button');
+        skip.type='button'; skip.className='deck-skiplink';
+        skip.textContent='Continue reading the proposal ↓';
+        screens[3].appendChild(skip);
+        skip.addEventListener('click',releaseDocument);
+      }
+    })();
+    // the price lock gates the price screen's Continue: both locked chips arm it
+    (function(){
+      var next0=document.getElementById('deckNext0');
+      var lockedBox=document.getElementById('morphLocked');
+      if(!next0) return;
+      function sync(){
+        var chips=lockedBox?lockedBox.children.length:0;
+        next0.classList.toggle('is-gated', chips<2);
+      }
+      if(lockedBox && 'MutationObserver' in window){
+        new MutationObserver(sync).observe(lockedBox,{childList:true});
+      }
+      sync();
+    })();
+    var cur=0, maxReached=0, transitioning=false;
+    function apply(n){
+      screens.forEach(function(s,i){ s.classList.toggle('is-active',i===n); });
+      dots.forEach(function(d,i){ d.classList.toggle('is-active',i===n); d.classList.toggle('is-done',i<n); });
+      document.body.classList.toggle('nf-laststep', n===3);
+      screens[n].querySelectorAll('.rv').forEach(function(el){ el.classList.add('in'); });
+      if(maxReached>=3 && submitCard) submitCard.classList.remove('nf-postgate');
+      requestAnimationFrame(function(){ window.dispatchEvent(new Event('resize')); });
+    }
+    function show(n,noScroll){
+      if(n<0||n>=screens.length||transitioning) return;
+      if(n>maxReached && n>cur+1) return;
+      var from=cur;
+      cur=n; if(n>maxReached) maxReached=n;
+      if(noScroll || from===n){ apply(n); return; }
+      transitioning=true;
+      var out=screens[from];
+      out.classList.add('deck-exit');
+      setTimeout(function(){
+        out.classList.remove('deck-exit');
+        apply(n);
+        screens[n].classList.add('deck-enter');
+        setTimeout(function(){ screens[n].classList.remove('deck-enter'); transitioning=false; },560);
+        try{
+          var sec=document.getElementById('price');
+          if(sec && sec.classList.contains('nf-focus-sec')) sec.scrollTop=0;
+          else { var doc=document.querySelector('.q-doc'); if(doc && doc.scrollIntoView) doc.scrollIntoView({behavior:'smooth',block:'start'}); }
+        }catch(e){}
+      },330);
+    }
+    document.querySelectorAll('.deck-next').forEach(function(b){
+      b.addEventListener('click',function(){ show(parseInt(b.getAttribute('data-goto'),10)); });
+    });
+    document.querySelectorAll('.deck-back').forEach(function(b){
+      b.addEventListener('click',function(){ show(parseInt(b.getAttribute('data-goto'),10)); });
+    });
+    dots.forEach(function(d,i){
+      d.style.cursor='pointer';
+      d.addEventListener('click',function(){ if(i<=maxReached) show(i); });
+    });
+    // force-start on screen 0 (don't rely on markup class surviving other scripts)
+    show(0,true);
+    // re-assert after other scripts settle, in case something flips it
+    setTimeout(function(){ if(cur===0){ screens.forEach(function(s,i){ s.classList.toggle('is-active',i===0); }); } }, 60);
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',initDeck); } else { initDeck(); }
+})();
+</script>
+</body></html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST — recovered gutter slider (messages in the gutter + hover)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:wght@0,400;0,500;0,600;0,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#ed3326; --nb:#1A1815; --cr:#F4F2EE; --pa:#EDE7D9; --li:#D8D4CE; --gy:#6B6B6B; --ad:#FFE8C3;
+  --font-b:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --font-m:"IBM Plex Mono","SF Mono",monospace;
+  --font-d:"Source Serif 4",Georgia,serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-b);background:var(--pa);color:var(--nb);line-height:1.6;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+.price-stage{position:relative;width:100%;max-width:560px;background:#FDFCF9;border:1px solid #E4DCC9;border-radius:16px;
+  padding:30px 34px 34px;box-shadow:0 30px 70px -36px rgba(26,24,21,.4);}
+.ps-eyebrow{font-family:var(--font-m);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--or);margin:0 0 6px;}
+.ps-title{font-family:var(--font-d);font-weight:500;font-size:clamp(20px,2.4vw,26px);margin:0 0 4px;line-height:1.15;}
+.ps-hint{font-family:var(--font-m);font-size:11px;letter-spacing:.05em;color:var(--gy);margin:0 0 8px;}
+
+/* ═══ base slider — harvested verbatim from the price-stage slider (AED/WIP lineage, lines 47–156) ═══ */
+.scale-track-wrap{position:relative;margin:18px 0 8px;padding-top:10px;transition:filter .3s ease;}
+/* live cents bubble that rides above the thumb */
+.thumb-bubble{position:absolute;top:8px;left:12.5%;transform:translateX(-50%);
+  background:var(--nb);color:var(--ad);font-family:var(--font-d);font-weight:500;
+  font-size:22px;line-height:1;padding:7px 12px 8px;border-radius:9px;white-space:nowrap;
+  box-shadow:0 4px 12px rgba(0,0,0,.28);pointer-events:none;z-index:5;
+  transition:background .3s ease,color .3s ease,box-shadow .3s ease;}
+.thumb-bubble::after{content:"";position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--nb);
+  transition:border-top-color .3s ease;}
+.thumb-bubble .bub-lab{font-family:var(--font-m);font-size:9px;font-weight:400;letter-spacing:.08em;
+  text-transform:uppercase;opacity:.6;margin-left:4px;vertical-align:1px;}
+.scale-range{position:relative;z-index:3;width:100%;-webkit-appearance:none;appearance:none;height:22px;border-radius:8px;
+  background:transparent;outline:none;cursor:pointer;}
+.track-bar{position:absolute;left:0;right:0;top:calc(10px + 4px);height:14px;border-radius:8px;pointer-events:none;z-index:1;
+  --fillpct:12.5%;overflow:hidden;
+  background:rgba(42,43,42,.92);box-shadow:inset 0 1px 3px rgba(0,0,0,.35);}
+.track-bar::before{content:"";position:absolute;top:0;left:0;bottom:0;width:var(--fillpct);
+  background:linear-gradient(90deg,#ee4d17 0%,#f27126 55%,#f2a900 100%);
+  box-shadow:0 0 10px rgba(242,169,0,.4);transition:width .12s linear;}
+.scale-range::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--nb);
+  border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;}
+.scale-range::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--nb);border:3px solid #fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;}
+.scale-track-wrap.nudge .scale-range::-webkit-slider-thumb{animation:thumbNudge 1.8s ease-in-out infinite;}
+.scale-track-wrap.nudge .scale-range::-moz-range-thumb{animation:thumbNudge 1.8s ease-in-out infinite;}
+@keyframes thumbNudge{
+  0%,100%{box-shadow:0 2px 8px rgba(0,0,0,.3),0 0 0 0 rgba(238,77,23,.5);}
+  50%{box-shadow:0 2px 8px rgba(0,0,0,.3),0 0 0 9px rgba(238,77,23,0);}
+}
+.scale-marks{position:relative;height:46px;margin-top:2px;}
+.scale-mark{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;}
+.scale-mark .mk-line{width:2px;height:14px;background:var(--gy);}
+.scale-mark.ten .mk-line{background:var(--or);width:3px;height:20px;border-radius:2px;position:relative;}
+.scale-mark.ten .mk-line::before{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);
+  width:9px;height:9px;border-radius:50%;background:var(--or);box-shadow:0 0 0 3px rgba(238,77,23,.22);}
+.scale-mark .mk-lab{font-family:var(--font-m);font-size:9px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--gy);margin-top:4px;white-space:nowrap;text-align:center;}
+.scale-mark.ten .mk-lab{color:var(--or);font-weight:700;}
+.ps-foot{margin-top:18px;padding-top:14px;border-top:1px solid var(--li);font-family:var(--font-m);font-size:10.5px;line-height:1.6;color:var(--gy);}
+
+/* ═══ THE GUTTER MESSAGES — recovered verbatim from _device-donor/NoFilter-Part2-MASTER-merged-WIP.html
+   (#nf-pricegutters, the clamped #nf-pricegutter-js). Hover/focus the track to reveal them. ═══ */
+.cfg2g{position:absolute;top:var(--p2g-top,120px);width:232px;z-index:30;
+  background:#2A2B2A;color:#F4EFE2;border-radius:12px;padding:15px 18px;
+  box-shadow:0 14px 34px rgba(26,24,21,.30);
+  opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;}
+.cfg2g--left{right:calc(100% + 24px);transform:translateX(10px);}
+.cfg2g--right{left:calc(100% + 24px);transform:translateX(-10px);}
+.cfg2g::after{content:"";position:absolute;top:24px;border:7px solid transparent;}
+.cfg2g--left::after{left:100%;border-left-color:#2A2B2A;}
+.cfg2g--right::after{right:100%;border-right-color:#2A2B2A;}
+.cfg2g-tag{display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;
+  letter-spacing:.14em;color:#F8B98C;margin-bottom:7px;font-weight:600;}
+.cfg2g p{font-size:12.5px;line-height:1.5;margin:0;opacity:.92;}
+.cfg2g b{color:#FFE8C3;font-weight:700;}
+.cfg2g.is-on{opacity:1;transform:translateX(0);}
+@media(max-width:1180px){.cfg2g{display:none;}}
+
+.th-note{position:fixed;left:12px;bottom:12px;font-family:var(--font-m);font-size:11px;color:var(--gy);background:rgba(255,255,255,.85);padding:6px 10px;border-radius:7px;}
+</style>
+</head>
+<body>
+
+<div class="price-stage">
+  <p class="ps-eyebrow">Your coffee price · per kilo, roasted &amp; landed</p>
+  <h2 class="ps-title">Set the price. Hover the slider.</h2>
+  <p class="ps-hint">Drag the slider — and hover or tab onto the track to see the gutter messages.</p>
+
+  <div class="scale-track-wrap nudge" id="scaleTrackWrap">
+    <div class="thumb-bubble" id="thumbBubble"><span id="bubbleCents">8.3</span>&cent;<span class="bub-lab">/cup</span></div>
+    <div class="track-bar" id="trackBar" aria-hidden="true"></div>
+    <input type="range" id="wholePrice" class="scale-range" value="46.00" min="45" max="53" step="0.25" aria-label="Set your coffee price per kilo">
+    <div class="scale-marks">
+      <span class="scale-mark ten" id="tenMark" style="left:12.5%" aria-hidden="true"><span class="mk-line"></span><span class="mk-lab">Full 10%</span></span>
+    </div>
+  </div>
+
+  <div class="ps-foot">* Across this range the conservation rate is a full 10% of every sale. A 5% floor is held in reserve only for exceptional shocks — and if it ever applied, we'd tell you, not adjust it quietly.</div>
+
+  <!-- recovered gutter panels (client token neutralised) -->
+  <div class="cfg2g cfg2g--left" id="p2-gutter-left" aria-hidden="true">
+    <span class="cfg2g-tag">WHAT IT COVERS</span>
+    <p>Most of what you set covers the <b>coffee</b>, the <b>farmers</b> growing it under canopy, and getting it <b>roasted and landed</b> at your office.</p>
+  </div>
+  <div class="cfg2g cfg2g--right" id="p2-gutter-right" aria-hidden="true">
+    <span class="cfg2g-tag">WHERE IT LANDS</span>
+    <p>A full <b>10%</b> of every sale is ring-fenced for conservation, set before anyone takes a margin. Wherever you land in the range is genuinely fine &mdash; a little more just stretches further.</p>
+  </div>
+</div>
+
+<div class="th-note">TEST — recovered gutter slider</div>
+
+<script>
+/* base slider render — track fill + thumb bubble (faithful to the recovered price-stage math) */
+(function(){
+  var slider=document.getElementById('wholePrice');
+  var wrap=document.getElementById('scaleTrackWrap');
+  var barEl=document.getElementById('trackBar');
+  var bubble=document.getElementById('thumbBubble');
+  var bubbleCents=document.getElementById('bubbleCents');
+  if(!slider||!wrap) return;
+  var SMIN=45, SMAX=53, span=SMAX-SMIN, TH=26;
+  function render(){
+    var price=+slider.value;
+    var frac=Math.max(0,Math.min(1,(price-SMIN)/span));
+    var wrapW=wrap.clientWidth||600;
+    var fillPx=frac*wrapW + (0.5-frac)*TH;
+    if(barEl) barEl.style.setProperty('--fillpct',(fillPx/wrapW*100).toFixed(1)+'%');
+    if(bubbleCents) bubbleCents.textContent=(price*0.18).toFixed(1);   // NoFilter cents/cup at 10%, 18g dose
+    if(bubble){
+      var centrePx=frac*wrapW+(0.5-frac)*TH;
+      var halfBub=bubble.offsetWidth/2||38;
+      centrePx=Math.max(halfBub+2,Math.min(wrapW-halfBub-2,centrePx));
+      bubble.style.left=centrePx+'px';
+    }
+  }
+  slider.addEventListener('input',render);
+  window.addEventListener('resize',render);
+  slider.addEventListener('input',function once(){ wrap.classList.remove('nudge'); slider.removeEventListener('input',once); });
+  if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(render); } else { render(); }
+})();
+</script>
+
+<script id="nf-pricegutter-js">
+/* recovered VERBATIM (clamped version) from _device-donor/NoFilter-Part2-MASTER-merged-WIP.html */
+(function(){
+  var stage=document.querySelector('.price-stage');
+  var track=document.getElementById('scaleTrackWrap');
+  var slider=document.getElementById('wholePrice');
+  var gutters=[document.getElementById('p2-gutter-left'),document.getElementById('p2-gutter-right')].filter(Boolean);
+  if(!stage||!track||gutters.length!==2)return;
+  function place(){
+    var tr=track.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+    stage.style.setProperty('--p2g-top',(tr.top-sr.top+tr.height/2-46)+'px');
+    var vw=document.documentElement.clientWidth,gw=232,gap=24,pad=10;var lx=Math.max(pad,sr.left-gap-gw),rx=Math.min(vw-pad-gw,sr.right+gap);if(gutters[0]){gutters[0].style.left=(lx-sr.left)+'px';gutters[0].style.right='auto';}if(gutters[1]){gutters[1].style.left=(rx-sr.left)+'px';gutters[1].style.right='auto';}
+  }
+  function show(){place();gutters.forEach(function(g){g.classList.add('is-on');});}
+  function hide(){gutters.forEach(function(g){g.classList.remove('is-on');});}
+  ['mouseenter','focusin'].forEach(function(ev){track.addEventListener(ev,show);});
+  ['mouseleave','focusout'].forEach(function(ev){track.addEventListener(ev,hide);});
+  if(slider)slider.addEventListener('input',function(){if(gutters[0].classList.contains('is-on'))place();},true);
+  window.addEventListener('resize',function(){if(gutters[0].classList.contains('is-on'))place();});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoFilter — problem band · four directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* ═══ four art directions for "the truth is…mega-farms" — same copy, same clip ═══
+   A · CINEMA   — full-bleed footage, knockout type ON the film (hero's language)
+   B · FIGURE   — cream grid, but the stat becomes a giant poster numeral
+   C · BLEED    — frame bleeds off the right edge; headline overlaps its corner
+   D · DARKROOM — the problem lives in the dark; seam will tear to straw light  */
+:root{--or:#ed3326;--cr:#F4F2EE;--nb:#1A1815;--gy:#8a8378;--ink2:#3D3E3D;
+  --d:"Big Shoulders Display",sans-serif;--m:"IBM Plex Mono",monospace;--s:"Source Serif 4",Georgia,serif;}
+*{box-sizing:border-box;} body{margin:0;background:var(--cr);color:var(--nb);font-family:var(--s);-webkit-font-smoothing:antialiased;}
+.badge{position:absolute;top:18px;left:18px;z-index:9;font-family:var(--m);font-size:11px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--cr);background:var(--nb);padding:8px 14px;}
+.cut{height:6px;background:var(--nb);}
+.kick{display:flex;align-items:center;gap:16px;font-family:var(--m);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--or);margin:0 0 28px;}
+.kick::after{content:"";flex:1;height:1px;background:rgba(237,51,38,.35);}
+.cold{filter:grayscale(.72) contrast(1.14) brightness(.9) sepia(.32) hue-rotate(165deg) saturate(1.05);}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px);opacity:.4;mix-blend-mode:multiply;}
+.cap{position:absolute;left:16px;bottom:14px;z-index:4;margin:0;font-family:var(--m);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:#e2e8ea;text-shadow:1.4px 0 rgba(237,51,38,.6),-1.4px 0 rgba(63,208,255,.5),0 1px 6px rgba(0,0,0,.7);}
+.cap .n{color:var(--or);text-shadow:none;}
+
+/* ── A · CINEMA ── */
+.vA{position:relative;background:var(--nb);}
+.vA .film{position:relative;height:92vh;overflow:hidden;}
+.vA .film video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.vA .film::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,15,13,.15) 0%,rgba(16,15,13,0) 40%,rgba(16,15,13,.78) 100%);}
+.vA .over{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:0 clamp(24px,5vw,72px) clamp(40px,5vw,72px);}
+.vA .kick{color:#ffb3ac;} .vA .kick::after{background:rgba(255,179,172,.35);}
+.vA h2{font-family:var(--d);font-weight:900;text-transform:uppercase;line-height:.9;letter-spacing:-.012em;
+  font-size:clamp(52px,7vw,124px);margin:0;color:var(--cr);max-width:14ch;}
+.vA h2 .o{color:var(--or);}
+.vA .sub{display:flex;gap:clamp(30px,5vw,80px);align-items:flex-end;flex-wrap:wrap;margin-top:clamp(22px,3vw,40px);}
+.vA .lede{font-size:clamp(16px,1.3vw,20px);line-height:1.6;color:rgba(244,242,238,.85);max-width:52ch;margin:0;}
+.vA .stat{border-top:2px solid var(--or);padding-top:14px;min-width:200px;}
+.vA .stat b{display:block;font-family:var(--d);font-weight:900;text-transform:uppercase;font-size:clamp(30px,3vw,50px);line-height:.9;color:var(--cr);}
+.vA .stat span{display:block;margin-top:8px;font-family:var(--m);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(244,242,238,.55);max-width:24ch;}
+
+/* ── B · FIGURE ── */
+.vB{position:relative;background:var(--cr);padding:clamp(60px,8vw,120px) clamp(24px,5vw,72px);}
+.vB .wrap{max-width:1520px;margin:0 auto;}
+.vB h2{font-family:var(--d);font-weight:900;text-transform:uppercase;line-height:.92;letter-spacing:-.012em;
+  font-size:clamp(44px,5.4vw,96px);margin:8px 0 clamp(36px,5vw,64px);}
+.vB h2 .o{color:var(--or);}
+.vB .grid{display:grid;grid-template-columns:.9fr 1.5fr;gap:clamp(32px,4vw,72px);align-items:end;}
+.vB .num{margin:0;}
+.vB .num b{display:block;font-family:var(--d);font-weight:900;text-transform:uppercase;color:var(--or);
+  font-size:clamp(120px,16vw,300px);line-height:.78;letter-spacing:-.02em;}
+.vB .num i{display:block;font-style:normal;font-family:var(--d);font-weight:900;text-transform:uppercase;color:var(--nb);
+  font-size:clamp(34px,3.6vw,58px);line-height:.95;margin-top:6px;}
+.vB .num span{display:block;margin-top:14px;font-family:var(--m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gy);max-width:26ch;}
+.vB .lede{font-size:clamp(16px,1.25vw,19px);line-height:1.7;color:var(--ink2);max-width:44ch;margin:clamp(26px,3vw,44px) 0 0;}
+.vB .frame{position:relative;overflow:hidden;background:#0c0c0b;aspect-ratio:16/9;}
+.vB .frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+
+/* ── C · BLEED ── */
+.vC{position:relative;background:var(--cr);padding:clamp(60px,8vw,120px) 0 clamp(60px,7vw,100px) clamp(24px,5vw,72px);overflow:hidden;}
+.vC .kick{max-width:34ch;}
+.vC h2{font-family:var(--d);font-weight:900;text-transform:uppercase;line-height:.92;letter-spacing:-.012em;
+  font-size:clamp(44px,5.6vw,100px);margin:8px 0 0;position:relative;z-index:3;max-width:16ch;}
+.vC h2 .o{color:var(--or);}
+.vC .row{display:grid;grid-template-columns:minmax(280px,.62fr) 1.38fr;gap:clamp(32px,4vw,64px);margin-top:clamp(-34px,-2.2vw,-20px);}
+.vC .frame{position:relative;overflow:hidden;background:#0c0c0b;aspect-ratio:16/9;margin-top:clamp(60px,6vw,96px);}
+.vC .frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.vC .txt{padding-top:clamp(100px,11vw,170px);display:flex;flex-direction:column;}
+.vC .lede{font-size:clamp(16px,1.3vw,20px);line-height:1.68;color:var(--ink2);max-width:40ch;margin:0;}
+.vC .stat{margin-top:auto;border-top:2px solid var(--or);padding-top:16px;}
+.vC .stat b{display:block;font-family:var(--d);font-weight:900;text-transform:uppercase;font-size:clamp(34px,3.6vw,58px);line-height:.92;}
+.vC .stat span{display:block;margin-top:10px;font-family:var(--m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gy);max-width:26ch;}
+
+/* ── D · DARKROOM ── */
+.vD{position:relative;background:#151310;padding:clamp(60px,8vw,120px) clamp(24px,5vw,72px);}
+.vD .wrap{max-width:1520px;margin:0 auto;}
+.vD .kick{color:var(--or);} .vD .kick::after{background:rgba(237,51,38,.4);}
+.vD h2{font-family:var(--d);font-weight:900;text-transform:uppercase;line-height:.92;letter-spacing:-.012em;
+  font-size:clamp(44px,5.6vw,100px);margin:8px 0 clamp(36px,5vw,60px);color:var(--cr);}
+.vD h2 .o{color:var(--or);}
+.vD .grid{display:grid;grid-template-columns:minmax(280px,.55fr) 1.45fr;gap:clamp(32px,4vw,72px);}
+.vD .frame{position:relative;overflow:hidden;background:#000;aspect-ratio:16/10;align-self:start;border-top:3px solid var(--or);}
+.vD .frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.vD .txt{display:flex;flex-direction:column;}
+.vD .lede{font-size:clamp(16px,1.3vw,20px);line-height:1.68;color:rgba(244,242,238,.82);max-width:42ch;margin:0;}
+.vD .lede .drop{float:left;font-family:var(--d);font-weight:900;font-size:3em;line-height:.72;padding:6px 12px 0 0;color:var(--cr);}
+.vD .byline{font-family:var(--m);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,242,238,.4);margin:26px 0 0;}
+.vD .stat{margin-top:auto;border-top:2px solid var(--or);padding-top:16px;}
+.vD .stat b{display:block;font-family:var(--d);font-weight:900;text-transform:uppercase;font-size:clamp(34px,3.6vw,58px);line-height:.92;color:var(--or);}
+.vD .stat span{display:block;margin-top:10px;font-family:var(--m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(244,242,238,.45);max-width:26ch;}
+
+/* shared body row — the two closing paragraphs, per-world colours */
+.rule{height:1px;background:rgba(26,24,21,.28);margin:clamp(36px,5vw,64px) 0 clamp(24px,3.2vw,44px);}
+.brow{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,72px);}
+.brow p{font-family:var(--s);font-size:clamp(15px,1.1vw,18px);line-height:1.72;color:var(--ink2);margin:0;}
+.vA .after{background:var(--nb);padding:0 clamp(24px,5vw,72px) clamp(48px,6vw,84px);}
+.vA .rule{background:rgba(244,242,238,.22);margin-top:clamp(40px,5vw,64px);}
+.vA .brow p{color:rgba(244,242,238,.78);}
+.vC .after{padding-right:clamp(24px,5vw,72px);}
+.vD .rule{background:rgba(244,242,238,.22);}
+.vD .brow p{color:rgba(244,242,238,.78);}
+@media(max-width:880px){
+  .vB .grid,.vC .row,.vD .grid,.brow{grid-template-columns:1fr;}
+  .vC{padding-right:clamp(24px,5vw,72px);}
+  .vC .txt{padding-top:26px;}
+  .vA .film{height:70vh;}
+}
+</style>
+</head>
+<body>
+
+<!-- A · CINEMA -->
+<section class="vA">
+  <span class="badge">A &middot; cinema &middot; full-bleed</span>
+  <div class="film">
+    <video class="cold" src="mono-coffee-long.mp4" muted loop playsinline autoplay preload="auto"></video>
+    <span class="scan"></span>
+    <p class="cap"><span class="n">Fig. 01</span> &middot; Grown where it's cheapest</p>
+    <div class="over">
+      <p class="kick">What most coffee does</p>
+      <h2>The truth is most of the coffee we drink comes from vast <span class="o">mega&#8209;farms&hellip;</span></h2>
+      <div class="sub">
+        <p class="lede">Land as far as the eye can track &mdash; ruthlessly efficient, mechanised and engineered for the lowest possible cost. It floods the shelves and teaches us coffee should always be cheap.</p>
+        <div class="stat"><b>One&nbsp;crop</b><span>to the horizon &mdash; everything else pushed aside</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="after">
+    <div class="rule"></div>
+    <div class="brow">
+      <p>At that scale, cheap stops being a price and becomes the expectation. Buyers gravitate towards the biggest estates, and the market bends around what they can produce.</p>
+      <p>What gets squeezed out isn&rsquo;t just smaller farms &mdash; it&rsquo;s the diverse, forested landscapes where coffee still grows beneath a living canopy. Without buyers, those farms lose the income that makes keeping the forest standing worth it.</p>
+    </div>
+  </div>
+</section>
+
+<div class="cut"></div>
+
+<!-- B · FIGURE -->
+<section class="vB">
+  <span class="badge">B &middot; giant figure</span>
+  <div class="wrap">
+    <p class="kick">What most coffee does</p>
+    <h2>The truth is most of the coffee<br>we drink comes from vast <span class="o">mega&#8209;farms&hellip;</span></h2>
+    <div class="grid">
+      <div>
+        <p class="num"><b>01</b><i>One crop</i><span>to the horizon &mdash; everything else pushed aside</span></p>
+        <p class="lede">Land as far as the eye can track &mdash; ruthlessly efficient, mechanised and engineered for the lowest possible cost. It floods the shelves and teaches us coffee should always be cheap.</p>
+      </div>
+      <figure class="frame" style="margin:0;">
+        <video class="cold" src="mono-coffee-long.mp4" muted loop playsinline autoplay preload="auto"></video>
+        <span class="scan"></span>
+        <figcaption class="cap"><span class="n">Fig. 01</span> &middot; Grown where it's cheapest</figcaption>
+      </figure>
+    </div>
+    <div class="rule"></div>
+    <div class="brow">
+      <p>At that scale, cheap stops being a price and becomes the expectation. Buyers gravitate towards the biggest estates, and the market bends around what they can produce.</p>
+      <p>What gets squeezed out isn&rsquo;t just smaller farms &mdash; it&rsquo;s the diverse, forested landscapes where coffee still grows beneath a living canopy. Without buyers, those farms lose the income that makes keeping the forest standing worth it.</p>
+    </div>
+  </div>
+</section>
+
+<div class="cut"></div>
+
+<!-- C · BLEED -->
+<section class="vC">
+  <span class="badge">C &middot; right bleed &middot; corner overlap</span>
+  <p class="kick">What most coffee does</p>
+  <h2>The truth is most of the coffee we drink comes from vast <span class="o">mega&#8209;farms&hellip;</span></h2>
+  <div class="row">
+    <div class="txt">
+      <p class="lede">Land as far as the eye can track &mdash; ruthlessly efficient, mechanised and engineered for the lowest possible cost. It floods the shelves and teaches us coffee should always be cheap.</p>
+      <div class="stat"><b>One&nbsp;crop</b><span>to the horizon &mdash; everything else pushed aside</span></div>
+    </div>
+    <figure class="frame" style="margin-right:0;margin-left:0;margin-bottom:0;">
+      <video class="cold" src="mono-coffee-long.mp4" muted loop playsinline autoplay preload="auto"></video>
+      <span class="scan"></span>
+      <figcaption class="cap"><span class="n">Fig. 01</span> &middot; Grown where it's cheapest</figcaption>
+    </figure>
+  </div>
+  <div class="after">
+    <div class="rule"></div>
+    <div class="brow">
+      <p>At that scale, cheap stops being a price and becomes the expectation. Buyers gravitate towards the biggest estates, and the market bends around what they can produce.</p>
+      <p>What gets squeezed out isn&rsquo;t just smaller farms &mdash; it&rsquo;s the diverse, forested landscapes where coffee still grows beneath a living canopy. Without buyers, those farms lose the income that makes keeping the forest standing worth it.</p>
+    </div>
+  </div>
+</section>
+
+<div class="cut"></div>
+
+<!-- D · DARKROOM -->
+<section class="vD">
+  <span class="badge">D &middot; darkroom</span>
+  <div class="wrap">
+    <p class="kick">What most coffee does</p>
+    <h2>The truth is most of the coffee<br>we drink comes from vast <span class="o">mega&#8209;farms&hellip;</span></h2>
+    <div class="grid">
+      <div class="txt">
+        <p class="lede"><span class="drop">L</span>and as far as the eye can track &mdash; ruthlessly efficient, mechanised and engineered for the lowest possible cost. It floods the shelves and teaches us coffee should always be cheap.</p>
+        <p class="byline">NoFilter &middot; Field note 01 &middot; On the cost of cheap</p>
+        <div class="stat"><b>One&nbsp;crop</b><span>to the horizon &mdash; everything else pushed aside</span></div>
+      </div>
+      <figure class="frame" style="margin:0;">
+        <video class="cold" src="mono-coffee-long.mp4" muted loop playsinline autoplay preload="auto"></video>
+        <span class="scan"></span>
+        <figcaption class="cap"><span class="n">Fig. 01</span> &middot; Grown where it's cheapest</figcaption>
+      </figure>
+    </div>
+    <div class="rule"></div>
+    <div class="brow">
+      <p>At that scale, cheap stops being a price and becomes the expectation. Buyers gravitate towards the biggest estates, and the market bends around what they can produce.</p>
+      <p>What gets squeezed out isn&rsquo;t just smaller farms &mdash; it&rsquo;s the diverse, forested landscapes where coffee still grows beneath a living canopy. Without buyers, those farms lose the income that makes keeping the forest standing worth it.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  document.querySelectorAll('video').forEach(function(v){ var p=v.play&&v.play(); if(p&&p.catch)p.catch(function(){}); });
+})();
+</script>
+
+<!-- ═══ TUNE overlay — full editorial access ═══ -->
+<style id="tune-css">
+[data-t]{cursor:pointer;}
+[data-t]:hover{outline:1px dotted rgba(237,51,38,.55);outline-offset:3px;}
+.t-sel{outline:2px dashed #ed3326 !important;outline-offset:4px;cursor:move !important;}
+#tunePanel{position:fixed;top:16px;right:16px;z-index:99999;width:250px;background:#141210;color:#F4F2EE;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;padding:14px 14px 12px;border:1px solid rgba(244,242,238,.18);
+  border-radius:8px;box-shadow:0 14px 40px rgba(0,0,0,.45);user-select:none;}
+#tunePanel h4{margin:0 0 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#ed3326;}
+#tunePanel .tname{min-height:15px;margin:0 0 10px;color:#ffe8c3;word-break:break-all;}
+#tunePanel label{display:flex;justify-content:space-between;align-items:center;margin:5px 0;gap:8px;}
+#tunePanel input{width:70px;background:#241f1b;border:1px solid rgba(244,242,238,.2);color:#F4F2EE;
+  font-family:inherit;font-size:11px;padding:3px 6px;border-radius:4px;}
+#tunePanel button{width:100%;margin-top:8px;background:#ed3326;border:0;color:#fff;font-family:inherit;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;padding:8px 0;border-radius:5px;cursor:pointer;}
+#tunePanel button.ghost{background:transparent;border:1px solid rgba(244,242,238,.3);}
+#tunePanel .hint{margin:10px 0 0;color:rgba(244,242,238,.5);line-height:1.5;}
+</style>
+<div id="tunePanel">
+  <h4>Tune</h4>
+  <p class="tname">click an element&hellip;</p>
+  <label>X <input type="number" step="1" data-k="x"></label>
+  <label>Y <input type="number" step="1" data-k="y"></label>
+  <label>Scale <input type="number" step="0.01" data-k="s"></label>
+  <label>Font px <input type="number" step="1" data-k="fs"></label>
+  <label>Line-h <input type="number" step="0.02" data-k="lh"></label>
+  <label>Ltr-sp em <input type="number" step="0.005" data-k="ls"></label>
+  <label>Width px <input type="number" step="10" data-k="w"></label>
+  <button class="ghost" id="tuneReset">Reset element</button>
+  <button id="tuneCopy">Copy all values</button>
+  <p class="hint">click = select &middot; drag = move<br>scroll on it = scale &middot; arrows = nudge<br>edits die on reload &mdash; COPY first</p>
+</div>
+<script id="tune-js">
+(function(){
+  var SELS=[['kicker','.kick'],['headline','h2'],['lede','.lede'],['stat','.stat'],['num','.num'],
+            ['byline','.byline'],['frame','.frame'],['film','.film'],['cap','.cap'],['rule','.rule'],['body-p','.brow p']];
+  var items=[];
+  document.querySelectorAll('section').forEach(function(sec){
+    var m=sec.className.match(/v([A-D])/); var v=m?m[1]:'?';
+    SELS.forEach(function(pair){
+      sec.querySelectorAll(pair[1]).forEach(function(el,i){
+        if(el.hasAttribute('data-t')) return;
+        el.setAttribute('data-t', v+'.'+pair[0]+(i?('#'+(i+1)):''));
+        items.push(el);
+      });
+    });
+  });
+  var panel=document.getElementById('tunePanel'), nameEl=panel.querySelector('.tname');
+  var inputs={}; panel.querySelectorAll('input').forEach(function(inp){ inputs[inp.getAttribute('data-k')]=inp; });
+  var sel=null;
+  function st(el){ return el._t||(el._t={x:0,y:0,s:1,fs:'',lh:'',ls:'',w:''}); }
+  function apply(el){ var t=st(el);
+    el.style.transform='translate('+t.x+'px,'+t.y+'px) scale('+t.s+')';
+    el.style.transformOrigin='top left';
+    el.style.fontSize=t.fs?t.fs+'px':'';
+    el.style.lineHeight=t.lh?t.lh:'';
+    el.style.letterSpacing=t.ls!==''?t.ls+'em':'';
+    if(t.w){ el.style.maxWidth='none'; el.style.width=t.w+'px'; } else { el.style.width=''; el.style.maxWidth=''; }
+  }
+  function show(el){ var t=st(el), cs=getComputedStyle(el);
+    nameEl.textContent=el.getAttribute('data-t');
+    inputs.x.value=t.x; inputs.y.value=t.y; inputs.s.value=t.s;
+    inputs.fs.value=t.fs||Math.round(parseFloat(cs.fontSize));
+    inputs.lh.value=t.lh||(parseFloat(cs.lineHeight)/parseFloat(cs.fontSize)).toFixed(2);
+    inputs.ls.value=t.ls!==''?t.ls:(cs.letterSpacing==='normal'?0:(parseFloat(cs.letterSpacing)/parseFloat(cs.fontSize)).toFixed(3));
+    inputs.w.value=t.w||Math.round(el.getBoundingClientRect().width);
+  }
+  function select(el){ if(sel)sel.classList.remove('t-sel'); sel=el; if(el){el.classList.add('t-sel'); show(el);} else nameEl.textContent='click an element…'; }
+  document.addEventListener('pointerdown',function(e){
+    if(e.target.closest('#tunePanel')) return;
+    var t=e.target.closest('[data-t]');
+    if(!t){ select(null); return; }
+    if(sel===t){
+      e.preventDefault();
+      var s=st(t), sx=e.clientX-s.x, sy=e.clientY-s.y;
+      function mv(ev){ s.x=Math.round(ev.clientX-sx); s.y=Math.round(ev.clientY-sy); apply(t); show(t); }
+      function up(){ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); }
+      document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up);
+    } else { select(t); }
+  }, true);
+  document.addEventListener('wheel',function(e){
+    if(!sel) return; var over=e.target.closest&&e.target.closest('[data-t]');
+    if(over!==sel) return; e.preventDefault();
+    var s=st(sel); s.s=Math.max(.2,Math.min(4,+(s.s*(e.deltaY<0?1.03:0.97)).toFixed(3))); apply(sel); show(sel);
+  },{passive:false});
+  document.addEventListener('keydown',function(e){
+    if(!sel) return; if(/INPUT/.test(document.activeElement.tagName)) return;
+    var s=st(sel), d=e.shiftKey?10:1, done=true;
+    if(e.key==='ArrowLeft')s.x-=d; else if(e.key==='ArrowRight')s.x+=d;
+    else if(e.key==='ArrowUp')s.y-=d; else if(e.key==='ArrowDown')s.y+=d;
+    else if(e.key==='Escape'){select(null);return;} else done=false;
+    if(done){e.preventDefault();apply(sel);show(sel);}
+  });
+  Object.keys(inputs).forEach(function(k){
+    inputs[k].addEventListener('input',function(){
+      if(!sel) return; var s=st(sel);
+      s[k]=(k==='x'||k==='y')?(parseInt(this.value)||0):this.value;
+      apply(sel); }); });
+  document.getElementById('tuneReset').addEventListener('click',function(){
+    if(!sel) return; sel._t=null;
+    sel.style.transform='';sel.style.fontSize='';sel.style.lineHeight='';sel.style.letterSpacing='';sel.style.width='';sel.style.maxWidth='';
+    show(sel); });
+  document.getElementById('tuneCopy').addEventListener('click',function(){
+    var out=[];
+    items.forEach(function(el){ var t=el._t; if(!t) return;
+      var touched=t.x||t.y||t.s!==1||t.fs||t.lh||t.ls||t.w; if(!touched) return;
+      out.push(el.getAttribute('data-t')+': x='+t.x+' y='+t.y+' s='+t.s+
+        (t.fs?' fs='+t.fs+'px':'')+(t.lh?' lh='+t.lh:'')+(t.ls?' ls='+t.ls+'em':'')+(t.w?' w='+t.w+'px':''));
+    });
+    var txt=out.length?out.join('\n'):'(nothing changed yet)';
+    function done(){ var b=document.getElementById('tuneCopy'); b.textContent='Copied ✓'; setTimeout(function(){b.textContent='Copy all values';},1500); }
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done,function(){fallback(txt);done();}); }
+    else { fallback(txt); done(); }
+    function fallback(s){ var ta=document.createElement('textarea'); ta.value=s; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta); }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST — CRT access gate → builder reveal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* tokens the device relies on (from _partials/site-head.html) */
+:root{ --or:#ed3326; --cr:#F4F2EE; --nb:#1A1815; --font-m:"IBM Plex Mono","SF Mono",monospace; }
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:#0c0b0a;}
+
+/* the real gated builder, behind the gate */
+.gate-builder{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--cr);z-index:1;}
+
+/* gate backdrop that holds the monitor */
+.gate{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(120% 120% at 50% 40%,#17140f 0%,#0b0a08 72%,#050403 100%);
+  transition:background .45s ease;}
+.gate.gate-off{background:#000;}                 /* fade to pure black to bridge into the builder's power-on */
+.gate.gate-off .crt-stage{opacity:0;transition:opacity .45s ease;}
+
+/* ═══ CRT COMPUTER DEVICE — harvested verbatim from
+   Clients/Schools/UWCSEA/NoFilter-UWCSEA-PartTwo.html
+   (crt-frame markup ~2420–2461 · CSS 597–661 · caret/typeLine/powerOff JS ~3677–3841).
+   Adapted (minimum): the scripted FRAMES story-driver is replaced with passcode input
+   capture; after the verbatim power-off, the monitor recedes to reveal the builder. ═══ */
+.crt-stage{width:100%;max-width:560px;margin:0 auto;}
+.crt-frame{position:relative;width:100%;}
+.crt-svg{display:block;width:100%;height:auto;
+  filter:drop-shadow(0 26px 54px rgba(0,0,0,.5));}
+/* screen live area — matches the SVG screen rect exactly (x64 y58 w392 h284 in 520x500) */
+.crt-screen{position:absolute;left:12.3%;top:11.6%;width:75.4%;height:56.8%;
+  overflow:hidden;border-radius:8%/11%;}
+/* CRT power-off dot overlay */
+.crt-poweroff{position:absolute;inset:0;z-index:10;pointer-events:none;display:flex;align-items:center;justify-content:center;background:#000;opacity:0;}
+.crt-poweroff-dot{width:4px;height:4px;border-radius:50%;background:#fff;
+  box-shadow:0 0 6px 2px rgba(255,220,150,.9),0 0 18px 4px rgba(255,180,80,.6);
+  opacity:0;}
+@keyframes crtCollapse{
+  0%{clip-path:inset(0% 0% 0% 0%);}
+  60%{clip-path:inset(48% 0% 48% 0%);}
+  85%{clip-path:inset(49.5% 40% 49.5% 40%);}
+  100%{clip-path:inset(49.8% 49.8% 49.8% 49.8%);}
+}
+@keyframes crtDotAppear{
+  0%{opacity:1;transform:scale(1);}
+  60%{opacity:1;transform:scale(1.8);}
+  100%{opacity:0;transform:scale(0);}
+}
+.crt-text{position:absolute;left:8%;top:9%;width:84%;height:82%;margin:0;
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:.4em;
+  font-family:var(--font-m,'Courier New',monospace);
+  text-align:left;white-space:pre-wrap;
+  color:#ffb02e;text-shadow:0 0 4px rgba(255,150,20,.9),0 0 11px rgba(255,120,10,.55);
+  letter-spacing:.02em;}
+.crt-line{font-size:clamp(11px,1.6vw,19px);line-height:1.4;text-align:left;}
+.crt-line.sm{font-size:clamp(11px,1.6vw,19px);color:#d98427;}   /* same size, just dimmer */
+.crt-line.mid{font-size:clamp(15px,2.2vw,26px);color:#e89a3a;line-height:1.25;margin-top:.25em;
+  text-shadow:0 0 6px rgba(255,150,30,.5);}
+.crt-line.big{font-size:clamp(18px,3vw,38px);font-weight:700;color:#ffc24d;line-height:1.1;
+  text-shadow:0 0 7px rgba(255,170,30,.95),0 0 20px rgba(255,120,10,.65);}
+.crt-line.huge{font-size:clamp(22px,4vw,52px);font-weight:700;color:#ffd166;line-height:1.05;
+  text-shadow:0 0 8px rgba(255,180,40,1),0 0 26px rgba(255,120,10,.7);}
+.crt-line.huge.pulse{animation:crtPulse 1.4s ease-in-out 3;}
+@keyframes crtPulse{
+  0%,100%{color:#ffd166;text-shadow:0 0 8px rgba(255,180,40,1),0 0 26px rgba(255,120,10,.7);}
+  50%{color:#fff;text-shadow:0 0 16px rgba(255,220,100,1),0 0 40px rgba(255,160,20,.9),0 0 70px rgba(255,120,10,.6);}
+}
+.crt-cur{display:inline-block;width:.6em;height:1.05em;margin-bottom:-.16em;vertical-align:baseline;
+  background:#ffb02e;box-shadow:0 0 6px rgba(255,150,20,.8);animation:crtCur 1s steps(1) infinite;}
+.crt-strike{position:relative;color:#c97a2a;}
+.crt-strike.struck::after{content:"";position:absolute;left:-2%;right:-2%;top:50%;height:.09em;
+  background:#ff5a2a;box-shadow:0 0 6px rgba(255,90,42,.9);transform:scaleX(0);transform-origin:left center;
+  animation:crtStrike .45s ease forwards;}
+.crt-after{color:#ffd166;}
+@keyframes crtStrike{to{transform:scaleX(1);}}
+.crt-scan{position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.10) 3px, rgba(0,0,0,.10) 4px);
+  mix-blend-mode:multiply;opacity:.6;}
+.crt-frame.flicker .crt-text{animation:crtFlick 4s steps(1) infinite;}
+.crt-mute{position:absolute;left:75.96%;top:82.6%;z-index:10;width:6.54%;height:auto;aspect-ratio:1;border-radius:50%;
+  border:2px solid #b0a487;background:radial-gradient(circle at 38% 32%,#d4c9ad,#bfb398 72%,#ada07f 100%);
+  color:#8a7a4e;font-size:1.1vw;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 3px rgba(120,108,80,.4),0 1px 2px rgba(0,0,0,.25);
+  transition:color .2s ease,box-shadow .2s ease;pointer-events:auto;padding:0;}
+.crt-mute:hover{color:var(--or);box-shadow:inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 3px rgba(120,108,80,.4),0 0 7px rgba(238,77,23,.5);}
+.crt-mute:focus{outline:none;}
+.crt-mute.off{color:rgba(138,122,78,.5);}
+@keyframes crtCur{0%,50%{opacity:1;}51%,100%{opacity:0;}}
+@keyframes crtFlick{0%,97%,100%{opacity:1;}97.5%{opacity:.86;}98.5%{opacity:1;}99%{opacity:.93;}}
+@media(prefers-reduced-motion:reduce){.crt-frame.flicker .crt-text{animation:none;}}
+
+/* test harness chrome (NOT part of the site) */
+.th-bar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;gap:14px;align-items:center;justify-content:center;
+  padding:10px;background:rgba(6,5,4,.9);color:#fff;font-family:var(--font-m);font-size:11px;letter-spacing:.06em;}
+.th-bar button{font-family:var(--font-m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--or);color:#fff;border:none;border-radius:7px;padding:8px 15px;cursor:pointer;}
+.th-bar .n{opacity:.6;}
+</style>
+</head>
+<body>
+
+<!-- ═══ CRT ACCESS GATE — verbatim CRT monitor from UWCSEA Part 2 ═══ -->
+<div class="gate" id="gate">
+  <div class="crt-stage">
+    <div class="crt-frame">
+      <svg class="crt-svg" viewBox="0 0 520 500" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="crtBody" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ece4d4"/>
+            <stop offset="0.5" stop-color="#ded4c0"/>
+            <stop offset="1" stop-color="#cabfa8"/>
+          </linearGradient>
+          <radialGradient id="crtGlass" cx="50%" cy="44%" r="75%">
+            <stop offset="0" stop-color="#241a08"/>
+            <stop offset="0.6" stop-color="#180f02"/>
+            <stop offset="1" stop-color="#0c0700"/>
+          </radialGradient>
+          <linearGradient id="crtBezel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#c5baa3"/>
+            <stop offset="1" stop-color="#ddd3bf"/>
+          </linearGradient>
+        </defs>
+        <rect x="10" y="8" width="500" height="484" rx="34" fill="url(#crtBody)" stroke="#b3a78d" stroke-width="2"/>
+        <rect x="40" y="34" width="440" height="332" rx="26" fill="url(#crtBezel)" stroke="#b0a487" stroke-width="1.5"/>
+        <rect x="54" y="48" width="412" height="304" rx="22" fill="#0e0a02" stroke="#9c906f" stroke-width="2"/>
+        <rect x="64" y="58" width="392" height="284" rx="30" fill="url(#crtGlass)"/>
+        <rect x="40" y="392" width="440" height="78" rx="14" fill="#d7ccb6" stroke="#b6aa8d" stroke-width="1.5"/>
+        <g fill="#bdb195">
+          <rect x="60" y="410" width="150" height="6" rx="3"/>
+          <rect x="60" y="422" width="150" height="6" rx="3"/>
+          <rect x="60" y="434" width="120" height="6" rx="3"/>
+        </g>
+        <rect x="300" y="408" width="70" height="44" rx="6" fill="#c3b89c"/>
+        <circle cx="452" cy="430" r="6" fill="#ee4d17"/>
+      </svg>
+      <div class="crt-screen">
+        <div class="crt-scan"></div>
+        <pre class="crt-text" id="crtText"></pre>
+        <div class="crt-poweroff" id="crtPowerOff"><div class="crt-poweroff-dot" id="crtDot"></div></div>
+      </div>
+      <button type="button" id="crtMute" class="crt-mute" aria-pressed="false" aria-label="Mute typing sound" title="Mute typing sound">&#9834;</button>
+    </div>
+  </div>
+  <audio id="crtKey" src="keystroke.mp3" preload="auto"></audio>
+</div>
+
+<div class="th-bar">
+  <span class="n">TEST — code:</span> HOLD THE LINE
+  <button id="relock" type="button">&#9654; Re-lock / replay</button>
+</div>
+
+<script src="keystroke-audio.js"></script>
+<script>
+(function(){
+  var gate   = document.getElementById('gate');
+  var frame  = gate.querySelector('.crt-frame');
+  var screen = document.getElementById('crtText');
+  var CODE = 'HOLDTHELINE';
+  var entry = '', inputLine = null, inputEnabled = false, finished = false;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+  // keystroke sound — Web Audio with a pre-decoded buffer: sample-accurate, zero-latency,
+  // retriggerable per keystroke (HTMLAudio drifts behind fast typing). Buffer is inlined as
+  // base64 (keystroke-audio.js) because a local file:// page can't fetch the mp3. Falls back
+  // to an <audio> pool if Web Audio is unavailable. Respects the CRT mute.
+  var crtMuted = false;
+  var actx = null, keyBuf = null, audioReady = false;
+  (function initAudio(){
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC || !window.__KEYB64) return;
+      actx = new AC();
+      var bin = atob(window.__KEYB64), len = bin.length, bytes = new Uint8Array(len);
+      for(var i=0;i<len;i++) bytes[i] = bin.charCodeAt(i);
+      actx.decodeAudioData(bytes.buffer, function(buf){ keyBuf = buf; audioReady = true; }, function(){});
+    }catch(e){}
+  })();
+  // fallback pool
+  var POOL = [], PN = 8, pi = 0;
+  for(var _p=0; _p<PN; _p++){ var _a=new Audio('keystroke.mp3'); _a.preload='auto'; _a.volume=0.3; POOL.push(_a); }
+  function playKey(){
+    if(crtMuted) return;
+    if(audioReady && actx){
+      try{
+        if(actx.state === 'suspended') actx.resume();
+        var s = actx.createBufferSource(); s.buffer = keyBuf;
+        var g = actx.createGain(); g.gain.value = 0.3;
+        s.connect(g); g.connect(actx.destination); s.start(0);
+        return;
+      }catch(e){}
+    }
+    try{ pi=(pi+1)%PN; var a=POOL[pi]; a.currentTime=0; a.play().catch(function(){}); }catch(e){}
+  }
+
+  // ── verbatim from the UWCSEA CRT device ──
+  function caret(){ var c=document.createElement('span'); c.className='crt-cur'; return c; }
+  function typeLine(lineEl, text, speed, done){
+    var i=0; lineEl.textContent='';
+    var cur=caret(); lineEl.appendChild(cur);
+    (function step(){
+      if(i<text.length){
+        var ch=text[i++];
+        lineEl.insertBefore(document.createTextNode(ch), cur);
+        if(ch!==' ') playKey();
+        setTimeout(step, speed);
+      } else { if(cur.parentNode) cur.remove(); done&&done(); }
+    })();
+  }
+  function powerOff(){
+    var po = document.getElementById('crtPowerOff');
+    var dot = document.getElementById('crtDot');
+    screen.style.animation = 'crtCollapse 0.55s cubic-bezier(.4,0,.6,1) forwards';
+    setTimeout(function(){
+      screen.style.opacity = '0';
+      if(po){ po.style.opacity = '1'; }
+      if(dot){ dot.style.animation = 'crtDotAppear 0.7s ease-out forwards'; }
+    }, 520);
+  }
+  // ── end verbatim ──
+
+  function type(el, text, speed){ return new Promise(function(res){ typeLine(el, text, speed, res); }); }
+  function addLine(cls){
+    var d=document.createElement('div'); d.className='crt-line'+(cls?' '+cls:'');
+    screen.appendChild(d); return d;
+  }
+  function renderEntry(){
+    inputLine.textContent = '> ' + entry;
+    inputLine.appendChild(caret());
+  }
+
+  async function boot(){
+    if(frame) frame.classList.add('flicker');
+    await wait(reduce ? 0 : 520);
+    await type(addLine('sm'), 'NOFILTER : WORKPLACE ACCESS', 34);
+    await type(addLine('line'), 'Enter the code from your invitation.', 28);
+    await wait(reduce ? 0 : 160);
+    inputLine = addLine('line'); inputLine.classList.add('crt-inputline');
+    renderEntry(); inputEnabled = true;
+  }
+
+  function deny(){
+    inputEnabled = false;
+    var d = addLine('sm'); d.style.color = '#ff6a3d';
+    type(d, 'ACCESS DENIED — CHECK YOUR CODE', 28).then(function(){
+      setTimeout(function(){ if(d.parentNode) d.remove(); entry=''; renderEntry(); inputEnabled=true; }, 900);
+    });
+  }
+
+  async function unlock(){
+    inputEnabled = false; finished = true;
+    screen.innerHTML = '';                                  // clear for the payoff
+    await type(addLine('huge'), 'LINE HELD.', 70);
+    await type(addLine('sm'), '0°30′30″N · 99°47′44″E', 28);
+    await type(addLine('sm'), 'booting builder…', 28);
+    await wait(reduce ? 200 : 520);
+    powerOff();                                             // verbatim CRT power-off
+    // grant access + flag the builder to play its power-on, fade this screen to black, then hand off
+    try{ sessionStorage.setItem('nf_wp_access','1'); sessionStorage.setItem('nf_wp_boot','1'); }catch(e){}
+    setTimeout(function(){ gate.classList.add('gate-off'); }, reduce ? 200 : 1150);
+    setTimeout(function(){ window.location.href = 'workplace-builder.html#build'; }, reduce ? 400 : 1700);
+  }
+
+  function submit(){
+    if(!inputEnabled) return;
+    if(entry.replace(/\s+/g,'').toUpperCase() === CODE){ unlock(); }
+    else { deny(); }
+  }
+
+  document.addEventListener('keydown', function(e){
+    if(finished || !inputEnabled) return;
+    if(e.key === 'Enter'){ e.preventDefault(); submit(); return; }
+    if(e.key === 'Backspace'){ e.preventDefault(); entry = entry.slice(0,-1); renderEntry(); playKey(); return; }
+    if(e.key.length === 1 && /[a-zA-Z ]/.test(e.key)){ e.preventDefault(); entry += e.key.toUpperCase(); renderEntry(); if(e.key!==' ') playKey(); }
+  });
+
+  // mute knob — toggles the keystroke sound
+  var mb=document.getElementById('crtMute');
+  if(mb){ mb.addEventListener('click', function(ev){ ev.stopPropagation(); crtMuted=!crtMuted; mb.setAttribute('aria-pressed', crtMuted?'true':'false'); mb.classList.toggle('off', crtMuted); mb.innerHTML = crtMuted ? '&#128263;' : '&#9834;'; }); }
+
+  document.getElementById('relock').addEventListener('click', function(){ location.reload(); });
+
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(boot); } else { boot(); }
+})();
+</script>
+</body>
+</html>

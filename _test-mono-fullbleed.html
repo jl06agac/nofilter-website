@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST — full-bleed farm · duotone · knockout headline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:wght@0,400;0,500;0,600;0,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#ed3326; --cr:#F4F2EE; --pa:#EDE7D9; --nb:#1A1815; --gy:#8a8378;
+  --font-display:"Big Shoulders Display",sans-serif;
+  --font-b:"Archivo",Arial,sans-serif;
+  --font-m:"IBM Plex Mono",monospace;
+  --font-s:"Source Serif 4",Georgia,serif;
+  --tk-label:.14em; --tk-display-tight:-.02em;
+  --seam:44%;         /* where farm meets cream (and the headline flips) */
+  --feather:90px;     /* soft/torn width of that edge */
+  --farmOp:1;         /* farm layer opacity */
+}
+*{box-sizing:border-box;} body{margin:0;font-family:var(--font-b);background:var(--cr);color:var(--nb);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+.spacer{height:34vh;display:flex;align-items:center;justify-content:center;font-family:var(--font-m);font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--gy);}
+
+.fb{position:relative;min-height:100vh;background:var(--pa);overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:clamp(60px,9vw,120px) 0;}
+
+/* ——— the farm: full-bleed to the right, feathered/torn on the left ——— */
+.fb-video{position:absolute;top:0;bottom:0;left:var(--seam);right:-2vw;z-index:0;overflow:hidden;opacity:var(--farmOp);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 var(--feather));
+          mask-image:linear-gradient(90deg,transparent 0,#000 var(--feather));}
+.fb-video video{position:absolute;top:50%;left:50%;width:100%;height:100%;object-fit:cover;
+  transform:translate(-50%,-50%) scale(1.02);filter:url(#duo) contrast(1.06) brightness(.96);
+  animation:kb 26s ease-in-out infinite alternate;}
+@keyframes kb{ from{transform:translate(-50%,-50%) scale(1.02);} to{transform:translate(-52%,-50%) scale(1.12);} }
+/* depth scrim — a touch darker toward the seam so cream type reads over it */
+.fb-scrim{position:absolute;top:0;bottom:0;left:var(--seam);right:-2vw;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(20,17,13,.5) 0%,rgba(20,17,13,.14) 42%,rgba(20,17,13,.28) 100%);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 var(--feather));mask-image:linear-gradient(90deg,transparent 0,#000 var(--feather));}
+
+/* ——— content, full-bleed so the seam % lines up with the farm ——— */
+.fb-pad{padding:0 clamp(24px,5vw,72px);}
+.fb-eyebrow{font-family:var(--font-m);font-size:11px;letter-spacing:var(--tk-label);text-transform:uppercase;color:var(--or);font-weight:500;margin-bottom:18px;position:relative;z-index:2;}
+
+/* headline: ink base + cream overlay that only shows RIGHT of the seam */
+.fb-head{position:relative;z-index:2;width:100%;}
+.fb-h{font-family:var(--font-display);font-weight:900;text-transform:uppercase;line-height:.9;letter-spacing:var(--tk-display-tight);
+  font-size:clamp(40px,7.4vw,104px);margin:0;padding:0 clamp(24px,5vw,72px);}
+.fb-h--ink{color:var(--nb);}
+.fb-h--cream{position:absolute;inset:0;color:var(--cr);
+  -webkit-mask-image:linear-gradient(90deg,transparent var(--seam),#000 calc(var(--seam) + var(--feather)));
+          mask-image:linear-gradient(90deg,transparent var(--seam),#000 calc(var(--seam) + var(--feather)));}
+
+.fb-grid{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,72px);align-items:start;margin-top:clamp(28px,4vw,52px);}
+.fb-lead{font-family:var(--font-s);font-size:clamp(17px,1.7vw,21px);line-height:1.5;max-width:52ch;color:#2c2a27;}
+.fb-lead .o{color:var(--or);font-style:italic;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.stat{border-top:2px solid var(--or);padding-top:14px;}
+.stat b{font-family:var(--font-display);font-weight:900;font-size:clamp(34px,4vw,56px);display:block;line-height:1;color:var(--cr);}
+.stat span{font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,242,238,.7);}
+
+/* controls */
+.ctl{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;gap:22px;align-items:center;justify-content:center;flex-wrap:wrap;
+  padding:12px 16px;background:rgba(8,6,5,.94);color:#fff;font-family:var(--font-m);font-size:11px;letter-spacing:.04em;}
+.ctl label{display:inline-flex;gap:8px;align-items:center;opacity:.9;}
+.ctl input[type=range]{width:180px;accent-color:var(--or);}
+.ctl .val{min-width:46px;color:var(--or);}
+.ctl button{font-family:var(--font-m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:#2a2724;border:1px solid #4a453f;border-radius:7px;padding:7px 12px;cursor:pointer;color:#fff;}
+.ctl button.on{background:var(--or);border-color:var(--or);}
+.ctl .hint{opacity:.5;}
+</style>
+</head>
+<body>
+
+<!-- ink→warm duotone for the farm (crushes to NoFilter ink, warms highlights) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="duo" color-interpolation-filters="sRGB">
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer>
+      <feFuncR type="table" tableValues="0.102 0.725"/>
+      <feFuncG type="table" tableValues="0.094 0.647"/>
+      <feFuncB type="table" tableValues="0.082 0.494"/>
+    </feComponentTransfer>
+  </filter>
+</defs></svg>
+
+<div class="spacer">↓ the section ↓</div>
+
+<section class="fb" id="fb">
+  <div class="fb-video"><video id="vid" src="mono-coffee-loop.mp4" poster="mono-coffee-poster.jpg" muted loop playsinline autoplay preload="auto"></video></div>
+  <div class="fb-scrim"></div>
+
+  <div class="fb-eyebrow fb-pad">What most coffee does</div>
+
+  <div class="fb-head">
+    <h2 class="fb-h fb-h--ink">Most coffee is grown<br>where it&rsquo;s cheapest.</h2>
+    <h2 class="fb-h fb-h--cream" aria-hidden="true">Most coffee is grown<br>where it&rsquo;s cheapest.</h2>
+  </div>
+
+  <div class="fb-grid fb-pad">
+    <p class="fb-lead">And cheapest means cleared &mdash; land the forest was pushed back to make, the edge slipping a little further every season. NoFilter is the other kind: grown on that <span class="o">standing edge</span>, under canopy.</p>
+    <div class="stat-row">
+      <div class="stat"><b>5&ndash;10%</b><span>of every sale to conservation</span></div>
+      <div class="stat"><b>4</b><span>forests · Sumatra &amp; Myanmar</span></div>
+      <div class="stat"><b>100%</b><span>of top-ups to the NGO</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="spacer">↑ finesse it with the sliders ↑</div>
+
+<div class="ctl">
+  <span class="hint">FINESSE ·</span>
+  <label>seam <input type="range" id="seam" min="28" max="60" step="0.5" value="44"><span class="val" id="seamV">44%</span></label>
+  <label>edge <input type="range" id="feather" min="10" max="220" step="2" value="90"><span class="val" id="featherV">90px</span></label>
+  <label>farm <input type="range" id="op" min="0.5" max="1" step="0.02" value="1"><span class="val" id="opV">100%</span></label>
+  <button id="creepBtn" type="button">Creep: off</button>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, fb=document.getElementById('fb'), vid=document.getElementById('vid'),
+      seam=document.getElementById('seam'), seamV=document.getElementById('seamV'),
+      feather=document.getElementById('feather'), featherV=document.getElementById('featherV'),
+      op=document.getElementById('op'), opV=document.getElementById('opV'),
+      creepBtn=document.getElementById('creepBtn');
+
+  function setSeam(pct){ root.style.setProperty('--seam', pct+'%'); seam.value=pct; seamV.textContent=(Math.round(pct*10)/10)+'%'; }
+  seam.addEventListener('input', function(){ setSeam(parseFloat(this.value)); });
+  feather.addEventListener('input', function(){ root.style.setProperty('--feather', this.value+'px'); featherV.textContent=this.value+'px'; });
+  op.addEventListener('input', function(){ root.style.setProperty('--farmOp', this.value); opV.textContent=Math.round(this.value*100)+'%'; });
+
+  // slow autonomous creep — the farm advances left (seam decreases)
+  var creeping=false, raf=null, t0=null, FROM=46, TO=33, DUR=16000;
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+  function step(ts){
+    if(t0===null) t0=ts;
+    var p=Math.min((ts-t0)/DUR,1);
+    setSeam(FROM + (TO-FROM)*easeOut(p));
+    if(p<1 && creeping) raf=requestAnimationFrame(step);
+  }
+  creepBtn.addEventListener('click', function(){
+    creeping=!creeping; creepBtn.classList.toggle('on',creeping); creepBtn.textContent='Creep: '+(creeping?'on':'off');
+    if(creeping){ t0=null; raf=requestAnimationFrame(step); } else if(raf){ cancelAnimationFrame(raf); }
+  });
+
+  var p=vid.play(); if(p&&p.catch) p.catch(function(){});
+})();
+</script>
+</body>
+</html>

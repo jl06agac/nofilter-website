@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoFilter — horizontal push (faithful card 1) · test</title>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&family=Rock+Salt&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{--or:#ed3326;--cr:#F4F2EE;--nb:#1A1815;--gy:#8a8378;--ink2:#3D3E3D;--cy:#56dcff;
+  --d:"Big Shoulders Display",sans-serif;--m:"IBM Plex Mono",monospace;--s:"Source Serif 4",Georgia,serif;}
+*{box-sizing:border-box;} body{margin:0;background:var(--cr);color:var(--nb);font-family:var(--s);-webkit-font-smoothing:antialiased;}
+
+/* ── horizontal push track ── */
+.tsec{position:relative;height:300vh;}
+.tpin{position:sticky;top:0;height:100vh;overflow:hidden;background:#e9e5de;}   /* warmer backdrop so the cream cards float */
+.stagepad{position:absolute;inset:clamp(16px,3vh,46px);}
+.panel{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;
+  background:var(--cr);border-radius:20px;box-shadow:0 50px 120px -46px rgba(26,24,21,.5),0 2px 0 rgba(255,255,255,.5) inset;
+  will-change:transform,opacity,filter;padding:clamp(20px,3vh,44px);}
+.p-card1{z-index:1;transform-origin:center center;}
+.p-stmt{z-index:2;box-shadow:-40px 0 90px -20px rgba(26,24,21,.45),0 50px 120px -46px rgba(26,24,21,.5);}
+
+/* ── CARD 1 — faithful current band composition (lifted from the preview) ── */
+.pt-wrap{max-width:1000px;margin:0 auto;position:relative;padding:0 24px;width:100%;}
+.kicker{display:flex;align-items:center;gap:16px;font-family:var(--m);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--or);margin:0 0 30px;}
+.kicker::after{content:"";flex:1;height:1px;background:rgba(237,51,38,.35);}
+.kicker--c{justify-content:center;} .kicker--c::after{display:none;}
+.pt-type{position:relative;text-align:center;z-index:2;}
+.pt-type .sn{position:absolute;font-family:var(--m);font-size:11px;letter-spacing:.2em;color:var(--nb);top:12px;}
+.pt-type .sn.l{left:5%;} .pt-type .sn.r{right:5%;}
+.ct-state{font-family:var(--d);font-weight:900;text-transform:uppercase;text-align:center;color:var(--nb);
+  font-size:clamp(34px,4.6vw,66px);line-height:.9;letter-spacing:-.012em;margin:clamp(10px,1.6vw,22px) auto 0;}
+.graf{position:absolute;left:50%;transform:translateX(-50%) rotate(-5deg);z-index:5;
+  font-family:"Rock Salt",cursive;color:var(--cy);font-size:clamp(28px,3.7vw,50px);line-height:1;white-space:nowrap;
+  opacity:.95;filter:blur(.3px) drop-shadow(0 0 6px rgba(86,220,255,.35));pointer-events:none;}
+.ct-frame{margin:0 auto;width:min(94%,820px);}
+.monoframe{position:relative;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;background:#0c0c0b;box-shadow:0 34px 90px -52px rgba(26,24,21,.55);}
+.monoframe video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(.72) contrast(1.14) brightness(.9) sepia(.32) hue-rotate(165deg) saturate(1.05);}
+.mf-scan{position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px);opacity:.4;mix-blend-mode:multiply;}
+.pt-credits{position:absolute;left:0;right:0;bottom:12px;z-index:4;display:flex;justify-content:center;gap:clamp(22px,4vw,60px);flex-wrap:wrap;font-family:var(--m);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,242,238,.55);text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.65);}
+.pt-credits b{display:block;color:#F4F2EE;font-weight:500;margin-top:3px;}
+.drip{position:absolute;z-index:6;width:10px;pointer-events:none;}
+.drip svg{display:block;width:100%;height:auto;filter:blur(.3px);}
+.drip path{fill:#39b7d8;opacity:.85;}
+
+/* ── CARD 2 — the distilled statement, slides in ── */
+.p-stmt .stmt{max-width:900px;padding:0 clamp(28px,6vw,80px);font-family:var(--s);font-weight:500;
+  font-size:clamp(27px,3.5vw,50px);line-height:1.24;letter-spacing:-.01em;color:var(--nb);}
+.p-stmt .stmt b{font-weight:600;}
+.p-stmt .stmt .o{color:var(--or);}
+
+.after{max-width:1040px;margin:0 auto;padding:clamp(70px,10vh,140px) 24px;text-align:center;color:var(--gy);font-family:var(--m);font-size:11px;letter-spacing:.2em;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<section class="tsec" id="tsec">
+  <div class="tpin">
+    <div class="stagepad">
+      <!-- CARD 1 — unchanged styling -->
+      <div class="panel p-card1" id="card1">
+        <div class="pt-wrap">
+          <p class="kicker kicker--c">What most coffee does</p>
+          <div class="pt-type">
+            <span class="sn l">Fig.</span><span class="sn r">01</span>
+            <h2 class="ct-state">The truth is most<br>of the coffee we<br>drink comes from</h2>
+          </div>
+          <span class="graf" aria-hidden="true">vast mega-farms</span>
+          <div class="ct-frame">
+            <figure class="monoframe" id="edGframe">
+              <video src="mono-coffee-long.mp4" muted loop playsinline autoplay preload="auto"></video>
+              <span class="mf-scan" aria-hidden="true"></span>
+              <div class="pt-credits">
+                <span>Grown<b>where it's cheapest</b></span>
+                <span>Field note<b>01 &middot; on the cost of cheap</b></span>
+                <span>Filed by<b>NoFilter</b></span>
+              </div>
+            </figure>
+          </div>
+          <span class="drip" style="left:38%;top:0;" aria-hidden="true"><svg viewBox="0 0 10 60"><path d="M3,0 C4,14 2,22 4,34 C5,42 6,50 5,58 C4.6,60 3.4,60 3,58 C2,48 2,40 2.6,30 C3,20 2,12 3,0 Z"/></svg></span>
+          <span class="drip" style="left:61%;top:0;" aria-hidden="true"><svg viewBox="0 0 10 44"><path d="M4,0 C5,10 3,16 5,26 C5.6,32 6,38 5.2,42 C4.8,44 3.8,44 3.5,42 C2.8,34 3,26 3.4,18 C3.7,10 3.2,6 4,0 Z"/></svg></span>
+        </div>
+      </div>
+      <!-- CARD 2 — glides over -->
+      <div class="panel p-stmt" id="card2">
+        <p class="stmt">Most coffee comes from vast mega-farms &mdash; grown where it&rsquo;s cheapest, engineered for the lowest possible cost. What they squeeze out is the forested land where coffee still grows under canopy &mdash; <b>land that only stays standing while the coffee finds a buyer.</b></p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="after">the line, drawn — continue</section>
+<script>
+(function(){
+  document.querySelectorAll('video').forEach(function(v){ var p=v.play&&v.play(); if(p&&p.catch)p.catch(function(){}); });
+  // graffiti straddles the video top (same logic as the preview)
+  function place(){
+    var w=document.querySelector('.pt-wrap'); if(!w) return;
+    var f=w.querySelector('.ct-frame'), g=w.querySelector('.graf'); if(!f||!g) return;
+    var gtop=f.offsetTop - g.offsetHeight*0.40; g.style.top=gtop+'px';
+    var lefts=[0.34,0.66];
+    w.querySelectorAll('.drip').forEach(function(d,i){ d.style.top=(gtop+g.offsetHeight*0.72)+'px'; d.style.left=(lefts[i]*100)+'%'; });
+  }
+  window.addEventListener('load',place); window.addEventListener('resize',place); setTimeout(place,300); setTimeout(place,1000);
+  // decadent cover: card2 glides over, card1 recedes (drift + scale + dim)
+  var sec=document.getElementById('tsec'), c1=document.getElementById('card1'), c2=document.getElementById('card2'), raf=null;
+  function ease(x){ return 1-Math.pow(1-x,3); }   // easeOutCubic for a luxurious settle
+  function upd(){
+    var r=sec.getBoundingClientRect(), total=r.height-window.innerHeight;
+    var p=Math.min(1,Math.max(0,(-r.top)/total)), e=ease(p);
+    c1.style.transform='translateX('+(-e*20)+'%) scale('+(1-e*0.06)+')';
+    c1.style.opacity=(1-e*0.18).toFixed(3);
+    c1.style.filter='brightness('+(1-e*0.12).toFixed(3)+')';
+    c2.style.transform='translateX('+((1-e)*103)+'%)';
+    raf=null;
+  }
+  function onScroll(){ if(!raf) raf=requestAnimationFrame(upd); }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll); upd();
+})();
+</script>
+</body>
+</html>

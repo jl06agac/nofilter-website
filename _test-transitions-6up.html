@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoFilter — card-2 transitions · 6 options</title>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&family=Rock+Salt&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{--or:#ed3326;--cr:#F4F2EE;--nb:#1A1815;--gy:#8a8378;--ink2:#3D3E3D;--cy:#56dcff;
+  --d:"Big Shoulders Display",sans-serif;--m:"IBM Plex Mono",monospace;--s:"Source Serif 4",Georgia,serif;}
+*{box-sizing:border-box;} body{margin:0;background:#e9e5de;color:var(--nb);font-family:var(--s);-webkit-font-smoothing:antialiased;}
+
+.lead{max-width:1000px;margin:0 auto;padding:clamp(60px,9vh,120px) 24px clamp(30px,4vh,50px);text-align:center;}
+.lead h1{font-family:var(--d);font-weight:900;text-transform:uppercase;font-size:clamp(28px,4vw,54px);letter-spacing:-.01em;margin:0 0 10px;}
+.lead p{font-family:var(--m);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gy);margin:0;}
+
+/* each option = a pinned section */
+.fx{position:relative;height:300vh;}
+.fx .pin{position:sticky;top:0;height:100vh;overflow:hidden;background:#e9e5de;}
+.fx .stagepad{position:absolute;inset:clamp(16px,3vh,46px);perspective:1700px;}
+.fx .badge{position:absolute;top:clamp(18px,3vh,30px);left:50%;transform:translateX(-50%);z-index:30;
+  font-family:var(--m);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#fff;background:var(--nb);padding:8px 16px;border-radius:100px;}
+.card{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;background:var(--cr);
+  border-radius:22px;box-shadow:0 50px 120px -46px rgba(26,24,21,.5),0 2px 0 rgba(255,255,255,.5) inset;
+  will-change:transform,opacity,filter;padding:clamp(20px,3vh,44px);transform-origin:center center;}
+.card2{box-shadow:-44px 0 100px -22px rgba(26,24,21,.5),0 50px 120px -46px rgba(26,24,21,.5);}
+
+/* ── faithful card-1 composition ── */
+.pt-wrap{max-width:1000px;margin:0 auto;position:relative;padding:0 24px;width:100%;}
+.kicker{display:flex;align-items:center;gap:16px;font-family:var(--m);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--or);margin:0 0 26px;justify-content:center;}
+.pt-type{position:relative;text-align:center;z-index:2;}
+.pt-type .sn{position:absolute;font-family:var(--m);font-size:11px;letter-spacing:.2em;color:var(--nb);top:12px;}
+.pt-type .sn.l{left:5%;} .pt-type .sn.r{right:5%;}
+.ct-state{font-family:var(--d);font-weight:900;text-transform:uppercase;text-align:center;color:var(--nb);
+  font-size:clamp(32px,4.4vw,62px);line-height:.9;letter-spacing:-.012em;margin:clamp(8px,1.4vw,20px) auto 0;}
+.graf{position:absolute;left:50%;transform:translateX(-50%) rotate(-5deg);z-index:5;
+  font-family:"Rock Salt",cursive;color:var(--cy);font-size:clamp(26px,3.5vw,46px);line-height:1;white-space:nowrap;
+  opacity:.95;filter:blur(.3px) drop-shadow(0 0 6px rgba(86,220,255,.35));pointer-events:none;}
+.ct-frame{margin:0 auto;width:min(94%,780px);}
+.monoframe{position:relative;width:100%;aspect-ratio:16/9;margin:0;overflow:hidden;background:#0c0c0b;box-shadow:0 34px 90px -52px rgba(26,24,21,.55);}
+.monoframe video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(.72) contrast(1.14) brightness(.9) sepia(.32) hue-rotate(165deg) saturate(1.05);}
+.mf-scan{position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px);opacity:.4;mix-blend-mode:multiply;}
+.pt-credits{position:absolute;left:0;right:0;bottom:12px;z-index:4;display:flex;justify-content:center;gap:clamp(20px,4vw,54px);flex-wrap:wrap;font-family:var(--m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,242,238,.55);text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.65);}
+.pt-credits b{display:block;color:#F4F2EE;font-weight:500;margin-top:3px;}
+.drip{position:absolute;z-index:6;width:9px;pointer-events:none;}
+.drip svg{display:block;width:100%;height:auto;filter:blur(.3px);}
+.drip path{fill:#39b7d8;opacity:.85;}
+
+/* ── card-2 statement ── */
+.stmt{max-width:860px;padding:0 clamp(28px,6vw,72px);font-family:var(--s);font-weight:500;
+  font-size:clamp(24px,3.2vw,46px);line-height:1.24;letter-spacing:-.01em;color:var(--nb);}
+.stmt b{font-weight:600;}
+
+.tail{text-align:center;padding:clamp(60px,9vh,120px) 24px;color:var(--gy);font-family:var(--m);font-size:11px;letter-spacing:.2em;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div class="lead">
+  <h1>Card-2 transitions</h1>
+  <p>Scroll through — 6 options · same content in each</p>
+</div>
+
+<section class="fx" data-fx="cover"><div class="pin"><span class="badge">1 · Cover glide + recede</span><div class="stagepad"><div class="card card1"></div><div class="card card2"></div></div></div></section>
+<section class="fx" data-fx="push"><div class="pin"><span class="badge">2 · Flat push</span><div class="stagepad"><div class="card card1"></div><div class="card card2"></div></div></div></section>
+<section class="fx" data-fx="reveal"><div class="pin"><span class="badge">3 · Slide-away reveal</span><div class="stagepad"><div class="card card1"></div><div class="card card2"></div></div></div></section>
+<section class="fx" data-fx="vcover"><div class="pin"><span class="badge">4 · Vertical cover</span><div class="stagepad"><div class="card card1"></div><div class="card card2"></div></div></div></section>
+<section class="fx" data-fx="zoom"><div class="pin"><span class="badge">5 · Zoom dissolve</span><div class="stagepad"><div class="card card1"></div><div class="card card2"></div></div></div></section>
+<section class="fx" data-fx="tilt"><div class="pin"><span class="badge">6 · Tilt glide (3D)</span><div class="stagepad"><div class="card card1"></div><div class="card card2"></div></div></div></section>
+
+<div class="tail">the line, drawn — continue</div>
+
+<script>
+(function(){
+  var CARD1 = ''+
+    '<div class="pt-wrap">'+
+      '<p class="kicker">What most coffee does</p>'+
+      '<div class="pt-type"><span class="sn l">Fig.</span><span class="sn r">01</span>'+
+        '<h2 class="ct-state">The truth is most<br>of the coffee we<br>drink comes from</h2></div>'+
+      '<span class="graf" aria-hidden="true">vast mega-farms</span>'+
+      '<div class="ct-frame"><figure class="monoframe">'+
+        '<video src="mono-coffee-long.mp4" muted loop playsinline preload="auto"></video>'+
+        '<span class="mf-scan" aria-hidden="true"></span>'+
+        '<div class="pt-credits"><span>Grown<b>where it’s cheapest</b></span>'+
+        '<span>Field note<b>01 · on the cost of cheap</b></span>'+
+        '<span>Filed by<b>NoFilter</b></span></div>'+
+      '</figure></div>'+
+      '<span class="drip" style="left:38%;top:0" aria-hidden="true"><svg viewBox="0 0 10 60"><path d="M3,0 C4,14 2,22 4,34 C5,42 6,50 5,58 C4.6,60 3.4,60 3,58 C2,48 2,40 2.6,30 C3,20 2,12 3,0 Z"/></svg></span>'+
+      '<span class="drip" style="left:61%;top:0" aria-hidden="true"><svg viewBox="0 0 10 44"><path d="M4,0 C5,10 3,16 5,26 C5.6,32 6,38 5.2,42 C4.8,44 3.8,44 3.5,42 C2.8,34 3,26 3.4,18 C3.7,10 3.2,6 4,0 Z"/></svg></span>'+
+    '</div>';
+  var CARD2 = '<p class="stmt">Most coffee comes from vast mega-farms — grown where it’s cheapest, engineered for the lowest possible cost. What they squeeze out is the forested land where coffee still grows under canopy — <b>land that only stays standing while the coffee finds a buyer.</b></p>';
+
+  var sections=[].slice.call(document.querySelectorAll('.fx'));
+  sections.forEach(function(sec){
+    var t=sec.getAttribute('data-fx');
+    var c1=sec.querySelector('.card1'), c2=sec.querySelector('.card2');
+    c1.innerHTML=CARD1; c2.innerHTML=CARD2;
+    // z-order: reveal keeps card1 on top (it slides away to reveal card2 beneath)
+    if(t==='reveal'){ c1.style.zIndex=2; c2.style.zIndex=1; } else { c1.style.zIndex=1; c2.style.zIndex=2; }
+    sec._c1=c1; sec._c2=c2; sec._t=t;
+  });
+
+  function place(wrap){
+    var f=wrap.querySelector('.ct-frame'), g=wrap.querySelector('.graf'); if(!f||!g) return;
+    var gtop=f.offsetTop - g.offsetHeight*0.40; g.style.top=gtop+'px';
+    var lefts=[0.34,0.66];
+    wrap.querySelectorAll('.drip').forEach(function(d,i){ d.style.top=(gtop+g.offsetHeight*0.72)+'px'; d.style.left=(lefts[i]*100)+'%'; });
+  }
+  function placeAll(){ document.querySelectorAll('.pt-wrap').forEach(place); }
+  window.addEventListener('load',placeAll); window.addEventListener('resize',placeAll);
+  setTimeout(placeAll,300); setTimeout(placeAll,1100);
+
+  // lazy play/pause videos by section visibility
+  if('IntersectionObserver' in window){
+    var vio=new IntersectionObserver(function(en){ en.forEach(function(e){
+      var v=e.target.querySelector('video'); if(!v) return;
+      if(e.isIntersecting){ var p=v.play(); if(p&&p.catch)p.catch(function(){}); } else { v.pause(); }
+    }); },{threshold:.05});
+    sections.forEach(function(s){ vio.observe(s); });
+  } else { document.querySelectorAll('video').forEach(function(v){ v.play&&v.play(); }); }
+
+  function ease(x){ return 1-Math.pow(1-x,3); }
+  function applyFx(t,e,c1,c2){
+    // reset transient props
+    c1.style.filter=''; c1.style.opacity='';
+    if(t==='cover'){
+      c1.style.transform='translateX('+(-e*20)+'%) scale('+(1-e*0.06)+')';
+      c1.style.opacity=(1-e*0.18); c1.style.filter='brightness('+(1-e*0.12)+')';
+      c2.style.transform='translateX('+((1-e)*103)+'%)'; c2.style.opacity=1;
+    } else if(t==='push'){
+      c1.style.transform='translateX('+(-e*103)+'%)';
+      c2.style.transform='translateX('+((1-e)*103)+'%)'; c2.style.opacity=1;
+    } else if(t==='reveal'){
+      c1.style.transform='translateX('+(-e*103)+'%)';
+      c2.style.transform='scale('+(1.06-e*0.06)+')'; c2.style.opacity=1;
+    } else if(t==='vcover'){
+      c1.style.transform='scale('+(1-e*0.06)+')';
+      c1.style.opacity=(1-e*0.18); c1.style.filter='brightness('+(1-e*0.12)+')';
+      c2.style.transform='translateY('+((1-e)*103)+'%)'; c2.style.opacity=1;
+    } else if(t==='zoom'){
+      c1.style.transform='scale('+(1+e*0.14)+')'; c1.style.opacity=(1-Math.min(1,e*1.15));
+      c2.style.transform='scale('+(0.88+e*0.12)+')'; c2.style.opacity=(Math.max(0,(e-0.12)/0.88));
+    } else if(t==='tilt'){
+      c1.style.transform='translateX('+(-e*14)+'%) scale('+(1-e*0.05)+')'; c1.style.opacity=(1-e*0.15);
+      c2.style.transform='translateX('+((1-e)*103)+'%) rotateY('+((1-e)*-16)+'deg)'; c2.style.opacity=1;
+    }
+  }
+  var raf=null;
+  function upd(){
+    var vh=window.innerHeight;
+    sections.forEach(function(sec){
+      var r=sec.getBoundingClientRect(), total=r.height-vh;
+      var p=Math.min(1,Math.max(0,(-r.top)/total));
+      applyFx(sec._t, ease(p), sec._c1, sec._c2);
+    });
+    raf=null;
+  }
+  function onScroll(){ if(!raf) raf=requestAnimationFrame(upd); }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll); upd();
+})();
+</script>
+</body>
+</html>

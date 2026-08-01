@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoFilter — Shop the Coffee</title>
+<meta name="description" content="The four NoFilter single origins. Tap an origin to see the forest it protects, the partner holding the line, and how it tastes.">
+<link rel="icon" href="https://nofilter-shared.netlify.app/nofilter-favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet">
+[[INCLUDE:site-head]]
+<style>
+/* shop nav mirrors the homepage: transparent floating at top, solid on scroll. Because the shop's
+   top is cream (not a dark hero), the nav ink flips to dark while transparent so the links stay
+   legible, then back to cream once the bar goes solid (is-stuck). Bar itself stays see-through. */
+.nfbar:not(.is-stuck) .nfbar-item{color:var(--nb);}
+.nfbar:not(.is-stuck) .nfbar-item:hover,.nfbar:not(.is-stuck) .nfbar-item:focus-visible{color:var(--or);}
+.nfbar:not(.is-stuck) .nfbar-cart{color:var(--nb);}
+.nfbar:not(.is-stuck) .nfbar-cart:hover{color:var(--or);}
+.nfbar:not(.is-stuck) .lk-lt,.nfbar:not(.is-stuck) .lk-rt{fill:var(--nb);}
+.nfbar:not(.is-stuck) .nfbar-burger span{background:var(--nb);}
+/* shop marker — a light-touch heading on cream so it's obvious you're in the shop (no dark block) */
+.shop-marker{padding:clamp(94px,12vh,130px) 0 clamp(6px,1.5vw,16px);}
+.shop-kicker{font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--or);margin-bottom:14px;}
+.shop-title{font-family:var(--font-display);font-weight:900;text-transform:uppercase;line-height:.9;letter-spacing:-.02em;font-size:clamp(32px,4.2vw,60px);color:var(--nb);margin:0;}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
+/* full-bleed picker rows — let the cards get big */
+.shop-band{padding:clamp(36px,5vw,72px) 0 clamp(52px,8vw,104px);}
+.shop-band .wrap{max-width:1280px;}
+.shop-marker .wrap{max-width:1280px;}   /* align the SHOP THE COFFEE header with the tile row's left edge */
+.shop-band .cx-viewport{max-width:1400px;}   /* higher specificity: beat the partial's 1000px default; fills the (1280) wrap */
+.shop-intro{font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--or);text-align:center;margin-bottom:4px;}
+.shop-note{margin:clamp(36px,5vw,60px) auto 0;font-family:var(--font-s);font-style:italic;font-size:clamp(16px,1.8vw,20px);color:#2c2a27;max-width:60ch;text-align:center;}
+#qOriginHint{display:none;}
+</style>
+</head>
+<body class="nf-logo-static">
+
+[[INCLUDE:nfbar]]
+
+<!-- ═══ SHOP MARKER — light-touch heading on cream so the user knows they're in the shop; transparent nav floats over it ═══ -->
+<header class="shop-marker">
+  <div class="wrap">
+    <div class="shop-kicker">The Line · Shop</div>
+    <h1 class="shop-title">Shop the coffee.</h1>
+  </div>
+</header>
+
+<!-- ═══ COFFEE PICKER — the Generic §04 origin carousel, lifted whole ═══ -->
+<section class="shop-band" id="cover" style="padding-top:clamp(18px,3vw,34px);">
+  <div class="wrap">
+    [[INCLUDE:coffee-picker]]
+  </div>
+</section>
+
+<!-- Machines moved to the workplace page (B2B). Shop is public-facing: coffee only. -->
+
+[[INCLUDE:footer]]
+
+</body>
+</html>

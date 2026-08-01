@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NoFilter — Choice Scroll (standalone component)</title>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     CHOICE SCROLL — "grown one way, it CLEARS FOREST / KEEPS STANDING"
+
+     Extracted verbatim from origins.html on 2026-08-01 at Alex's instruction:
+     KEEP the device for reuse (brochures, pitch decks), REMOVE it from the
+     website build. This file is the record. Nothing here was rewritten — the
+     markup, the 48 CSS rules and both scripts are lifted as they were.
+
+     HOW IT WORKS
+     A pinned stage holds two full-bleed video bands, "clears" (loss) beneath
+     and "keeps" (life) above. As the reader scrolls, the keeps layer wipes
+     upward over the clears layer along the jagged brand line, so the line
+     advances under the reader's own control rather than on a timer.
+
+     TO REUSE
+     Drop the whole file in, or lift the <section>, the <style> and the two
+     <script> blocks together — they are interdependent. It needs roughly two
+     viewport heights of scroll to complete, so it wants a page of its own or a
+     generous run of space.
+
+     ASSETS stream from nofilter-shared.netlify.app: clears-forest.mp4,
+     keeps-standing.mp4, coffee-plantation.jpg, sabar-agroforest.jpg. For an
+     offline brochure, run these through bundle.py to inline them.
+     ═══════════════════════════════════════════════════════════════════════ */ -->
+<link href="https://fonts.googleapis.com" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#ed3326; --cr:#F4F2EE; --pa:#EDE7D9; --nb:#1A1815;
+  --ad:#FFE8C3; --gy:#6B6B6B; --li:#D8D4CE;
+  --nf-near-black:#1A1815; --nf-cream:#F4F2EE; --nf-orange:#ed3326;
+  --nf-orange-hover:#f2564a; --nf-orange-press:#c9291d; --nf-stamp-red:#FA2B1C;
+  --nf-white:#F4F2EE; --nf-parchment:#EDE7D9;
+  --font-display:"Big Shoulders Display",sans-serif;
+  --font-b:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --font-m:"IBM Plex Mono","SF Mono",monospace;
+  --font-mono:"IBM Plex Mono","SF Mono",monospace;
+  --font-s:"Source Serif 4",Georgia,serif;
+  --font-d:"Source Serif 4",Georgia,serif;
+  --tk-label:0.14em; --tk-display-tight:-0.02em; --ease-nf:cubic-bezier(.2,.7,.2,1);
+}
+html,body{margin:0;background:#1A1815;}
+/* a run of scroll either side so the pin has somewhere to happen */
+.demo-space{height:60vh;background:#F4F2EE;}
+.choice-scroll{position:relative;height:360vh;background:var(--nf-cream);z-index:1;isolation:isolate;}
+.cs-buffer{position:relative;z-index:2;height:13vh;background:var(--nf-cream);}
+.choice-pin{position:sticky;top:0;height:100vh;overflow:hidden;background:var(--nf-cream);}
+.choice-pin .cs-stage{width:86%;left:50%;transform:translateX(-50%);right:auto;top:11vh;bottom:11vh;height:auto;border-radius:16px;overflow:hidden;}
+.cs-stage{position:absolute;inset:0;background:var(--nf-near-black);}
+.cs-band{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;min-height:0;}
+.cs-band--clears{z-index:1;}
+.cs-band--keeps{z-index:2;clip-path:inset(100% 0 0 0);}
+/* the jagged brand line, drawn at the live wipe edge (JS sets path + position) */
+.cs-wave-edge{position:absolute;left:0;width:100%;height:20px;z-index:6;pointer-events:none;overflow:visible;display:none;}
+.cs-wave-edge path{fill:none;stroke:var(--nf-cream);stroke-width:9;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;}
+/* per-line reveal on scroll */
+.cs-rev{opacity:0;transform:translateY(16px);}
+.cs-rev.vis{opacity:1;transform:none;transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1);}
+.cs-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+.cs-band--clears{background:linear-gradient(160deg,#3a1d12,#2a1208);}
+.cs-band--keeps{background:linear-gradient(160deg,#1f4030,#16301f);}
+.cs-band--clears .cs-band-inner{transition:opacity .3s ease;}
+.cs-band--keeps .cs-band-inner{transition:opacity .3s ease;}
+.cs-band--novid .cs-media{display:none;}
+.cs-band--novid.cs-band--clears{background:#3a2410;}
+.cs-band--novid.cs-band--keeps{background:#1d3a28;}
+/* framing overline, sat on the clears footage */
+.cs-overline{display:block;max-width:60ch;margin-bottom:clamp(28px,5vh,64px);
+  font-family:var(--font-mono);font-weight:500;text-transform:uppercase;
+  font-size:clamp(12px,1.05vw,15px);line-height:1.5;letter-spacing:.14em;
+  color:rgba(255,232,195,.92);text-shadow:0 1px 10px rgba(40,2,0,.7);
+  padding-left:18px;border-left:2px solid var(--nf-orange);}
+/* CLEARS — menacing, not fluorescent. Multiply pulled back, deep crimson rather
+   than candy-red, plus a vignette that darkens the edges so it reads as tension. */
+.cs-tint--clears{position:absolute;inset:0;z-index:1;pointer-events:none;
+  mix-blend-mode:multiply;opacity:.82;
+  background:linear-gradient(180deg,#e23115,#a81204);}
+.cs-band--clears .cs-vignette{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 42%,rgba(0,0,0,0) 40%,rgba(40,2,0,.55) 100%);}
+/* KEEPS — now real lush footage, so let it show: lighter tint, the canopy
+   carries the "life" reading itself. Just enough green to harmonise + hold text. */
+.cs-tint--keeps{position:absolute;inset:0;z-index:1;pointer-events:none;
+  mix-blend-mode:multiply;opacity:.42;
+  background:linear-gradient(180deg,#2f6043,#214a33);}
+.cs-band--keeps .cs-lift{position:absolute;inset:0;z-index:2;pointer-events:none;
+  mix-blend-mode:screen;background:rgba(60,120,70,.10);}
+/* readability wash behind the text side only (left), gentle */
+.cs-band::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;}
+.cs-band--clears::after{background:linear-gradient(90deg,rgba(90,6,0,.42),rgba(90,6,0,0) 55%);}
+.cs-band--keeps::after{background:linear-gradient(90deg,rgba(10,28,16,.32),rgba(10,28,16,0) 52%);}
+/* deliberate seam — solid cream strip between video worlds (in-device + at section top) */
+.cs-band--clears{box-shadow:0 6px 18px rgba(0,0,0,.30);}
+.cs-seam{display:block;height:clamp(28px,3vw,44px);background:var(--nf-cream);
+  box-shadow:0 2px 10px rgba(0,0,0,.28),0 -2px 10px rgba(0,0,0,.28);position:relative;z-index:5;}
+.cs-seam--top{margin-top:0;}
+/* Hybrid 1 bottom edge: green footage dissolves into the next (red) section, capped by a thin orange rule */
+.cs-blend{position:absolute;left:0;right:0;bottom:0;height:clamp(80px,13vh,150px);z-index:3;pointer-events:none;
+  background:linear-gradient(180deg, rgba(250,43,28,0) 0%, rgba(250,43,28,0.18) 60%, rgba(250,43,28,0.78) 100%);}
+.cs-edge-rule{position:relative;z-index:7;height:3px;background:var(--nf-orange);}
+.cs-band-inner{position:relative;z-index:4;width:100%;
+  padding:clamp(40px,9vw,140px);transform:translateY(-6vh);}
+.cs-band--clears .cs-band-inner{transform:translateY(calc(-6vh - 76px));}
+.cs-band--keeps .cs-band-inner{transform:translateY(calc(-6vh - 36px));}
+.cs-lead{display:block;font-family:var(--font-display);font-weight:600;
+  font-size:clamp(18px,2vw,32px);letter-spacing:.04em;text-transform:uppercase;
+  margin-bottom:.04em;color:rgba(255,255,255,.9);}
+.cs-lead--keeps{color:rgba(255,255,255,.9);}
+.cs-big{display:block;font-family:var(--font-display);font-weight:900;
+  font-size:clamp(46px,7.6vw,142px);line-height:.92;letter-spacing:.01em;
+  text-transform:uppercase;}
+.cs-big--clears{color:#ff8a5c;text-shadow:0 3px 30px rgba(60,0,0,.5);}
+.cs-big--keeps{color:#8fe0a0;text-shadow:0 3px 28px rgba(0,28,12,.5);}
+/* optional mission close-line — only shows on pages with body.cs-mission (e.g. the workplace page) */
+.cs-close{display:none;font-family:var(--font-display);font-weight:700;font-size:clamp(20px,2.7vw,40px);line-height:1.05;letter-spacing:.01em;text-transform:uppercase;margin-top:clamp(18px,2.6vw,36px);color:rgba(255,255,255,.92);max-width:24ch;}
+body.cs-mission .cs-close{display:block;}
+.cs-close em{font-style:normal;color:#8fe0a0;}
+/* subtle GPS coordinate riding the topographic seam — the Batang Gadis pin from the 250g packaging */
+.cs-coord{position:absolute;right:clamp(16px,2vw,28px);bottom:clamp(14px,1.9vw,24px);z-index:7;pointer-events:none;
+  font-family:var(--font-mono);font-size:clamp(9px,.85vw,11px);letter-spacing:.16em;color:rgba(255,232,195,.5);text-shadow:0 1px 6px rgba(0,0,0,.55);}
+.choice{position:relative;background:var(--nf-stamp-red);}
+/* left-align the block and start it at the gutter, so the inserted "workplace" grows RIGHTWARD into open space and never clips the right edge; body stays a readable column */
+#why-coffee .wrap{max-width:none;text-align:left;padding-left:clamp(28px,11vw,200px);padding-right:clamp(20px,4vw,60px);}
+#why-coffee .mani-body{max-width:820px;}
+</style>
+</head>
+<body>
+<div class="demo-space" aria-hidden="true"></div>
+<section class="choice choice-scroll" id="why">
+  <div class="cs-buffer" aria-hidden="true"></div>
+  <!-- B2 scroll-wipe: clears (loss) fills the pinned stage; as the reader scrolls,
+       the keeps (life) layer wipes UP over it along the jagged brand line — "the
+       line" advancing under the reader's control. Same footage/tints as before. -->
+  <div class="choice-pin">
+    <div class="cs-stage">
+      <div class="cs-band cs-band--clears" data-cf="clears">
+        <video class="cs-media" autoplay muted loop playsinline preload="auto"
+               poster="https://nofilter-shared.netlify.app/coffee-plantation.jpg"
+               onerror="this.closest('[data-cf]').classList.add('cs-band--novid');">
+          <source src="https://nofilter-shared.netlify.app/clears-forest.mp4" type="video/mp4">
+        </video>
+        <span class="cs-tint cs-tint--clears"></span>
+        <span class="cs-vignette"></span>
+        <div class="cs-band-inner">
+          <span class="cs-overline cs-rev" data-at="0.05">Coffee is a significant agricultural driver of tropical deforestation.</span>
+          <span class="cs-lead cs-rev" data-at="0.16">Grown one way, it</span>
+          <span class="cs-big cs-big--clears cs-rev" data-at="0.24">clears forest.</span>
+        </div>
+      </div>
+      <div class="cs-band cs-band--keeps" id="keepsBand" data-cf="keeps">
+        <video class="cs-media" autoplay muted loop playsinline preload="metadata"
+               poster="https://nofilter-shared.netlify.app/sabar-agroforest.jpg"
+               onerror="this.closest('[data-cf]').classList.add('cs-band--novid');">
+          <source src="https://nofilter-shared.netlify.app/keeps-standing.mp4" type="video/mp4">
+        </video>
+        <span class="cs-tint cs-tint--keeps"></span>
+        <span class="cs-lift"></span>
+        <div class="cs-band-inner">
+          <span class="cs-lead cs-lead--keeps cs-rev" data-at="0.78">Grown another, it</span>
+          <span class="cs-big cs-big--keeps cs-rev" data-at="0.84">keeps it standing.</span>
+          <span class="cs-close cs-rev" data-at="0.9">Most workplaces go with the first. <em>NoFilter&rsquo;s here to change that.</em></span>
+        </div>
+        <!-- coordinate lives INSIDE the keeps layer: only revealed once the Batang Gadis (green) scenery is up -->
+        <span class="cs-coord cs-rev" data-at="0.8" aria-hidden="true">0°30′30″N · 99°47′44″E</span>
+      </div>
+      <svg class="cs-wave-edge" id="csWaveEdge" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true"><path d="" /></svg>
+    </div>
+  </div>
+</section>
+<div class="demo-space" aria-hidden="true"></div>
+<script>
+
+/* progress bar + is-stuck + show-on-scroll-up (verbatim from v256 Generic; the immersive
+   force-hide now keys on any .choice-scroll section rather than a hardcoded id, so the
+   partial is portable across pages). */
+(function(){
+  var prog  = document.getElementById('progress');
+  var nfbar = document.getElementById('nfbar');
+  var immersive = document.querySelector('.choice-scroll');
+  function onScroll(){
+    var d = document.documentElement;
+    var max = d.scrollHeight - d.clientHeight;
+    var y = window.scrollY || d.scrollTop;
+    if(prog) prog.style.width = (max>0 ? (y/max*100) : 0) + '%';
+    if(nfbar){
+      nfbar.classList.toggle('is-stuck', y>12);
+      // Accumulate scroll movement in one direction; flip only past a threshold. This hides on a sustained
+      // scroll DOWN (even slow), returns on a sustained scroll UP, and ignores trackpad jitter. Always shown at top.
+      var lastY = (window.__nfLastY==null ? y : window.__nfLastY);
+      var dy = y - lastY; window.__nfLastY = y;
+      var acc = window.__nfAcc || 0;
+      if(dy>0 && acc<0) acc=0; else if(dy<0 && acc>0) acc=0;   // direction reversed → reset accumulator
+      acc += dy; window.__nfAcc = acc;
+      var shown = (window.__nfShown==null ? true : window.__nfShown);
+      if(y < 40) shown=true;
+      else if(acc > 12) shown=false;   // ~12px accumulated down → hide
+      else if(acc < -12) shown=true;   // ~12px up → show
+      window.__nfShown = shown;
+      var show = shown;
+      if(immersive){ var r=immersive.getBoundingClientRect(); if(r.top<=2 && r.bottom>=window.innerHeight-2) show=false; }
+      nfbar.classList.toggle('nfbar-hidden', !show);
+    }
+  }
+  document.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  onScroll();
+})();
+
+/* logomark: unfurl on load, collapse to the + after 3.2s (hover re-opens) — Generic ~6403 */
+(function(){
+  var lk=document.querySelector('.nfbar-lockup');
+  if(!lk) return;
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce) return;
+  setTimeout(function(){ lk.classList.remove('lk-open'); }, 3200);
+})();
+
+/* mobile hamburger — verbatim from v256 Generic */
+(function(){
+  var burger=document.getElementById('nfbarBurger');
+  var panel =document.getElementById('nfbarMobile');
+  if(!burger||!panel) return;
+  function setOpen(open){
+    burger.classList.toggle('is-open',open);
+    panel.classList.toggle('is-open',open);
+    burger.setAttribute('aria-expanded',open?'true':'false');
+    panel.setAttribute('aria-hidden',open?'false':'true');
+    burger.setAttribute('aria-label',open?'Close menu':'Open menu');
+    document.body.style.overflow=open?'hidden':'';
+  }
+  burger.addEventListener('click',function(){setOpen(!panel.classList.contains('is-open'));});
+  panel.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){setOpen(false);});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')setOpen(false);});
+})();
+
+/* shared cart — single source of truth for the nav badge across pages.
+   The shop drives it with window.NFCart.setQty(id, qty, meta). Persists via localStorage so the
+   count survives navigation; total = sum of every line's qty. Emits 'nfcart:change' for any listener
+   (e.g. a cart drawer) to re-render. */
+(function(){
+  var KEY='nf_cart_v1';
+  // BUILD-TIME: session-only cart — starts empty on every reload so stale test items don't linger.
+  // Flip PERSIST=true before launch to restore a real cart that survives reloads + navigation.
+  var PERSIST=false;
+  var mem={items:{}};
+  if(!PERSIST){ try{ localStorage.removeItem(KEY); }catch(e){} }
+  function read(){ if(PERSIST){ try{ return JSON.parse(localStorage.getItem(KEY))||{items:{}}; }catch(e){ return {items:{}}; } } return mem; }
+  function save(s){ if(PERSIST){ try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} } else { mem=s; } }
+  function total(s){ var n=0,k; for(k in s.items){ n+=(s.items[k].qty||0); } return n; }
+  var badge=document.getElementById('nfbarCartN');
+  var btn=document.getElementById('nfbarCart');
+  function render(pulse){
+    if(!badge) return;
+    var n=total(read());
+    badge.textContent=n;
+    badge.classList.toggle('has', n>0);
+    if(pulse){
+      badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump');
+      if(btn){ btn.classList.remove('ring'); void btn.offsetWidth; btn.classList.add('ring'); }
+    }
+  }
+  window.NFCart={
+    read:read,
+    total:function(){ return total(read()); },
+    lines:function(){ var s=read(),a=[],k; for(k in s.items){ a.push(Object.assign({id:k},s.items[k])); } return a; },
+    setQty:function(id,qty,meta){
+      var s=read();
+      if(qty>0){ s.items[id]=Object.assign({},meta||{},{qty:qty}); } else { delete s.items[id]; }
+      save(s);
+      render(qty>0);
+      window.dispatchEvent(new CustomEvent('nfcart:change',{detail:{items:s.items,total:total(s)}}));
+    },
+    getQty:function(id){ var s=read(); return (s.items[id]&&s.items[id].qty)||0; },
+    clear:function(){ if(PERSIST){ try{ localStorage.removeItem(KEY); }catch(e){} } else { mem={items:{}}; } render(false); }
+  };
+  if(btn){ btn.addEventListener('click',function(){ window.dispatchEvent(new CustomEvent('nfcart:open')); }); }
+  window.addEventListener('storage',function(e){ if(e.key===KEY) render(false); });
+  render(false);
+})();
+
+
+
+// CHOICE section — B2 scroll-wipe. Pinned stage; scroll position drives the
+// keeps layer wiping up over clears along the jagged brand line. Reveal-only.
+(function(){
+  var sec=document.getElementById('why');
+  if(!sec||!sec.classList.contains('choice-scroll')) return;
+  var keeps=document.getElementById('keepsBand');
+  var edge=document.getElementById('csWaveEdge');
+  var buffer=sec.querySelector('.cs-buffer');
+  var bufferH=function(){ return buffer?buffer.offsetHeight:0; };
+  var steps=[].slice.call(sec.querySelectorAll('.cs-rev'));
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduce){ steps.forEach(function(el){el.classList.add('vis');}); keeps.style.clipPath='inset(0 0 0 0)'; return; }
+  // jagged line points (x%, normalized 0..1) — from the brand cs-wave path
+  var JAG=[[0.0,1.0],[8.43,0.986],[14.89,0.93],[29.65,0.923],[42.7,0.759],[55.6,0.692],[62.92,0.407],[77.67,0.305],[83.91,0.114],[100.0,0.0]];   // NoFilter 250g packaging contour (Batang Gadis), normalized
+  var JAG_VH=26; // topographic rise (% of viewport) from the packaging contour — raise/lower to match the packaging ridge
+  function buildClip(wipe){
+    var baseY=(1-wipe)*(100+JAG_VH)-JAG_VH;
+    var pts=[];
+    JAG.forEach(function(pt){ pts.push(pt[0]+'% '+(baseY+pt[1]*JAG_VH)+'%'); });
+    pts.push('100% 100%'); pts.push('0% 100%');
+    return 'polygon('+pts.join(',')+')';
+  }
+  function edgePath(){
+    var d='M '+JAG.map(function(pt){ return pt[0]+','+(2+pt[1]*4); }).join(' L ');
+    edge.querySelector('path').setAttribute('d',d);
+    edge.setAttribute('viewBox','0 0 100 8');
+  }
+  edgePath();
+  function onScroll(){
+    var rect=sec.getBoundingClientRect();
+    // progress measured from when the PIN engages (pin top reaches viewport top),
+    // over the pinnable distance — matches the standalone demo's response rate and
+    // is unaffected by the cream buffer above the pin.
+    var bh=bufferH();
+    var pinDist=sec.offsetHeight - bh - window.innerHeight;
+    var scrolled=-(rect.top) - bh;
+    var p=pinDist>0?Math.min(Math.max(scrolled,0),pinDist)/pinDist:0;
+    // clears text reveals early
+    sec.querySelectorAll('.cs-band--clears .cs-rev').forEach(function(el){
+      if(p>=parseFloat(el.getAttribute('data-at'))) el.classList.add('vis');
+    });
+    var wipe=Math.min(Math.max((p-0.48)/0.26,0),1);
+    // clears text FADES OUT as the wipe begins, gone before keeps arrives
+    var clearsOut=Math.min(Math.max((p-0.44)/0.10,0),1); // 0.44->0.54 fade out
+    sec.querySelectorAll('.cs-band--clears .cs-band-inner').forEach(function(el){
+      el.style.opacity=(1-clearsOut);
+    });
+    // keeps text reveals only AFTER the wipe has substantially passed
+    sec.querySelectorAll('.cs-band--keeps .cs-rev').forEach(function(el){
+      if(p>=parseFloat(el.getAttribute('data-at'))) el.classList.add('vis');
+      else el.classList.remove('vis'); // allow it to hide again scrolling back up
+    });
+    var pinned=(rect.top<=1 && rect.bottom>=window.innerHeight-1);
+    if(wipe<=0){ keeps.style.clipPath='inset(100% 0 0 0)'; edge.style.display='none'; }
+    else if(wipe>=1){ keeps.style.clipPath='inset(0 0 0 0)'; edge.style.display='none'; }
+    else {
+      keeps.style.clipPath=buildClip(wipe);
+      edge.style.display='none';
+    }
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

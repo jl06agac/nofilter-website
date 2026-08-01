@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST — quick buy final shape</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{--or:#ed3326;--cr:#F4F2EE;--nb:#1A1815;--gy:#6B6B6B;--li:#E8E2D4;--grn:#2f5d3a;
+  --fd:"Big Shoulders Display",sans-serif;--fb:"Archivo",sans-serif;--fm:"IBM Plex Mono",monospace;--fs:"Source Serif 4",Georgia,serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--fb);background:#e9e6df;color:var(--nb);-webkit-font-smoothing:antialiased;padding-bottom:120px;}
+.nav{position:sticky;top:0;z-index:60;background:var(--nb);color:var(--cr);display:flex;align-items:center;gap:20px;padding:15px clamp(20px,4vw,40px);}
+.nav .logo{font-family:var(--fd);font-weight:900;font-size:20px;color:#fff;letter-spacing:-.02em;}
+.nav .logo b{color:var(--or);}
+.cart{margin-left:auto;position:relative;display:inline-flex;align-items:center;gap:8px;background:rgba(244,242,238,.1);border:1px solid rgba(244,242,238,.2);border-radius:99px;padding:9px 15px 9px 13px;cursor:pointer;font-family:var(--fm);font-size:12px;color:var(--cr);transition:background .2s;}
+.cart:hover{background:rgba(244,242,238,.2);}
+.cart svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;}
+.cart .count{min-width:20px;height:20px;border-radius:99px;background:var(--or);color:#fff;font-size:11px;font-weight:700;font-family:var(--fb);display:inline-flex;align-items:center;justify-content:center;padding:0 6px;transition:transform .2s;}
+.cart .count.bump{transform:scale(1.4);}
+.cart.ring::after{content:"";position:absolute;inset:-3px;border-radius:99px;border:2px solid var(--or);opacity:0;animation:ring .6s ease-out;}
+@keyframes ring{0%{opacity:.9;transform:scale(1);}100%{opacity:0;transform:scale(1.15);}}
+.lab{max-width:1240px;margin:34px auto 14px;padding:0 24px;font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gy);}
+.lab b{color:var(--or);}
+.grid{max-width:1240px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:start;}
+@media(max-width:860px){.grid{grid-template-columns:1fr;}}
+
+.tile{background:#FBFAF8;border:1.5px solid rgba(26,24,21,.1);border-radius:14px;padding:10px;position:relative;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s;}
+.tile.on{border-color:var(--or);box-shadow:0 12px 30px -12px rgba(238,77,23,.25);}
+.tbar{height:4px;border-radius:99px;margin:2px 3px 8px;}
+.photo{aspect-ratio:3/4;border-radius:9px;overflow:hidden;background:#efe9df;position:relative;cursor:pointer;}
+.photo img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.tile:hover .photo img{transform:scale(1.015);}
+.selflag{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:var(--or);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:0;transform:scale(.6);transition:.2s cubic-bezier(.34,1.6,.64,1);z-index:2;box-shadow:0 5px 14px rgba(238,77,23,.4);}
+.tile.on .selflag{opacity:1;transform:scale(1);}
+.tname{font-family:var(--fs);font-size:17px;margin:10px 3px 4px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 3px 6px;}
+.chip{font-family:var(--fm);font-size:8px;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(26,24,21,.16);border-radius:99px;color:rgba(26,24,21,.6);}
+
+.drop{max-height:0;overflow:hidden;opacity:0;transition:max-height .42s cubic-bezier(.4,0,.2,1),opacity .3s ease,margin-top .3s;margin-top:0;}
+.tile.on .drop{max-height:190px;opacity:1;margin-top:10px;}
+.drop-inner{border-top:1px solid var(--li);padding-top:14px;}
+.qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;flex-wrap:wrap;}
+.seg{display:inline-flex;border:1.4px solid rgba(26,24,21,.24);border-radius:8px;overflow:hidden;}
+.seg button{font-family:var(--fb);font-size:12px;font-weight:600;padding:9px 15px;background:transparent;border:none;color:var(--nb);cursor:pointer;transition:.15s;}
+.seg button.on{background:var(--nb);color:#fff;}
+.badge{display:flex;align-items:center;gap:9px;}
+.mseal{position:relative;width:44px;height:44px;flex:0 0 auto;}
+.mseal svg{position:absolute;inset:0;width:100%;height:100%;animation:spin 22s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.mseal text{font-family:var(--fm);font-size:5.2px;letter-spacing:.8px;fill:var(--grn);text-transform:uppercase;}
+.mseal .mc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:900;font-size:14px;color:var(--grn);}
+.mamt{font-family:var(--fm);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--grn);line-height:1.3;}
+.mamt b{font-family:var(--fd);font-weight:900;font-size:16px;letter-spacing:0;display:block;}
+.dprice{font-family:var(--fd);font-weight:900;font-size:29px;line-height:.85;text-align:right;}
+.dprice small{font-family:var(--fm);font-size:9px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--gy);display:block;margin-bottom:3px;}
+
+.cartbtn{position:relative;height:50px;border-radius:11px;background:var(--or);overflow:hidden;box-shadow:0 8px 20px rgba(238,77,23,.26);user-select:none;}
+.ca-add{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:9px;color:#fff;font-family:var(--fb);font-weight:700;font-size:15px;cursor:pointer;transition:opacity .18s;}
+.ca-add svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:1.9;}
+.ca-step{position:absolute;inset:0;display:flex;align-items:stretch;opacity:0;pointer-events:none;transition:opacity .18s;}
+.cartbtn.added .ca-add{opacity:0;pointer-events:none;}
+.cartbtn.added .ca-step{opacity:1;pointer-events:auto;}
+.ca-step .pm{width:58px;border:none;background:rgba(0,0,0,.16);color:#fff;font-size:23px;cursor:pointer;transition:background .15s;flex:0 0 auto;}
+.ca-step .pm:hover{background:rgba(0,0,0,.3);}
+.ca-mid{flex:1;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--fd);font-weight:900;font-size:20px;}
+
+/* toast — the "it's in your cart / next step" confirmation */
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:80;background:var(--nb);color:#fff;border-radius:12px;padding:12px 14px 12px 18px;display:flex;align-items:center;gap:16px;box-shadow:0 18px 44px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
+.toast .tk{font-family:var(--fb);font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;}
+.toast .tk b{color:#8fd39a;}
+.toast .view{font-family:var(--fb);font-weight:700;font-size:13px;color:#fff;background:var(--or);border:none;border-radius:8px;padding:9px 15px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="nav"><span class="logo">NOFIL<b>+</b>ER</span>
+  <button class="cart" id="cartBtn"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Cart <span class="count" id="cc">0</span></button>
+</div>
+
+<div class="lab">Final shape — spread row · <b>Add → − qty +</b> (number only) · price &amp; raised <b>tally with qty</b> · cart pulses + toast confirms “it’s in your cart”</div>
+<div class="grid" id="g1"></div>
+
+<div class="toast" id="toast"><span class="tk"><b>✓</b> Added to your cart</span><button class="view" id="viewCart">View cart →</button></div>
+
+<script>
+var COFFEES=[
+ {n:'Batang Toru',bar:'#2f5d3a',img:'bag-batang-toru.png',ch:['Dark chocolate','Red plum','Cedar']},
+ {n:'Batang Gadis',bar:'#b8531a',img:'bag-batang-gadis.png',ch:['Brown sugar','Orange','Almond']},
+ {n:'Gayo Lues',bar:'#9c7212',img:'bag-gayo-lues.png',ch:['Syrupy','Dried fig','Cinnamon']}
+];
+var SIZES=[{lab:'1KG',price:80},{lab:'250G',price:25}];
+var count=0,cc=document.getElementById('cc'),cartBtn=document.getElementById('cartBtn');
+function bump(n){count=Math.max(0,count+n);cc.textContent=count;cc.classList.remove('bump');void cc.offsetWidth;cc.classList.add('bump');cartBtn.classList.remove('ring');void cartBtn.offsetWidth;cartBtn.classList.add('ring');}
+var toast=document.getElementById('toast'),tT;
+function showToast(){ toast.classList.add('show'); clearTimeout(tT); tT=setTimeout(function(){toast.classList.remove('show');},2800); }
+document.getElementById('viewCart').addEventListener('click',function(){ toast.classList.remove('show'); cartBtn.scrollIntoView({behavior:'smooth'}); });
+function chips(c){return c.ch.map(function(x){return '<span class="chip">'+x+'</span>';}).join('');}
+function fmt(v){return (Math.round(v*100)%100===0)?String(Math.round(v)):v.toFixed(2);}
+function sealSVG(id){return '<span class="mseal"><svg viewBox="0 0 44 44"><defs><path id="'+id+'" d="M22,22 m-16,0 a16,16 0 1,1 32,0 a16,16 0 1,1 -32,0"/></defs><text><textPath href="#'+id+'">· 10% TO THE FOREST </textPath></text></svg><span class="mc">10%</span></span>';}
+function tile(c,i){
+ return '<div class="tile" data-i="'+i+'"><div class="tbar" style="background:'+c.bar+'"></div>'
+   +'<div class="photo"><span class="selflag">✓</span><img src="https://nofilter-shared.netlify.app/'+c.img+'"></div>'
+   +'<div class="tname">'+c.n+'</div><div class="chips">'+chips(c)+'</div>'
+   +'<div class="drop"><div class="drop-inner">'
+     +'<div class="qrow"><span class="seg"><button class="on" data-s="0">1KG</button><button data-s="1">250G</button></span>'
+       +'<div class="badge">'+sealSVG('sl'+i)+'<span class="mamt">raised<b>SGD <span class="an">8</span></b></span></div>'
+       +'<div class="dprice"><small class="plab">1kg</small>SGD <span class="pn">80</span></div></div>'
+     +'<div class="cartbtn"><div class="ca-add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add to cart</div>'
+       +'<div class="ca-step"><button class="pm" data-m="-1">−</button><div class="ca-mid"><span class="n">1</span></div><button class="pm" data-m="1">+</button></div></div>'
+   +'</div></div></div>';
+}
+document.getElementById('g1').innerHTML=COFFEES.map(tile).join('');
+
+document.querySelectorAll('.tile').forEach(function(t){
+  var pn=t.querySelector('.pn'), plab=t.querySelector('.plab'), an=t.querySelector('.an');
+  var btn=t.querySelector('.cartbtn'), qn=btn.querySelector('.ca-step .n'); var sel=0;
+  function q(){ return btn.classList.contains('added') ? (parseInt(qn.textContent,10)||1) : 1; }
+  function upd(){ var Q=q(),u=SIZES[sel].price; pn.textContent=u*Q; plab.textContent=(Q>1?Q+' × ':'')+SIZES[sel].lab.toLowerCase(); an.textContent=fmt(u*Q*0.10); }
+  t.querySelector('.photo').addEventListener('click',function(){ t.classList.toggle('on'); });
+  t.querySelectorAll('.seg button').forEach(function(b){ b.addEventListener('click',function(e){ e.stopPropagation(); sel=parseInt(b.getAttribute('data-s'),10); t.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); upd(); }); });
+  t.querySelector('[data-add]').addEventListener('click',function(e){ e.stopPropagation(); btn.classList.add('added'); qn.textContent='1'; upd(); bump(1); showToast(); });
+  btn.querySelectorAll('.ca-step [data-m]').forEach(function(b){ b.addEventListener('click',function(e){ e.stopPropagation();
+    var d=parseInt(b.getAttribute('data-m'),10); var v=(parseInt(qn.textContent,10)||0)+d;
+    if(v<=0){ btn.classList.remove('added'); upd(); bump(d); return; }
+    qn.textContent=v; upd(); bump(d); if(d>0) showToast(); }); });
+});
+</script>
+</body>
+</html>

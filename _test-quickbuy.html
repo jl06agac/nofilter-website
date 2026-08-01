@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST — quick-buy on the shop tiles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{--or:#ed3326;--cr:#F4F2EE;--nb:#1A1815;--gy:#6B6B6B;--li:#E8E2D4;--grn:#2f5d3a;
+  --fd:"Big Shoulders Display",sans-serif;--fb:"Archivo",sans-serif;--fm:"IBM Plex Mono",monospace;--fs:"Source Serif 4",Georgia,serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--fb);background:#e9e6df;color:var(--nb);-webkit-font-smoothing:antialiased;padding-bottom:70px;}
+.nav{position:sticky;top:0;z-index:50;background:var(--nb);color:var(--cr);display:flex;align-items:center;gap:20px;padding:15px clamp(20px,4vw,40px);}
+.nav .logo{font-family:var(--fd);font-weight:900;font-size:20px;color:#fff;letter-spacing:-.02em;}
+.nav .logo b{color:var(--or);}
+.cart{margin-left:auto;position:relative;display:inline-flex;align-items:center;gap:8px;background:rgba(244,242,238,.1);border:1px solid rgba(244,242,238,.2);border-radius:99px;padding:9px 15px 9px 13px;cursor:pointer;font-family:var(--fm);font-size:12px;color:var(--cr);}
+.cart svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;}
+.cart .count{min-width:20px;height:20px;border-radius:99px;background:var(--or);color:#fff;font-size:11px;font-weight:700;font-family:var(--fb);display:inline-flex;align-items:center;justify-content:center;padding:0 6px;transition:transform .2s;}
+.cart .count.bump{transform:scale(1.35);}
+.lab{max-width:1240px;margin:30px auto 14px;padding:0 24px;font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gy);}
+.lab b{color:var(--or);}
+.grid{max-width:1240px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+@media(max-width:860px){.grid{grid-template-columns:1fr;}}
+
+.tile{background:#FBFAF8;border:1.5px solid rgba(26,24,21,.1);border-radius:14px;padding:10px;position:relative;display:flex;flex-direction:column;}
+.tbar{height:4px;border-radius:99px;margin:2px 3px 8px;}
+.photo{aspect-ratio:3/4;border-radius:9px;overflow:hidden;background:#efe9df;}
+.photo img{width:100%;height:100%;object-fit:cover;}
+.tname{font-family:var(--fs);font-size:17px;margin:10px 3px 4px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 3px 8px;}
+.chip{font-family:var(--fm);font-size:8px;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(26,24,21,.16);border-radius:99px;color:rgba(26,24,21,.6);}
+.detlink{font-family:var(--fm);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--gy);border:none;background:none;border-bottom:1px solid rgba(26,24,21,.3);padding:1px 0;cursor:pointer;}
+
+/* shared quick-buy bits */
+.qb{margin:auto 3px 3px;padding-top:11px;border-top:1px solid var(--li);}
+.qb-price{font-family:var(--fd);font-weight:900;font-size:22px;line-height:1;}
+.qb-price small{font-family:var(--fm);font-size:9px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--gy);}
+.seg{display:inline-flex;border:1.4px solid rgba(26,24,21,.24);border-radius:8px;overflow:hidden;}
+.seg button{font-family:var(--fb);font-size:11px;font-weight:600;padding:7px 12px;background:transparent;border:none;color:var(--nb);cursor:pointer;}
+.seg button.on{background:var(--nb);color:#fff;}
+.add{font-family:var(--fb);font-weight:700;font-size:13px;color:#fff;background:var(--or);border:none;border-radius:9px;padding:11px 14px;cursor:pointer;transition:filter .15s,transform .1s;box-shadow:0 7px 18px rgba(238,77,23,.22);display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+.add:hover{filter:brightness(1.05);}
+.add svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:1.9;}
+.step{display:inline-flex;align-items:center;justify-content:space-between;border:1.4px solid var(--or);border-radius:9px;overflow:hidden;}
+.step button{width:34px;height:38px;border:none;background:rgba(238,77,23,.08);color:var(--or);font-size:18px;cursor:pointer;}
+.step .n{font-family:var(--fm);font-size:13px;}
+.imp{font-family:var(--fm);font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--grn);margin-top:9px;display:flex;align-items:center;gap:6px;}
+.imp .d{width:7px;height:7px;border-radius:50%;background:var(--grn);}
+
+/* A — size row, then price + add row */
+.qbA .r1{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.qbA .r2{display:grid;grid-template-columns:auto 1fr;gap:8px;}
+/* B — one big add, size toggle above, qty appears after */
+.qbB .seg{width:100%;margin-bottom:10px;}
+.qbB .seg button{flex:1;}
+.qbB .add{width:100%;}
+/* C — price left, add right; size + qty compact under */
+.qbC .r1{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-bottom:10px;}
+.qbC .r1 .add{padding:11px 18px;}
+.qbC .r2{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+</style>
+</head>
+<body>
+<div class="nav"><span class="logo">NOFIL<b>+</b>ER</span>
+  <button class="cart"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Cart <span class="count" id="cc">0</span></button>
+</div>
+
+<div class="lab">Quick-buy on the tile — <b>A</b> · size row, then price + add · (no need to open Find out more)</div>
+<div class="grid">
+  <div class="tile"><div class="tbar" style="background:#2f5d3a"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-batang-toru.png"></div>
+    <div class="tname">Batang Toru</div><div class="chips"><span class="chip">Dark chocolate</span><span class="chip">Red plum</span><span class="chip">Cedar</span></div>
+    <div class="qb qbA"><div class="r1"><span class="seg"><button class="on">1KG</button><button>250G</button></span><button class="detlink">Details →</button></div>
+      <div class="r2"><div class="qb-price"><small>1kg</small><br>SGD 80</div><button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add to cart</button></div>
+      <div class="imp"><span class="d"></span>10% → PRCF · SRI · SGD 8</div></div>
+  </div>
+  <div class="tile"><div class="tbar" style="background:#b8531a"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-batang-gadis.png"></div>
+    <div class="tname">Batang Gadis</div><div class="chips"><span class="chip">Brown sugar</span><span class="chip">Orange</span><span class="chip">Almond</span></div>
+    <div class="qb qbA"><div class="r1"><span class="seg"><button class="on">1KG</button><button>250G</button></span><button class="detlink">Details →</button></div>
+      <div class="r2"><div class="qb-price"><small>1kg</small><br>SGD 80</div><button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add to cart</button></div>
+      <div class="imp"><span class="d"></span>10% → SRI · SGD 8</div></div>
+  </div>
+  <div class="tile"><div class="tbar" style="background:#9c7212"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-gayo-lues.png"></div>
+    <div class="tname">Gayo Lues</div><div class="chips"><span class="chip">Syrupy</span><span class="chip">Dried fig</span><span class="chip">Cinnamon</span></div>
+    <div class="qb qbA"><div class="r1"><span class="seg"><button class="on">1KG</button><button>250G</button></span><button class="detlink">Details →</button></div>
+      <div class="r2"><div class="qb-price"><small>1kg</small><br>SGD 80</div><button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add to cart</button></div>
+      <div class="imp"><span class="d"></span>10% → OIC · SGD 8</div></div>
+  </div>
+</div>
+
+<div class="lab">Quick-buy on the tile — <b>B</b> · size toggle full-width · one big Add to cart</div>
+<div class="grid">
+  <div class="tile"><div class="tbar" style="background:#2f5d3a"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-batang-toru.png"></div>
+    <div class="tname">Batang Toru</div><div class="chips"><span class="chip">Dark chocolate</span><span class="chip">Red plum</span><span class="chip">Cedar</span></div>
+    <div class="qb qbB"><span class="seg"><button class="on">1KG · SGD 80</button><button>250G · SGD 25</button></span>
+      <button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add to cart</button>
+      <div class="imp"><span class="d"></span>10% → PRCF · SRI · SGD 8 · <button class="detlink">Details</button></div></div>
+  </div>
+  <div class="tile"><div class="tbar" style="background:#b8531a"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-batang-gadis.png"></div>
+    <div class="tname">Batang Gadis</div><div class="chips"><span class="chip">Brown sugar</span><span class="chip">Orange</span><span class="chip">Almond</span></div>
+    <div class="qb qbB"><span class="seg"><button class="on">1KG · SGD 80</button><button>250G · SGD 25</button></span>
+      <button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add to cart</button>
+      <div class="imp"><span class="d"></span>10% → SRI · SGD 8 · <button class="detlink">Details</button></div></div>
+  </div>
+  <div class="tile"><div class="tbar" style="background:#9c7212"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-gayo-lues.png"></div>
+    <div class="tname">Gayo Lues</div><div class="chips"><span class="chip">Syrupy</span><span class="chip">Dried fig</span><span class="chip">Cinnamon</span></div>
+    <div class="qb qbB"><span class="seg"><button class="on">1KG · SGD 80</button><button>250G · SGD 25</button></span>
+      <button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add to cart</button>
+      <div class="imp"><span class="d"></span>10% → OIC · SGD 8 · <button class="detlink">Details</button></div></div>
+  </div>
+</div>
+
+<div class="lab">Quick-buy on the tile — <b>C</b> · price + add on one line · size &amp; qty compact beneath</div>
+<div class="grid">
+  <div class="tile"><div class="tbar" style="background:#2f5d3a"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-batang-toru.png"></div>
+    <div class="tname">Batang Toru</div><div class="chips"><span class="chip">Dark chocolate</span><span class="chip">Red plum</span><span class="chip">Cedar</span></div>
+    <div class="qb qbC"><div class="r1"><div class="qb-price"><small>1kg</small><br>SGD 80</div><button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add</button></div>
+      <div class="r2"><span class="seg"><button class="on">1KG</button><button>250G</button></span><span class="step"><button data-m="-1">−</button><span class="n">1</span><button data-m="1">+</button></span></div>
+      <div class="imp"><span class="d"></span>10% → PRCF · SRI · SGD 8 · <button class="detlink">Details</button></div></div>
+  </div>
+  <div class="tile"><div class="tbar" style="background:#b8531a"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-batang-gadis.png"></div>
+    <div class="tname">Batang Gadis</div><div class="chips"><span class="chip">Brown sugar</span><span class="chip">Orange</span><span class="chip">Almond</span></div>
+    <div class="qb qbC"><div class="r1"><div class="qb-price"><small>1kg</small><br>SGD 80</div><button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add</button></div>
+      <div class="r2"><span class="seg"><button class="on">1KG</button><button>250G</button></span><span class="step"><button data-m="-1">−</button><span class="n">1</span><button data-m="1">+</button></span></div>
+      <div class="imp"><span class="d"></span>10% → SRI · SGD 8 · <button class="detlink">Details</button></div></div>
+  </div>
+  <div class="tile"><div class="tbar" style="background:#9c7212"></div><div class="photo"><img src="https://nofilter-shared.netlify.app/bag-gayo-lues.png"></div>
+    <div class="tname">Gayo Lues</div><div class="chips"><span class="chip">Syrupy</span><span class="chip">Dried fig</span><span class="chip">Cinnamon</span></div>
+    <div class="qb qbC"><div class="r1"><div class="qb-price"><small>1kg</small><br>SGD 80</div><button class="add" data-add><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Add</button></div>
+      <div class="r2"><span class="seg"><button class="on">1KG</button><button>250G</button></span><span class="step"><button data-m="-1">−</button><span class="n">1</span><button data-m="1">+</button></span></div>
+      <div class="imp"><span class="d"></span>10% → OIC · SGD 8 · <button class="detlink">Details</button></div></div>
+  </div>
+</div>
+
+<script>
+var count=0,cc=document.getElementById('cc');
+function bump(n){count=Math.max(0,count+(n||1));cc.textContent=count;cc.classList.remove('bump');void cc.offsetWidth;cc.classList.add('bump');}
+document.querySelectorAll('[data-add]').forEach(function(b){b.addEventListener('click',function(){ var q=b.closest('.qb').querySelector('.n'); bump(q?parseInt(q.textContent,10)||1:1); });});
+document.querySelectorAll('.seg').forEach(function(s){s.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){s.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');});});});
+document.querySelectorAll('.step').forEach(function(s){var n=s.querySelector('.n');s.querySelectorAll('[data-m]').forEach(function(b){b.addEventListener('click',function(){n.textContent=Math.max(1,(parseInt(n.textContent,10)||1)+parseInt(b.getAttribute('data-m'),10));});});});
+</script>
+</body>
+</html>

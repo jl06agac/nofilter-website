@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST — editorial · cream · bleed</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet"><style>
+:root{--or:#ed3326;--cr:#F4F2EE;--nb:#1A1815;--gy:#8a8378;--ink2:#3D3E3D;
+  --d:"Big Shoulders Display",sans-serif;--m:"IBM Plex Mono",monospace;--s:"Source Serif 4",Georgia,serif;}
+*{box-sizing:border-box;} body{margin:0;background:#F4F2EE;color:var(--nb);font-family:var(--s);-webkit-font-smoothing:antialiased;}
+.band{}
+.dark{background:radial-gradient(120% 80% at 50% -6%,#333433 0%,#2a2b2a 55%);color:#F4F2EE;--nb:#F4F2EE;--ink2:#cfc9be;--gy:#948d81;}
+.paper{background:#F4F2EE;}
+.ed{max-width:1180px;margin:0 auto;padding:clamp(84px,12vw,190px) clamp(24px,5vw,72px);}
+.rv{opacity:0;transform:translateY(20px);transition:opacity .9s cubic-bezier(.5,0,.15,1),transform .9s cubic-bezier(.5,0,.15,1);}
+.rv.in{opacity:1;transform:none;}
+.o{color:var(--or);}
+.kicker{display:flex;align-items:center;gap:16px;font-family:var(--m);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--or);margin:0 0 34px;}
+.kicker::after{content:"";flex:1;height:1px;background:currentColor;opacity:.35;}
+.lede-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:clamp(34px,6vw,90px);align-items:end;}
+@media(max-width:820px){.lede-grid{grid-template-columns:1fr;gap:26px;}}
+.hed{font-family:var(--d);font-weight:900;text-transform:uppercase;line-height:.88;letter-spacing:-.015em;font-size:clamp(46px,7.4vw,112px);margin:0;}
+.lede{font-family:var(--s);font-size:clamp(18px,1.55vw,23px);line-height:1.62;color:var(--ink2);margin:0;}
+.lede .drop{float:left;font-family:var(--d);font-weight:900;font-size:3.2em;line-height:.7;padding:8px 14px 0 0;color:var(--nb);}
+.byline{font-family:var(--m);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gy);margin:40px 0 0;}
+.fig{margin:clamp(52px,8vw,120px) 0 0;}
+.fig-frame{position:relative;overflow:hidden;background:#0c0c0b;}
+.fig-frame video{display:block;width:100%;height:100%;object-fit:cover;}
+.fig-frame{aspect-ratio:21/9;}
+.cold video{filter:grayscale(.72) contrast(1.14) brightness(.9) sepia(.32) hue-rotate(165deg) saturate(1.05);}
+.warm video{filter:saturate(1.05) contrast(1.03);}
+.fig-cap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-family:var(--m);font-size:11px;letter-spacing:.06em;color:var(--gy);margin:16px 2px 0;}
+.fig-cap b{color:var(--nb);font-weight:500;} .fig-cap .n{color:var(--or);}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:clamp(34px,6vw,90px);margin:clamp(52px,8vw,110px) 0 0;align-items:start;}
+@media(max-width:820px){.cols{grid-template-columns:1fr;gap:30px;}}
+.body p{font-family:var(--s);font-size:clamp(16px,1.15vw,19px);line-height:1.75;color:var(--ink2);margin:0 0 1.1em;max-width:56ch;}
+.body p .o,.pull .o{font-style:italic;}
+.ed-stat{border-top:2px solid var(--or);padding-top:18px;} .ed-stat + .ed-stat{margin-top:36px;}
+.ed-stat b{display:block;font-family:var(--d);font-weight:900;font-size:clamp(44px,5.8vw,78px);line-height:.9;letter-spacing:-.01em;}
+.ed-stat span{font-family:var(--m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gy);display:block;margin-top:10px;max-width:26ch;}
+.turn{margin:clamp(64px,9vw,140px) 0 0;text-align:center;}
+.turn .lab{font-family:var(--m);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gy);}
+.turn h2{font-family:var(--d);font-weight:900;text-transform:uppercase;line-height:.9;letter-spacing:-.015em;font-size:clamp(36px,5.2vw,78px);margin:16px auto 0;max-width:18ch;}
+.turn-lead{font-family:var(--s);font-size:clamp(16px,1.3vw,20px);line-height:1.65;color:var(--ink2);max-width:56ch;margin:clamp(22px,3vw,38px) auto 0;}
+.turn-lead b{color:var(--nb);font-weight:600;}
+.pull{font-family:var(--s);font-style:italic;font-size:clamp(21px,2.5vw,32px);line-height:1.42;color:var(--nb);max-width:26ch;margin:clamp(34px,5vw,64px) auto 0;text-align:center;}
+/* dual-mono glitch frame */
+.gframe .fig-frame{position:relative;}
+.gv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .35s ease;}
+.gv-b{opacity:0;} .gframe.showB .gv-b{opacity:1;}
+.gframe.tearing .gv{animation:edTear .5s steps(3) infinite;}
+@keyframes edTear{0%{clip-path:inset(0 0 88% 0);transform:translate(-1%,0);}25%{clip-path:inset(42% 0 44% 0);transform:translate(1.4%,0);}50%{clip-path:inset(70% 0 16% 0);transform:translate(-1.4%,0);}75%{clip-path:inset(18% 0 66% 0);transform:translate(1%,0);}100%{clip-path:inset(0 0 0 0);transform:translate(0,0);}}
+.gv-scan{position:absolute;inset:0;pointer-events:none;z-index:3;background:repeating-linear-gradient(0deg,rgba(0,0,0,.10) 0 1px,transparent 1px 3px);opacity:.4;mix-blend-mode:multiply;}
+.fig--wide{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:100vw;} .fig--wide .fig-frame{border-radius:0;} .fig--wide .fig-cap{max-width:1180px;margin-left:auto;margin-right:auto;padding:0 clamp(24px,5vw,72px);}</style></head><body>
+<section class="band paper"><div class="ed"><div class="rv">
+  <p class="kicker">What most coffee does</p>
+  <div class="lede-grid">
+    <h1 class="hed">Grown where<br>it&rsquo;s <span class="o">cheapest.</span></h1>
+    <p class="lede"><span class="drop">T</span>he truth is most of the coffee we drink comes from mega&#8209;farms &mdash; land as far as the eye can track, ruthlessly efficient, mechanised and maximised for profit.</p>
+  </div>
+  <p class="byline">NoFilter &middot; Field note 01 &middot; On the cost of cheap</p>
+</div>
+<figure class="fig fig--wide cold gframe rv" id="edGframe">
+  <div class="fig-frame">
+    <video class="gv gv-a" src="mono-coffee-long.mp4" muted loop playsinline autoplay preload="auto"></video>
+    <video class="gv gv-b" src="clears-forest.mp4" muted loop playsinline autoplay preload="auto"></video>
+    <span class="gv-scan"></span>
+  </div>
+  <figcaption class="fig-cap"><span><span class="n">Fig. 01</span> &nbsp; <b class="gcap">Monoculture, to the horizon</b></span><span>What most coffee does &middot; efficient by design</span></figcaption>
+</figure>
+<div class="cols rv">
+  <div class="body">
+    <p>Cheapest means cleared. The most productive coffee comes off land the forest was pushed back to make &mdash; ranked, sprayed, mechanised, planted to the horizon in a single crop.</p>
+    <p>It is a system built for yield, not for the ground it stands on. The forest that was there doesn&rsquo;t come back, and the species that lived in it don&rsquo;t either. The price on the shelf never counts it.</p>
+  </div>
+  <div>
+    <div class="ed-stat"><b>1&nbsp;crop</b><span>to the horizon &mdash; monoculture, nothing else standing</span></div>
+    <div class="ed-stat"><b>5&ndash;10%</b><span>of every NoFilter sale to conservation partners</span></div>
+  </div>
+</div>
+<div style="margin:clamp(64px,9vw,130px) 0 0;"><div class="ed-seam" aria-hidden="true"><svg viewBox="0 0 1440 179.5" preserveAspectRatio="none">
+<path d="M0.0,132.4 L54.4,143.9 L123.4,162.7 L213.3,169.5 L268.7,155.7 L312.7,133.7 L330.9,113.7 L396.5,85.9 L448.6,66.0 L546.9,37.8 L666.6,12.2 L853.9,8.0 L1129.7,8.1 L1276.4,13.0 L1440.0,24.7" fill="none" stroke="#ed3326" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg></div></div>
+<div class="turn rv">
+  <p class="lab">&mdash; but there is another way &mdash;</p>
+  <h2>NoFilter backs what&rsquo;s <span class="o">still standing.</span></h2>
+  <p class="turn-lead">We don&rsquo;t replant what&rsquo;s already been lost. We source coffee from landscapes that are <b>still intact</b> &mdash; through <b>NGO&#8209;initiated</b> conservation projects at their edges &mdash; so that buying it is the very reason the forest keeps standing.</p>
+</div>
+<figure class="fig fig--wide warm rv">
+  <div class="fig-frame"><video src="keeps-standing.mp4" muted loop playsinline autoplay preload="auto"></video></div>
+  <figcaption class="fig-cap"><span><span class="n">Fig. 02</span> &nbsp; <b>Still standing</b></span><span>NGO&#8209;led conservation &middot; kept intact, not restored</span></figcaption>
+</figure>
+<p class="pull rv">Coffee that helps protect the landscapes <span class="o">still standing</span> &mdash; NGO&#8209;initiated, so every cup is a reason to keep them.</p></div></section>
+<script>
+(function(){
+  var els=document.querySelectorAll('.rv');
+  if('IntersectionObserver' in window){ var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14}); els.forEach(function(el){io.observe(el);}); }
+  else { els.forEach(function(el){el.classList.add('in');}); }
+  document.querySelectorAll('video').forEach(function(v){var p=v.play&&v.play();if(p&&p.catch)p.catch(function(){});});
+  var fr=document.getElementById('edGframe'); if(fr){
+    var cap=fr.querySelector('.gcap'), caps=['Monoculture, to the horizon','Cheapest means cleared'];
+    var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    var state=0, running=false, loopT=null;
+    function cut(){ state=1-state; fr.classList.add('tearing');
+      setTimeout(function(){ fr.classList.toggle('showB',state===1); if(cap)cap.textContent=caps[state]; },120);
+      setTimeout(function(){ fr.classList.remove('tearing'); },430); }
+    function loop(){ loopT=setTimeout(function(){ cut(); loop(); },4600); }
+    if(!reduce && 'IntersectionObserver' in window){
+      var io2=new IntersectionObserver(function(en){en.forEach(function(e){
+        if(e.isIntersecting&&!running){running=true;loop();}
+        else if(!e.isIntersecting&&running){running=false;clearTimeout(loopT);fr.classList.remove('tearing');}
+      });},{threshold:.35}); io2.observe(fr);
+    }
+  }
+})();
+</script>
+</body></html>

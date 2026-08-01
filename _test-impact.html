@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST — impact device options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{--or:#ed3326;--cr:#F4F2EE;--nb:#1A1815;--grn:#2f5d3a;
+  --font-display:"Big Shoulders Display",sans-serif;--font-b:"Archivo",sans-serif;--font-m:"IBM Plex Mono",monospace;--font-s:"Source Serif 4",Georgia,serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-b);background:#e9e6df;color:var(--nb);-webkit-font-smoothing:antialiased;padding:0 0 80px;}
+.bar{background:var(--nb);color:var(--cr);text-align:center;padding:16px;font-family:var(--font-m);font-size:12px;letter-spacing:.16em;text-transform:uppercase;}
+.bar b{color:var(--or);}
+.replay{margin:22px auto 0;display:block;font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--nb);color:var(--cr);border:none;border-radius:8px;padding:10px 18px;cursor:pointer;}
+.grid{max-width:1180px;margin:34px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:26px;padding:0 24px;}
+@media(max-width:820px){.grid{grid-template-columns:1fr;}}
+.card{background:var(--grn);color:var(--cr);border-radius:16px;padding:30px;min-height:210px;display:flex;flex-direction:column;}
+.card h4{font-family:var(--font-m);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,232,195,.6);margin-bottom:20px;}
+.sub{font-family:var(--font-m);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,232,195,.5);margin-top:14px;}
+
+/* ===== 1 · Conservation seal ===== */
+.seal-row{display:flex;align-items:center;gap:20px;}
+.seal{position:relative;width:104px;height:104px;flex:0 0 auto;}
+.seal svg{position:absolute;inset:0;width:100%;height:100%;animation:spin 22s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.seal text{font-family:var(--font-m);font-size:9.3px;letter-spacing:2px;fill:rgba(255,232,195,.85);text-transform:uppercase;}
+.seal .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.seal .pct{font-family:var(--font-display);font-weight:900;font-size:34px;line-height:.8;color:#F4F2EE;}
+.seal .pct small{font-size:15px;vertical-align:super;}
+.seal-amt{font-family:var(--font-m);font-size:13px;color:rgba(255,232,195,.85);}
+.seal-amt b{font-family:var(--font-display);font-weight:900;font-size:30px;color:#F4F2EE;display:block;line-height:1;}
+
+/* ===== 2 · Odometer roll ===== */
+.od{display:inline-flex;align-items:center;gap:9px;padding:10px 14px;background:rgba(0,0,0,.24);border-radius:11px;}
+.od .pre{font-family:var(--font-m);font-size:16px;color:rgba(255,232,195,.85);}
+.reel{display:inline-flex;gap:2px;}
+.dig{width:24px;height:38px;overflow:hidden;position:relative;background:rgba(0,0,0,.35);border-radius:5px;}
+.dig .col{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column;align-items:center;transition:transform 1.1s cubic-bezier(.2,.7,.2,1);}
+.dig .col span{height:38px;line-height:38px;font-family:var(--font-m);font-size:26px;color:#F4F2EE;}
+.pill{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-m);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1.4px solid rgba(255,232,195,.45);border-radius:99px;padding:7px 13px;margin-top:16px;}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--or);}
+
+/* ===== 3 · Radial ring ===== */
+.ring-row{display:flex;align-items:center;gap:22px;}
+.ring{position:relative;width:112px;height:112px;flex:0 0 auto;}
+.ring svg{transform:rotate(-90deg);}
+.ring .track{fill:none;stroke:rgba(255,232,195,.18);stroke-width:9;}
+.ring .fill{fill:none;stroke:var(--or);stroke-width:9;stroke-linecap:round;stroke-dasharray:301;stroke-dashoffset:301;transition:stroke-dashoffset 1.3s cubic-bezier(.3,.8,.3,1);}
+.ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring .mid .p{font-family:var(--font-display);font-weight:900;font-size:26px;color:#F4F2EE;line-height:.9;}
+.ring .mid .l{font-family:var(--font-m);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,232,195,.6);}
+.ring-amt b{font-family:var(--font-display);font-weight:900;font-size:34px;color:#F4F2EE;display:block;line-height:1;}
+.ring-amt span{font-family:var(--font-m);font-size:12px;color:rgba(255,232,195,.8);}
+
+/* ===== 4 · Count-up + progress line ===== */
+.cu-amt{font-family:var(--font-display);font-weight:900;font-size:clamp(40px,5vw,58px);line-height:.9;color:#F4F2EE;}
+.cu-amt small{font-family:var(--font-m);font-size:13px;font-weight:400;color:rgba(255,232,195,.7);}
+.cu-track{height:6px;border-radius:99px;background:rgba(255,232,195,.16);margin:16px 0 10px;overflow:hidden;}
+.cu-fill{height:100%;width:0;background:var(--or);border-radius:99px;transition:width 1.2s cubic-bezier(.3,.8,.3,1);}
+.cu-chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-m);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,232,195,.8);}
+.cu-chip b{color:var(--or);}
+</style>
+</head>
+<body>
+<div class="bar">Impact device options — <b>10% back</b> badge + non-flip counters · SGD 8 per 1kg bag</div>
+<button class="replay" id="replay">▶ Replay animations</button>
+
+<div class="grid">
+
+  <!-- 1 · SEAL -->
+  <div class="card">
+    <h4>1 · Conservation seal (rotating badge + count-up)</h4>
+    <div class="seal-row">
+      <div class="seal">
+        <svg viewBox="0 0 104 104"><defs><path id="c1" d="M52,52 m-40,0 a40,40 0 1,1 80,0 a40,40 0 1,1 -80,0"/></defs>
+          <text><textPath href="#c1" startOffset="0">· 10% OF EVERY BAG · TO THE FOREST </textPath></text></svg>
+        <div class="center"><span class="pct">10<small>%</small></span></div>
+      </div>
+      <div class="seal-amt">Your bag sends<b><span data-cu="8">0</span> SGD</b>to PRCF · SRI</div>
+    </div>
+    <div class="sub">straight to the forest · scales with size &amp; quantity</div>
+  </div>
+
+  <!-- 2 · ODOMETER -->
+  <div class="card">
+    <h4>2 · Odometer roll (digits roll up, no flip)</h4>
+    <div class="od"><span class="pre">SGD</span><span class="reel" data-od="8"></span></div>
+    <div class="pill"><span class="dot"></span>10% of every bag → PRCF · SRI</div>
+    <div class="sub">straight to the forest · scales with size &amp; quantity</div>
+  </div>
+
+  <!-- 3 · RADIAL RING -->
+  <div class="card">
+    <h4>3 · Radial ring (10% arc + count-up)</h4>
+    <div class="ring-row">
+      <div class="ring">
+        <svg width="112" height="112"><circle class="track" cx="56" cy="56" r="48"/><circle class="fill" id="ring3" cx="56" cy="56" r="48"/></svg>
+        <div class="mid"><span class="p">10%</span><span class="l">to forest</span></div>
+      </div>
+      <div class="ring-amt"><b>SGD <span data-cu="8">0</span></b><span>to PRCF · SRI, per bag</span></div>
+    </div>
+    <div class="sub">scales with size &amp; quantity</div>
+  </div>
+
+  <!-- 4 · COUNT-UP + LINE -->
+  <div class="card">
+    <h4>4 · Count-up figure + progress line</h4>
+    <div class="cu-amt">SGD <span data-cu="8">0</span> <small>to the forest</small></div>
+    <div class="cu-track"><div class="cu-fill" id="cu4"></div></div>
+    <div class="cu-chip"><b>10% of every bag</b> → PRCF · SRI</div>
+  </div>
+
+</div>
+
+<script>
+function easeOutCubic(p){return 1-Math.pow(1-p,3);}
+function countUp(el,to,dur){var s=performance.now();function step(t){var p=Math.min(1,(t-s)/dur);el.textContent=Math.round(to*easeOutCubic(p));if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+function mountOdo(host,val){host.innerHTML='';var s=String(val);for(var i=0;i<s.length;i++){var d=document.createElement('span');d.className='dig';var col=document.createElement('div');col.className='col';for(var n=0;n<=9;n++){var sp=document.createElement('span');sp.textContent=n;col.appendChild(sp);}d.appendChild(col);host.appendChild(d);d._col=col;d._target=parseInt(s[i],10);}}
+function rollOdo(host){[].forEach.call(host.children,function(d){ d._col.style.transform='translateY(0)'; void d._col.offsetWidth; d._col.style.transform='translateY(-'+(d._target*38)+'px)'; });}
+function play(){
+  document.querySelectorAll('[data-cu]').forEach(function(el){ el.textContent='0'; countUp(el,parseInt(el.getAttribute('data-cu'),10),1200); });
+  var od=document.querySelector('[data-od]'); mountOdo(od,parseInt(od.getAttribute('data-od'),10)); requestAnimationFrame(function(){requestAnimationFrame(function(){rollOdo(od);});});
+  var r=document.getElementById('ring3'); r.style.strokeDashoffset='301'; requestAnimationFrame(function(){requestAnimationFrame(function(){ r.style.strokeDashoffset=(301*(1-0.10))+''; });});
+  var cf=document.getElementById('cu4'); cf.style.width='0'; requestAnimationFrame(function(){requestAnimationFrame(function(){ cf.style.width='10%'; });});
+}
+document.getElementById('replay').addEventListener('click',play);
+play();
+</script>
+</body>
+</html>

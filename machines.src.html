@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoFilter — Machines</title>
+<meta name="description" content="The CaféMatic range — bean-to-cup machines from countertop to full floor, installed and serviced. Priced around what your workplace picks.">
+<link rel="icon" href="https://nofilter-shared.netlify.app/nofilter-favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet">
+[[INCLUDE:site-head]]
+<style>
+/* machines-page-specific */
+/* machines header */
+.mx-head{background:var(--nb);color:var(--cr);padding:clamp(140px,20vh,220px) 0 clamp(56px,8vw,96px);}
+.mx-head .sec-lead{color:rgba(255,232,195,.85);}
+
+/* machine cards — harvested verbatim from the configurator q-eq-card block (CSS ~2193-2218);
+   adapted for an info page: quote-only controls (steppers, rental toggles, client floors) dropped;
+   --font-d name → --font-s (site serif). Data (size/spec/rate) is the configurator's real data. */
+.mx-band{padding:clamp(56px,8vw,110px) 0;}
+.q-eq-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+@media(max-width:900px){.q-eq-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:520px){.q-eq-grid{grid-template-columns:1fr;}}
+.q-eq-card{position:relative;background:#fdfcf8;border:1.5px solid #E8E2D4;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s ease,border-color .25s ease;}
+.q-eq-card:hover{border-color:rgba(238,77,23,.4);transform:translateY(-2px);box-shadow:0 10px 26px -12px rgba(238,77,23,.28);}
+.q-eq-photo{position:relative;background:linear-gradient(160deg,#efe7db,#e4d9c9);display:flex;align-items:center;justify-content:center;border-radius:9px;aspect-ratio:1/1;overflow:hidden;}
+.q-eq-photo img{width:100%;height:100%;object-fit:contain;display:block;padding:8px;transition:transform .4s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 6px 12px rgba(26,24,21,.18));}
+.q-eq-card:hover .q-eq-photo img{transform:scale(1.05);}
+.q-eq-body{padding:0;display:flex;flex-direction:column;gap:3px;flex:1;}
+.mx-size-badge{display:inline-block;align-self:flex-start;font-family:var(--font-m);font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;padding:3px 10px;border:1.2px solid var(--nb);border-radius:99px;color:var(--nb);margin:0 0 7px;}
+.q-eq-name{font-family:var(--font-s);font-size:20px;line-height:1.1;font-weight:600;}
+.q-eq-spec{font-size:12px;color:#6a655c;line-height:1.4;margin:4px 0 6px;flex:1;}
+.q-eq-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:10px;border-top:1px solid #ece5d6;flex-wrap:wrap;}
+.q-eq-rate{font-family:var(--font-m);font-size:11px;color:var(--nb);}
+.q-eq-rate b{font-size:14px;}
+.q-eq-per{opacity:.55;}
+@media(prefers-reduced-motion:reduce){.q-eq-card,.q-eq-photo img{transition:none;}}
+
+/* how it's installed / serviced strip */
+.mx-servicing{background:var(--pa);padding:clamp(56px,8vw,100px) 0;}
+.mx-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:44px;}
+@media(max-width:760px){.mx-steps{grid-template-columns:1fr;}}
+.mx-step .n{font-family:var(--font-display);font-weight:900;font-size:40px;color:var(--or);line-height:1;}
+.mx-step h4{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:19px;margin:8px 0 6px;}
+.mx-step p{font-size:14px;color:#3d3b38;}
+
+/* CTA */
+.cta-band{background:var(--or);color:#fff;text-align:center;padding:clamp(64px,9vw,120px) 0;}
+.cta-band .sec-title{color:#fff;}
+.cta-band p{font-family:var(--font-s);font-size:clamp(18px,2.2vw,24px);max-width:52ch;margin:0 auto 34px;color:rgba(255,255,255,.92);}
+.btn-lg{display:inline-block;background:#fff;color:var(--nb);font-family:var(--font-b);font-weight:700;font-size:17px;padding:19px 46px;border-radius:14px;text-decoration:none;transition:transform .12s,box-shadow .2s;box-shadow:0 12px 34px rgba(0,0,0,.2);}
+.btn-lg:hover{transform:translateY(-2px);box-shadow:0 18px 44px rgba(0,0,0,.28);}
+.embed-cap{font-family:var(--font-m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gy);margin-top:12px;}
+.embed{margin-top:44px;border-radius:16px;overflow:hidden;border:1px solid var(--li);background:#000;}
+.embed iframe{width:100%;height:520px;border:0;display:block;}
+</style>
+</head>
+<body class="nf-logo-static">
+
+[[INCLUDE:nfbar]]
+
+<!-- ═══ MACHINES HEADER ═══ -->
+<header class="mx-head" id="cover">
+  <div class="wrap">
+    <div class="eyebrow">The Machines</div>
+    <h1 class="sec-title">Bean-to-cup,<br>built for the floor.</h1>
+    <p class="sec-lead">Every CaféMatic is bean-to-cup — from a true countertop for a small team to a two-grinder flagship for a full floor. Installed, serviced, and priced around what your workplace picks in the quote builder.</p>
+  </div>
+</header>
+
+<!-- ═══ MACHINE RANGE — cards + data harvested from the configurator q-eq-card blocks ═══ -->
+<section class="mx-band">
+  <div class="wrap">
+    <div class="q-eq-grid">
+      <div class="q-eq-card">
+        <div class="q-eq-photo"><img src="https://nofilter-shared.netlify.app/cafematic-2.png" alt="CaféMatic 2 countertop bean-to-cup machine" loading="lazy"></div>
+        <div class="q-eq-body">
+          <div class="mx-size-badge">Small teams · up to ~40</div>
+          <div class="q-eq-name">CaféMatic 2</div>
+          <div class="q-eq-spec">1 grinder · fresh-milk drinks · true countertop · ~80 cups/day</div>
+          <div class="q-eq-foot"><div class="q-eq-rate">from SGD <b>269.99</b> <span class="q-eq-per">/mo</span></div></div>
+        </div>
+      </div>
+      <div class="q-eq-card">
+        <div class="q-eq-photo"><img src="https://nofilter-shared.netlify.app/cafematic-5.png" alt="CaféMatic 5 bean-to-cup machine" loading="lazy"></div>
+        <div class="q-eq-body">
+          <div class="mx-size-badge">Mid-size teams · up to ~75</div>
+          <div class="q-eq-name">CaféMatic 5</div>
+          <div class="q-eq-spec">1 grinder · 1 powder hopper · steam wand + hot water</div>
+          <div class="q-eq-foot"><div class="q-eq-rate">from SGD <b>369.99</b> <span class="q-eq-per">/mo</span></div></div>
+        </div>
+      </div>
+      <div class="q-eq-card">
+        <div class="q-eq-photo"><img src="https://nofilter-shared.netlify.app/cafematic-6.png" alt="CaféMatic 6 bean-to-cup machine" loading="lazy"></div>
+        <div class="q-eq-body">
+          <div class="mx-size-badge">Large floors · 100+</div>
+          <div class="q-eq-name">CaféMatic 6</div>
+          <div class="q-eq-spec">2 grinders · two beans side by side · no powder</div>
+          <div class="q-eq-foot"><div class="q-eq-rate">from SGD <b>449.99</b> <span class="q-eq-per">/mo</span></div></div>
+        </div>
+      </div>
+      <div class="q-eq-card">
+        <div class="q-eq-photo"><img src="https://nofilter-shared.netlify.app/cafematic-8.png" alt="CaféMatic 8 bean-to-cup machine" loading="lazy"></div>
+        <div class="q-eq-body">
+          <div class="mx-size-badge">Large floors · 100+</div>
+          <div class="q-eq-name">CaféMatic 8</div>
+          <div class="q-eq-spec">2 grinders · 2 powder hoppers · the fullest menu</div>
+          <div class="q-eq-foot"><div class="q-eq-rate">from SGD <b>499.99</b> <span class="q-eq-per">/mo</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ INSTALLED & SERVICED ═══ -->
+<section class="mx-servicing">
+  <div class="wrap">
+    <div class="eyebrow">Installed &amp; serviced</div>
+    <h2 class="sec-title" style="font-size:clamp(32px,4.5vw,60px);">We look after it.</h2>
+    <p class="sec-lead">Delivery, install and servicing are handled — and tracked on a live schedule you can actually see, so uptime is a record, not a promise.</p>
+    <div class="mx-steps">
+      <div class="mx-step"><div class="n">01</div><h4>Sized to your floor</h4><p>Pick by team size in the quote builder; we confirm the right machines for your space.</p></div>
+      <div class="mx-step"><div class="n">02</div><h4>Installed for you</h4><p>Delivered and set up in your NoFilter livery, rental or purchase, 24 or 36 months.</p></div>
+      <div class="mx-step"><div class="n">03</div><h4>Serviced on a schedule</h4><p>Routine servicing runs on a live system — care and uptime you can check, not take on trust.</p></div>
+    </div>
+    <div class="embed"><iframe src="https://nofilter-servicing.netlify.app" title="NoFilter servicing scheduler" loading="lazy"></iframe></div>
+    <div class="embed-cap">Live servicing system &middot; nofilter-servicing.netlify.app</div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-band" id="quote">
+  <div class="wrap">
+    <div class="eyebrow" style="color:rgba(255,255,255,.85);">For your workplace</div>
+    <h2 class="sec-title">Price it around<br>what you pick.</h2>
+    <p>Choose your machines and coffees, set your terms, and the quote prices itself. About two minutes, no sales call to see a number.</p>
+    <a class="btn-lg" href="workplace.html">Build your quote &rarr;</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+[[INCLUDE:footer]]
+
+</body>
+</html>

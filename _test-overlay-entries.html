@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoFilter — overlaid animated entries · test</title>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500&family=Rock+Salt&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{--or:#ed3326;--cr:#F4F2EE;--nb:#1A1815;--gy:#8a8378;--ink2:#3D3E3D;
+  --d:"Big Shoulders Display",sans-serif;--m:"IBM Plex Mono",monospace;--s:"Source Serif 4",Georgia,serif;--g:"Rock Salt",cursive;}
+*{box-sizing:border-box;} body{margin:0;background:var(--cr);color:var(--nb);font-family:var(--s);-webkit-font-smoothing:antialiased;}
+.ob{max-width:1180px;margin:0 auto;padding:clamp(56px,7vw,100px) 20px 90px;position:relative;}
+.kick{display:flex;align-items:center;justify-content:center;gap:14px;font-family:var(--m);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--or);margin:0 0 30px;}
+.ob-type{position:relative;text-align:center;z-index:2;}
+.ob-type .sn{position:absolute;font-family:var(--m);font-size:11px;letter-spacing:.2em;color:var(--nb);top:12px;}
+.ob-type .sn.l{left:4%;} .ob-type .sn.r{right:4%;}
+.ob-type h2{font-family:var(--d);font-weight:900;text-transform:uppercase;color:var(--nb);
+  font-size:clamp(40px,5.6vw,80px);line-height:.9;letter-spacing:-.012em;margin:0;}
+.graf{position:absolute;left:50%;transform:translateX(-50%) rotate(-5deg);z-index:6;
+  font-family:var(--g);color:#56dcff;font-size:clamp(30px,4.2vw,58px);line-height:1;white-space:nowrap;
+  opacity:.95;filter:blur(.3px) drop-shadow(0 0 6px rgba(86,220,255,.35));pointer-events:none;}
+/* the film — the evidence; text is voiceover over it */
+.ob-film{position:relative;overflow:hidden;background:#0c0c0b;height:clamp(520px,82vh,760px);
+  box-shadow:0 34px 90px -52px rgba(26,24,21,.55);}
+.ob-film video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:grayscale(.72) contrast(1.14) brightness(.86) sepia(.32) hue-rotate(165deg) saturate(1.05);}
+.ob-film .scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px);opacity:.4;mix-blend-mode:multiply;}
+.ob-film .scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(10,10,9,.82) 0%,rgba(10,10,9,.5) 46%,rgba(10,10,9,0) 72%),
+             linear-gradient(0deg,rgba(10,10,9,.7) 0%,rgba(10,10,9,0) 42%);}
+/* voiceover captions, lower-left */
+.ob-caps{position:absolute;left:clamp(24px,4vw,64px);bottom:clamp(56px,7vw,84px);right:auto;z-index:4;
+  max-width:46ch;display:flex;flex-direction:column;gap:clamp(16px,2vw,26px);}
+.ob-cap{margin:0;font-family:var(--s);font-size:clamp(16px,1.42vw,21px);line-height:1.55;color:rgba(244,242,238,.9);
+  opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1);
+  text-shadow:0 1px 14px rgba(0,0,0,.6);border-left:2px solid rgba(237,51,38,0);padding-left:0;}
+.ob-cap.in{opacity:1;transform:none;}
+.ob-cap.ob-turn{font-size:clamp(19px,1.75vw,26px);color:#fff;}
+.ob-cap.ob-turn b{font-weight:600;}
+.ob-cap.ob-turn.in{border-left-color:var(--or);padding-left:18px;transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1),border-color .5s ease .3s,padding-left .5s ease .3s;}
+/* figure caption tag, top-left of film, like an exhibit label */
+.ob-tag{position:absolute;left:16px;top:14px;z-index:5;font-family:var(--m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,242,238,.6);text-shadow:0 1px 6px rgba(0,0,0,.7);}
+.ob-tag .n{color:var(--or);}
+@media(max-width:720px){.ob-caps{max-width:none;right:clamp(24px,4vw,64px);}}
+</style>
+</head>
+<body>
+<section class="ob">
+  <p class="kick">What most coffee does</p>
+  <div class="ob-type">
+    <span class="sn l">Fig.</span><span class="sn r">01</span>
+    <h2>The truth is most<br>of the coffee we<br>drink comes from</h2>
+  </div>
+  <span class="graf" aria-hidden="true">vast mega-farms</span>
+  <figure class="ob-film" id="obFilm" style="margin:clamp(28px,3vw,44px) 0 0;">
+    <video src="mono-coffee-long.mp4" muted loop playsinline autoplay preload="auto"></video>
+    <span class="scan" aria-hidden="true"></span>
+    <span class="scrim" aria-hidden="true"></span>
+    <span class="ob-tag"><span class="n">Fig. 01</span> · Grown where it's cheapest</span>
+    <div class="ob-caps">
+      <p class="ob-cap" data-i="0">Land as far as the eye can track &mdash; ruthlessly efficient, mechanised and engineered for the lowest possible cost. It floods the shelves and teaches us coffee should always be cheap.</p>
+      <p class="ob-cap" data-i="1">At that scale, cheap stops being a price and becomes the expectation. Buyers gravitate towards the biggest estates, and the market bends around what they can produce.</p>
+      <p class="ob-cap ob-turn" data-i="2">What gets squeezed out isn&rsquo;t just smaller farms &mdash; it&rsquo;s the diverse, forested landscapes where coffee still grows beneath a living canopy. Without buyers, those farms lose the income that makes <b>keeping the forest standing worth it.</b></p>
+    </div>
+  </figure>
+</section>
+<script>
+(function(){
+  document.querySelectorAll('video').forEach(function(v){ var p=v.play&&v.play(); if(p&&p.catch)p.catch(function(){}); });
+  var caps=[].slice.call(document.querySelectorAll('.ob-cap'));
+  var film=document.getElementById('obFilm');
+  function reveal(){ caps.forEach(function(c,i){ setTimeout(function(){ c.classList.add('in'); }, i*650); }); }
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(en){ en.forEach(function(e){ if(e.isIntersecting){ reveal(); io.disconnect(); } }); },{threshold:.45});
+    io.observe(film);
+  } else { reveal(); }
+})();
+</script>
+</body>
+</html>
