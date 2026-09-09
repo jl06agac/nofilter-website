@@ -20,7 +20,7 @@ the information existed and was still got wrong.**
 
 Deploying the site does **not** require touching the CDN. The two only ever move together if
 a change adds or replaces an asset — and asset work is additive, never a replacement
-(see `_CDN/_CDN-DEPLOY-README.md`).
+(see `CDN-DEPLOY-README.md`).
 
 ## How the website deploys
 
