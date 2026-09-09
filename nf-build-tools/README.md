@@ -30,6 +30,28 @@ that survives.
 - `_nf-ship-stamp.mjs` (beside the master on the Desktop) — stamps the bundle
   name into each page after a build.
 
+## The iteration loop (set 9 Sep 2026, when this folder went into git)
+
+Before git, every iteration was a dated SHIP folder: 13 of them plus 23 tarballs,
+361 MB, `07a` through `07h` in one evening, because there was nowhere else to put
+"the state of things at 2:17am". Iterations now live in the commit history.
+
+    1. write a patch      patches/patch_<name>.py, add its name to build.sh
+    2. bash build.sh      master rebuilt IN PLACE. One file, one name, no date
+    3. git commit         <- THIS is the iteration. Permanent, with the reasoning
+    4. cut the bundle     see below
+    5. drag to nofilter-site
+    6. forget the bundle  .gitignore drops it; step 2 regenerates it any time
+
+**Step 3 comes before step 4, always.** Commit the master, then build from it.
+Deploying a bundle whose source was never committed is how the master, the newest
+build and the live site ended up three different states on 7-9 Sep.
+
+To go back to an earlier state: `git log` to find it, `git checkout <commit>` to get
+the folder as it was, then cut a bundle from that. Old bundles are never kept --
+the master plus the patch chain reproduce them byte for byte, which is verified
+before any change by rebuilding the current master and matching its md5 first.
+
 ## To cut the next bundle
 
     cd ship && npm install
