@@ -22,22 +22,19 @@ def fix(old, new, count=1):
 #     nothing and cost desktop an extra file. The <img> covers the plate
 #     (100%/100%, object-fit cover), so the duplicate background goes; the
 #     plate keeps .vp-media's black ground while the lazy image arrives.
-# ---- srcset PARKED 9 Sep 2026, and why -------------------------------------
-# batang-gadis-signoff-1000.webp exists in _CDN-UPLOAD-SAFE (built 7 Sep 08:13)
-# but returns 404 on nofilter-shared.netlify.app: it was never uploaded, because
-# a CDN deploy replaces the whole bucket and that carries its own risk. Browsers
-# do NOT fall back to another srcset candidate when one 404s, so shipping this
-# would have blanked the sign-off photograph at any width picking the 1000w --
-# including ordinary 1x desktop at this layout. Verified 9 Sep: all 75 other CDN
-# assets the build requests return 200; this is the only gap.
-# TO RESTORE: deploy _CDN-UPLOAD-SAFE to nofilter-shared, confirm the file is
-# 200, then un-comment the fix() below and re-run build.sh.
-# fix("""                <img src="../../_CDN-UPLOAD-SAFE/batang-gadis-signoff.webp"
-#                      alt="Komanja growers, PRCF Indonesia and SRI members""",
-#     """                <img src="../../_CDN-UPLOAD-SAFE/batang-gadis-signoff.webp"
-#                      srcset="../../_CDN-UPLOAD-SAFE/batang-gadis-signoff-1000.webp 1000w, ../../_CDN-UPLOAD-SAFE/batang-gadis-signoff.webp 1600w"
-#                      sizes="(max-width:900px) 100vw, 850px"
-#                      alt="Komanja growers, PRCF Indonesia and SRI members""")
+# ---- srcset: parked 9 Sep 2026 (morning), restored 9 Sep 2026 (afternoon) -----
+# batang-gadis-signoff-1000.webp was built 7 Sep but sat only in _CDN-UPLOAD-SAFE;
+# the bucket returned 404 and browsers do NOT fall back to another srcset candidate
+# when one 404s, so the sign-off photograph would have blanked at 1x desktop.
+# Restored once the full folder was verified live: all 301 servable files 200 on
+# nofilter-shared.netlify.app (only _headers 404s, which Netlify consumes, never
+# serves). Saving: 131 KB instead of 287 KB at every width up to 1000 px.
+fix("""                <img src="../../_CDN-UPLOAD-SAFE/batang-gadis-signoff.webp"
+                     alt="Komanja growers, PRCF Indonesia and SRI members""",
+    """                <img src="../../_CDN-UPLOAD-SAFE/batang-gadis-signoff.webp"
+                     srcset="../../_CDN-UPLOAD-SAFE/batang-gadis-signoff-1000.webp 1000w, ../../_CDN-UPLOAD-SAFE/batang-gadis-signoff.webp 1600w"
+                     sizes="(max-width:900px) 100vw, 850px"
+                     alt="Komanja growers, PRCF Indonesia and SRI members""")
 # The duplicate background-image removal below is kept: it needs no new asset
 # and was the larger saving, a second 287 KB fetch on every visit at every width.
 # ----------------------------------------------------------------------------
