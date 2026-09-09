@@ -1,0 +1,245 @@
+/* /faqs — eighth cut, 5 Sep.
+
+   The seventh removed the competing systems but kept three things that were
+   still doing the wrong job: a photograph on every closed category, which made
+   the index read as content cards and made the page jump between documentary,
+   portrait and product render; one dark-green category, which announced a
+   difference it could not explain; and a category title set in the display
+   face at 700, which next to the hero's 900 read as a second display identity.
+
+   So: no photographs in the index, one warm paper throughout, and the category
+   titles in the same face and weight as the hero, just smaller. Photography
+   moves inside the answers, where it is evidence.
+
+   Hero = the visual moment. Index = quiet and editorial. */
+
+/* 5 Sep, ninth cut: the three grounds were within a shade or two of each
+   other, so the move from hero to file read as a printing accident rather than
+   a change of gear. Three steps now, all in the sand and clay family so the
+   black global nav stays the only dark anchor: light hero, a deeper clay zone,
+   and the file itself lighter and warmer than the hero. */
+#faq{
+  --hero:#F1E8DB;
+  --page:#DDD1C1;
+  --sheet:#F6EFE5;
+  /* the open section, one step off the sheet, at the same interval the sheet
+     sits off the hero */
+  --open:#EFE7D9;
+  --rul:#C9BDAE;
+  --ink:#171613;
+  --muted:#69635C;
+  --o:#EE4D17;
+  --hair:rgba(20,20,18,.14);
+  --hover:rgba(0,0,0,.025);
+
+  background:var(--page);color:var(--ink)
+}
+#faq .faq-wrap{max-width:1160px;margin:0 auto;padding:0 var(--gut)}
+
+/* ── hero: left exactly as it was ────────────────────────────────────── */
+#faq .faq-hero{background:var(--hero)}
+#faq .faq-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 44%;
+  gap:clamp(28px,4.5vw,64px);align-items:center;
+  padding:clamp(38px,4.6vw,66px) 0 clamp(32px,4vw,54px)}
+#faq .faq-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 clamp(14px,2vw,22px)}
+#faq h1.faq-h1{font-family:var(--disp);font-weight:900;line-height:.9;
+  letter-spacing:-.012em;text-transform:uppercase;color:var(--ink);
+  font-size:clamp(30px,5.4vw,63px);margin:0 0 clamp(18px,2.4vw,26px)}
+#faq h1.faq-h1 span{display:block}
+#faq h1.faq-h1 .hl-o{color:var(--o)}
+#faq .faq-intro{font-family:var(--body);color:var(--muted);max-width:44ch;
+  font-size:16px;line-height:1.55;margin:0 0 clamp(16px,2vw,22px)}
+#faq .faq-techline{font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);margin:0}
+#faq .faq-hero-fig{margin:0}
+#faq .faq-hero-fig img{display:block;width:100%;height:auto;
+  aspect-ratio:4/3;object-fit:cover;background:#DCD3C4}
+#faq .faq-hero-fig figcaption{font-family:var(--mono);font-size:10px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  line-height:1.7;padding-top:10px;border-top:1px solid var(--rul);margin-top:10px}
+#faq .faq-hero-fig figcaption b{color:var(--ink);font-weight:500}
+
+/* ── the index: one sheet, rules between sections, no boxes ──────────── */
+/* the zone starts the moment the hero ends. A single hairline of orange is
+   enough signal; a band or a box would put back what the last cut removed. */
+#faq .faq-zone{border-top:1px solid rgba(238,77,23,.55)}
+#faq .faq-body{padding:42px 0 80px}
+#faq .faq-panel{background:var(--sheet);
+  padding:0 clamp(20px,2.8vw,34px) clamp(6px,.8vw,10px)}
+
+#faq .faq-strip{font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);
+  padding:16px 0;border-bottom:1px solid var(--rul);
+  display:flex;align-items:center;gap:clamp(18px,3vw,44px);flex-wrap:wrap}
+#faq .faq-strip b{color:var(--ink);font-weight:500}
+#faq .faq-strip .st-lead{color:var(--o)}
+
+/* a category is a row on the sheet, not a card on the page. The 2px left rule
+   is transparent until the section is open, so nothing shifts when it is. */
+#faq .nf-faq-group{display:block;background:transparent;
+  border-left:2px solid transparent;
+  border-bottom:1px solid var(--rul);
+  margin-left:calc(-1 * clamp(20px,2.8vw,34px));
+  margin-right:calc(-1 * clamp(20px,2.8vw,34px));
+  padding-left:calc(clamp(20px,2.8vw,34px) - 2px);
+  padding-right:clamp(20px,2.8vw,34px)}
+#faq .nf-faq-group:last-of-type{border-bottom:0}
+#faq .nf-faq-group[open]{background:var(--open);border-left-color:var(--o)}
+
+#faq .nf-faq-group>summary{list-style:none;cursor:pointer;display:block}
+#faq .nf-faq-group>summary::-webkit-details-marker{display:none}
+#faq .nf-faq-group>summary:focus-visible{outline:2px solid var(--o);outline-offset:-3px}
+/* display:block matters: .grp-head is a span, and vertical padding on an
+   inline box does not move anything */
+#faq .grp-head{display:block;padding:clamp(26px,3vw,34px) 0}
+#faq .grp-copy{display:block}
+#faq .grp-top{display:flex;align-items:center;justify-content:space-between;
+  gap:20px;margin-bottom:clamp(14px,1.8vw,20px)}
+/* .beat-hd is the site's own class and carries margin-bottom:26px and an 11px
+   .sn; both are reset here or the meta row is 43px tall */
+#faq .beat-hd{font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);white-space:nowrap;margin:0}
+#faq .beat-hd .sn{color:var(--o);font-size:inherit;letter-spacing:inherit}
+#faq .grp-right{display:flex;align-items:center;gap:16px;white-space:nowrap}
+#faq .grp-count{font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted)}
+/* same family AND same weight as the hero h1, just smaller. At 700 Big
+   Shoulders reads as a second, narrower display face beside the hero's 900. */
+#faq .grp-t{font-family:var(--disp);font-weight:900;text-transform:uppercase;
+  color:var(--ink);line-height:.92;letter-spacing:-.012em;
+  font-size:clamp(30px,3.6vw,50px);margin:0 0 clamp(9px,1.1vw,13px);display:block}
+#faq .grp-s{font-family:var(--body);color:var(--muted);
+  font-size:16px;line-height:1.45;max-width:560px;display:block}
+#faq .nf-faq-group>summary:hover .grp-t{color:var(--o)}
+
+/* ── questions: flat rows, thin rules ────────────────────────────────── */
+#faq .grp-body{padding:0 0 clamp(18px,2.2vw,26px)}
+#faq .nf-faq-item{display:block}
+#faq .nf-faq-item>summary{list-style:none;cursor:pointer;display:grid;
+  grid-template-columns:52px minmax(0,1fr) auto;align-items:center;
+  min-height:62px;padding:0;border-top:1px solid var(--hair);
+  border-radius:0;background:transparent;color:var(--ink)}
+#faq .nf-faq-item>summary::-webkit-details-marker{display:none}
+#faq .nf-faq-item>summary:hover{background:var(--hover)}
+#faq .nf-faq-item>summary:focus-visible{outline:2px solid var(--o);outline-offset:-2px}
+#faq .q-n{font-family:var(--mono);font-size:10px;letter-spacing:.15em;
+  color:var(--ink);opacity:.58}
+#faq .nf-faq-item[open]>summary .q-n{color:var(--o);opacity:1}
+/* the site sets h3 in the condensed display face, uppercase. Right for a
+   section heading, wrong for a question: these are read as sentences. */
+#faq .nf-faq-item>summary .q-t{font-family:var(--body);font-weight:500;
+  text-transform:none;letter-spacing:0;line-height:1.3;color:var(--ink);
+  font-size:18px;margin:0;padding:0;border:0;max-width:58ch}
+
+/* ── NoFilter's own cross, and the Tapanuli trail ────────────────────── */
+/* The mark is no longer a cross I drew. It is the cross from the wordmark,
+   the same two paths the site's cursor uses, applied as a mask so the span
+   keeps its size and colour comes from --o. Open rotates it 45 degrees rather
+   than swapping in a second shape: one glyph, two states. */
+#faq .q-mark,#faq .grp-mark{position:relative;display:block;justify-self:end;
+  flex:none;background:var(--o);
+  -webkit-mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='629.2 5.2 174.3 204.4'><path d='M 690.70 5.58 C 704.66 5.20 718.76 5.35 732.74 5.38 C 732.47 15.96 733.98 27.53 730.64 37.45 C 727.25 46.14 735.33 55.99 733.27 64.47 C 730.11 74.74 725.70 84.72 722.67 95.01 C 722.88 98.51 722.60 101.97 722.67 105.44 C 727.34 115.08 730.12 125.41 734.96 134.97 C 736.16 140.52 736.20 146.43 736.98 152.07 C 738.11 161.34 733.31 170.02 735.03 178.97 C 736.27 189.17 737.44 199.38 738.69 209.58 C 724.30 209.53 709.91 209.48 695.52 209.58 C 695.18 203.67 694.71 197.75 694.21 191.85 C 693.71 185.98 692.18 179.75 693.12 173.98 C 693.98 168.39 694.85 162.81 696.03 157.28 C 696.65 154.41 696.56 151.80 695.84 148.97 C 694.17 142.13 692.38 135.33 691.14 128.39 C 670.90 128.44 650.65 128.36 630.41 128.46 C 629.17 123.61 629.70 118.93 629.65 114.00 C 629.62 104.33 629.64 94.66 629.60 84.99 C 629.61 82.52 630.07 80.13 630.44 77.70 C 650.19 77.69 669.95 77.82 689.70 77.63 C 690.05 67.03 689.25 56.64 690.11 46.02 C 690.63 32.54 690.51 19.04 690.70 5.58 Z' fill='%23000'/><path d='M 738.08 72.27 C 739.73 73.40 740.34 75.95 741.16 77.71 C 760.10 77.74 779.06 77.80 798.00 77.66 C 799.82 77.78 801.64 78.01 803.45 78.25 C 803.27 93.84 803.44 109.43 803.34 125.02 C 803.28 126.59 803.28 128.61 801.15 128.38 C 780.64 128.49 760.08 128.31 739.57 128.43 C 736.72 122.17 734.59 115.65 731.58 109.46 C 729.36 105.50 730.74 101.79 729.64 97.35 C 728.59 93.68 730.62 91.12 731.87 87.83 C 734.17 82.73 735.90 77.41 738.08 72.27 Z' fill='%23000'/></svg>") no-repeat center/contain;
+  mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='629.2 5.2 174.3 204.4'><path d='M 690.70 5.58 C 704.66 5.20 718.76 5.35 732.74 5.38 C 732.47 15.96 733.98 27.53 730.64 37.45 C 727.25 46.14 735.33 55.99 733.27 64.47 C 730.11 74.74 725.70 84.72 722.67 95.01 C 722.88 98.51 722.60 101.97 722.67 105.44 C 727.34 115.08 730.12 125.41 734.96 134.97 C 736.16 140.52 736.20 146.43 736.98 152.07 C 738.11 161.34 733.31 170.02 735.03 178.97 C 736.27 189.17 737.44 199.38 738.69 209.58 C 724.30 209.53 709.91 209.48 695.52 209.58 C 695.18 203.67 694.71 197.75 694.21 191.85 C 693.71 185.98 692.18 179.75 693.12 173.98 C 693.98 168.39 694.85 162.81 696.03 157.28 C 696.65 154.41 696.56 151.80 695.84 148.97 C 694.17 142.13 692.38 135.33 691.14 128.39 C 670.90 128.44 650.65 128.36 630.41 128.46 C 629.17 123.61 629.70 118.93 629.65 114.00 C 629.62 104.33 629.64 94.66 629.60 84.99 C 629.61 82.52 630.07 80.13 630.44 77.70 C 650.19 77.69 669.95 77.82 689.70 77.63 C 690.05 67.03 689.25 56.64 690.11 46.02 C 690.63 32.54 690.51 19.04 690.70 5.58 Z' fill='%23000'/><path d='M 738.08 72.27 C 739.73 73.40 740.34 75.95 741.16 77.71 C 760.10 77.74 779.06 77.80 798.00 77.66 C 799.82 77.78 801.64 78.01 803.45 78.25 C 803.27 93.84 803.44 109.43 803.34 125.02 C 803.28 126.59 803.28 128.61 801.15 128.38 C 780.64 128.49 760.08 128.31 739.57 128.43 C 736.72 122.17 734.59 115.65 731.58 109.46 C 729.36 105.50 730.74 101.79 729.64 97.35 C 728.59 93.68 730.62 91.12 731.87 87.83 C 734.17 82.73 735.90 77.41 738.08 72.27 Z' fill='%23000'/></svg>") no-repeat center/contain}
+#faq .grp-mark{width:23px;height:27px}
+#faq .q-mark{width:15px;height:18px}
+#faq .nf-faq-item[open]>summary .q-mark,
+#faq .nf-faq-group[open]>summary .grp-mark{transform:rotate(45deg)}
+@media (prefers-reduced-motion:no-preference){
+  #faq .q-mark,#faq .grp-mark{transition:transform .18s var(--ease)}}
+
+/* The trail walks down the empty left margin of the zone: the Tapanuli
+   orangutan hand prints from the zoo work, turned through 90 degrees and
+   revealed as you move through the file rather than sitting there all at once.
+   Decorative, aria-hidden, and only where there is margin to spare. */
+#faq .faq-zone{position:relative;overflow:hidden}
+#faq .faq-trail{position:absolute;top:0;bottom:0;left:0;width:104px;
+  pointer-events:none;display:none;opacity:.13;
+  clip-path:inset(0 0 calc((1 - var(--walk,0)) * 100%) 0)}
+#faq .faq-trail i{position:absolute;top:0;left:0;height:104px;width:4000px;
+  transform-origin:0 0;transform:translateX(104px) rotate(90deg);
+  background:url("data:image/png;base64,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") repeat-x left center;
+  background-size:auto 104px}
+/* it only appears once the margin is wide enough to hold it clear of both the
+   site's index rail and the sheet: 1160 wrap + 104 trail + 2 x 24 gap + 56 for
+   the rail is 1528, so 1540 is the first width where it is not squeezed */
+@media (min-width:1540px){
+  #faq .faq-trail{display:block;left:calc((100% - 1160px) / 2 - 128px)}}
+@media (prefers-reduced-motion:reduce){
+  #faq .faq-trail{clip-path:none;opacity:.12}}
+
+/* ── answers ─────────────────────────────────────────────────────────── */
+#faq .faq-a{max-width:740px;margin:0 0 28px 52px;padding:6px 0 0 18px;
+  border-left:2px solid var(--o)}
+#faq .faq-a .a-lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);display:block;margin-bottom:12px}
+#faq .faq-a p{font-family:var(--body);color:var(--muted);line-height:1.65;
+  font-size:16px;margin:0 0 13px}
+#faq .faq-a p:last-child{margin-bottom:0}
+#faq .faq-a p.nf-faq-lede{color:var(--ink);font-size:17px;line-height:1.5;font-weight:500}
+#faq .faq-a b.nf-sub{display:block;font-family:var(--mono);font-size:10px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--ink);
+  font-weight:500;margin-bottom:5px}
+#faq .faq-a a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--o)}
+#faq .faq-a a:hover{color:var(--o)}
+#faq .faq-a p.nf-faq-src{font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;margin-top:16px}
+#faq .faq-a p.nf-faq-src a{display:inline-block;border:1px solid var(--rul);
+  color:var(--ink);padding:7px 11px;margin:3px 6px 3px 0;border-bottom-width:1px}
+#faq .faq-a p.nf-faq-src a:hover{border-color:var(--o);color:var(--o)}
+#faq .faq-a p.nf-faq-cta{margin-top:16px}
+#faq .faq-a p.nf-faq-cta a{font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);
+  padding:10px 16px;display:inline-block}
+#faq .faq-a p.nf-faq-cta a:hover{background:var(--o);border-color:var(--o);color:#fff}
+
+/* evidence: a photograph earns its place inside an answer, so it is captioned
+   like a plate and sits at the width of the answer, not the page */
+#faq .faq-ev{margin:20px 0 0}
+#faq .faq-ev img{display:block;width:100%;height:auto;aspect-ratio:16/9;
+  object-fit:cover;background:#DCD3C4}
+#faq .faq-ev figcaption{font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+  line-height:1.6;padding-top:8px}
+
+/* ── the origins row ─────────────────────────────────────────────────── */
+#faq .org-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  border-top:1px solid var(--hair);margin-top:2px}
+#faq .org-row a{display:block;padding:16px 14px 4px 0;text-decoration:none;
+  border-right:1px solid var(--hair)}
+#faq .org-row a:last-child{border-right:0}
+#faq .org-row a:hover .org-n{color:var(--o)}
+#faq .org-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--o);display:block;margin-bottom:7px}
+#faq .org-n{font-family:var(--disp);font-weight:900;text-transform:uppercase;
+  font-size:clamp(15px,1.6vw,20px);color:var(--ink);line-height:1;display:block}
+#faq .org-r{font-family:var(--body);font-size:12px;color:var(--muted);
+  display:block;margin-top:5px;line-height:1.4}
+
+@media (max-width:900px){
+  #faq .grp-head{padding:24px 0}
+  #faq .grp-count{display:none}
+  #faq .org-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #faq .org-row a:nth-child(2n){border-right:0}
+}
+@media (max-width:820px){
+  #faq .faq-hero-grid{grid-template-columns:1fr;align-items:start}
+  #faq .faq-hero-fig img{aspect-ratio:16/10}
+}
+@media (max-width:640px){
+  /* the number moves above the question rather than squeezing the line into a
+     narrower column */
+  #faq .nf-faq-item>summary{grid-template-columns:minmax(0,1fr) 20px;
+    grid-template-rows:auto auto;column-gap:12px;row-gap:2px;
+    align-items:start;padding:14px 0;min-height:0}
+  #faq .q-n{grid-column:1;grid-row:1}
+  #faq .nf-faq-item>summary .q-t{grid-column:1;grid-row:2;font-size:17px}
+  #faq .q-mark{grid-column:2;grid-row:1 / span 2;align-self:center}
+  #faq .faq-a{margin-left:0;padding-left:14px}
+  #faq .grp-t{font-size:clamp(26px,8vw,36px)}
+}
+@media (prefers-reduced-motion:no-preference){
+  #faq .grp-t,#faq .org-n,#faq .q-n{transition:color .14s var(--ease)}
+  #faq .nf-faq-item>summary{transition:background .14s var(--ease)}
+  #faq .nf-faq-group{transition:background .16s var(--ease)}
+}

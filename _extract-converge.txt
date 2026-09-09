@@ -1,0 +1,54 @@
+<script>
+/* converge layout — measures row widths, lands them on one line */
+/* measure-and-converge: slide the three rows onto one horizontal line */
+(function(){
+  var title=document.querySelector('.cover-hero-title.cascade');
+  if(!title) return;
+  var rows=[].slice.call(title.querySelectorAll('.line-row'));
+  if(rows.length!==3) return;
+
+  function textWidth(row){
+    var el=row.querySelector('.rise');
+    var r=document.createRange(); r.selectNodeContents(el);
+    var b=r.getBoundingClientRect(); r.detach&&r.detach();
+    return b.width;
+  }
+  function layout(){
+    if(!title.classList.contains('converged')) return;
+    if(!title.offsetParent) return;   // display:none (quote-builder focus mode) — unmeasurable
+    // Widths are transform-safe (the base cascade transforms are translate-only, no scale),
+    // and the vertical pitch MUST come from offsetTop: measuring it with
+    // getBoundingClientRect while the transition is mid-flight returns the animated
+    // position, which is what left the three words on three different baselines.
+    var w=rows.map(textWidth);
+    var cs=getComputedStyle(title);
+    var space=parseFloat(cs.fontSize)*0.22;                       // word gap
+    var total=w[0]+w[1]+w[2]+space*2;
+    var avail=title.getBoundingClientRect().width;
+    if(!(avail>0)||!(total>0)) return;      // a zero box would write scale(0) and erase the title
+    var k=Math.min(1, avail/total);                               // never wrap: shrink instead
+    var rowH=rows[1].offsetTop-rows[0].offsetTop;
+    // each row is a full-width centred block: shift each word from centre to its slot
+    var start=-total/2, x=0, offs=[];
+    x=start;
+    for(var i=0;i<3;i++){ offs.push(x + w[i]/2); x+=w[i]+space; }
+    // The measurements above are in SCREEN pixels, but these transforms are applied
+    // inside .cascade, which itself carries scale(0.9). Written raw, every offset
+    // arrives 10% short and the three words butt together with no gap. Divide through
+    // by the parent's scale so the spacing survives the container.
+    var ps=1;
+    try{ var mtx=new DOMMatrixReadOnly(getComputedStyle(title).transform); if(mtx.a) ps=mtx.a; }catch(e){}
+    var f=function(v){ return (v*k/ps).toFixed(1); };
+    rows[0].style.transform='translate('+f(offs[0])+'px,'+( rowH).toFixed(1)+'px) scale('+k.toFixed(4)+')';
+    rows[1].style.transform='translate('+f(offs[1])+'px,0px) scale('+k.toFixed(4)+')';
+    rows[2].style.transform='translate('+f(offs[2])+'px,'+(-rowH).toFixed(1)+'px) scale('+k.toFixed(4)+')';
+  }
+  window.__nfConvergeLayout=layout;
+  window.addEventListener('resize',function(){ layout(); });
+  // ResizeObserver fires when the element goes from a 0-box back to a real one, which is
+  // exactly the moment the quote builder hands the document back.
+  if('ResizeObserver' in window){
+    try{ new ResizeObserver(function(){ layout(); }).observe(title); }catch(e){}
+  }
+})();
+</script>

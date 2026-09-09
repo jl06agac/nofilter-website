@@ -1,0 +1,411 @@
+
+<<<<<<CSS>>>>>>
+<style id="nf-hero-holdtheline">
+.cover-hero-title,.stance-statement,.choice-headline{text-wrap:balance;}
+.cover{height:100vh;min-height:560px;position:relative;overflow:hidden;
+  background:var(--nf-near-black);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;}
+.cover-video,.cover-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+/* Torn seam at cover bottom — dashed-red overlay tracing the same vertices as
+   the video clip, so the rip reads as a single device (matches Progress Report cover). */
+.cover-tear{display:none;}
+.cover-bg{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(26,24,21,.55) 0%,rgba(26,24,21,.30) 45%,rgba(26,24,21,.72) 100%);}
+.cover-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:0 24px;width:100%;}
+.cover-hero-title{font-family:var(--font-display);font-weight:900;
+  font-size:clamp(64px,14vw,240px);line-height:.86;text-transform:uppercase;
+  letter-spacing:var(--tk-display-tight);color:var(--nf-white);margin:0;position:relative;
+  text-shadow:0 4px 30px rgba(0,0,0,.45);}
+.cover-hero-title.cascade{display:flex;flex-direction:column;align-items:stretch;
+  width:100%;margin:0 auto;line-height:.82;gap:.06em;text-align:center;transform:translateX(-1.5vw) translateY(4vh) scale(0.9);transform-origin:center;}
+.cover-hero-title.cascade .line-row{display:block;position:relative;padding:.04em 0;width:100%;
+  margin-left:-.02em;overflow:visible;}
+/* glitch-materialise: lines are placed, not swooped — they flicker/slice into being */
+.cover-hero-title .rise{display:block;opacity:0;}
+.cover-hero-title.revealed .r1 .rise{animation:lineMaterialise .82s steps(2,end) .00s both;}
+.cover-hero-title.revealed .r2 .rise{animation:lineMaterialise .82s steps(2,end) .36s both;}
+.cover-hero-title.revealed .r3 .rise{animation:lineMaterialise .82s steps(2,end) .72s both;}
+@keyframes lineMaterialise{
+  0%{opacity:0;transform:translate(0,0);clip-path:inset(45% 0 45% 0);}
+  15%{opacity:.7;transform:translate(-4px,1px);clip-path:inset(0 0 62% 0);}
+  28%{opacity:.25;transform:translate(5px,-2px);clip-path:inset(40% 0 22% 0);}
+  42%{opacity:.85;transform:translate(-3px,0);clip-path:inset(55% 0 0 0);}
+  55%{opacity:.4;transform:translate(3px,1px);clip-path:none;}
+  70%{opacity:.95;transform:translate(-1px,0);}
+  100%{opacity:1;transform:translate(0,0);clip-path:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  .cover-hero-title .rise{opacity:1;animation:none;}
+}
+/* THE is the pivot — dead center. HOLD left, LINE right — tuned for equal edge gaps at 1440.
+   HOLD nudged down + LINE up by ~10px to tighten the vertical gap around THE. */
+/* Once the three words converge onto one line, the stacked-layout nudges are wrong:
+   they leave the finished line ~25px left of centre. Measured, not eyeballed. */
+.cover-hero-title.cascade.converged{transform:translateX(0) translateY(4vh) scale(0.9);}
+.cover-hero-title.cascade.converged .line-row{margin-left:0;}
+.cover-hero-title.cascade .r1{transform:translateX(calc(-22.6vw + 5px)) translateY(10px);}
+.cover-hero-title.cascade .r2{transform:translateX(-12px);}
+.cover-hero-title.cascade .r3{transform:translateX(21.8vw) translateY(-10px);}
+.cover-hero-title .o{color:var(--nf-orange);}
+@media(max-width:900px){
+  .cover-hero-title.cascade .r1{transform:translateX(-15vw);}
+  .cover-hero-title.cascade .r3{transform:translateX(17vw);}
+}
+@media(max-width:600px){
+  .cover-hero-title.cascade .r1{transform:translateX(-11vw);}
+  .cover-hero-title.cascade .r3{transform:translateX(13vw);}
+}
+/* headline — present on load, no entrance animation */
+.cover-hero-title .glitch{position:relative;display:inline-block;}
+.cover-hero-title .glitch::before,
+.cover-hero-title .glitch::after{
+  content:attr(data-text);position:absolute;top:0;left:0;width:100%;height:100%;
+  opacity:0;pointer-events:none;text-transform:uppercase;color:#fff;}
+.cover-hero-title .glitch.is-glitching::before{
+  color:#00e5ff;mix-blend-mode:screen;animation:glitchTop .6s steps(2,end) 1;}
+.cover-hero-title .glitch.is-glitching::after{
+  color:#ff003c;mix-blend-mode:screen;animation:glitchBot .6s steps(2,end) 1;}
+.cover-hero-title .glitch.is-glitching{animation:glitchMain .6s steps(2,end) 1;}
+/* LINE under threat: opacity dropouts + slice-fragments — nearly evaporates, then holds */
+@keyframes glitchMain{
+  0%{transform:none;opacity:1;clip-path:none;}
+  8%{transform:translate(-5px,1px);opacity:.85;clip-path:inset(0 0 60% 0);}
+  14%{transform:translate(6px,-2px);opacity:.25;clip-path:inset(30% 0 20% 0);}   /* nearly gone */
+  20%{transform:translate(-3px,0);opacity:.9;clip-path:none;}
+  30%{transform:translate(4px,1px);opacity:.4;clip-path:inset(0 0 75% 0);}        /* fragment */
+  38%{transform:none;opacity:.15;}                                               /* almost evaporated */
+  44%{transform:translate(-4px,-1px);opacity:.95;clip-path:inset(55% 0 0 0);}     /* snaps back */
+  58%{transform:translate(2px,1px);opacity:.5;clip-path:none;}
+  70%{transform:none;opacity:1;}                                                  /* holds */
+  100%{transform:none;opacity:1;clip-path:none;}
+}
+@keyframes glitchTop{
+  0%{opacity:0;clip-path:inset(0 0 0 0);}
+  8%{opacity:.95;transform:translate(-8px,-3px);clip-path:inset(0 0 68% 0);}
+  16%{opacity:.9;transform:translate(10px,2px);clip-path:inset(0 0 40% 0);}
+  30%{opacity:.95;transform:translate(-7px,-1px);clip-path:inset(45% 0 0 0);}
+  44%{opacity:.8;transform:translate(8px,3px);clip-path:inset(0 0 72% 0);}
+  58%{opacity:.5;transform:translate(-4px,0);}
+  70%{opacity:0;}100%{opacity:0;}
+}
+@keyframes glitchBot{
+  0%{opacity:0;clip-path:inset(0 0 0 0);}
+  8%{opacity:.95;transform:translate(8px,3px);clip-path:inset(62% 0 0 0);}
+  16%{opacity:.9;transform:translate(-10px,-2px);clip-path:inset(33% 0 33% 0);}
+  30%{opacity:.95;transform:translate(7px,2px);clip-path:inset(0 0 58% 0);}
+  44%{opacity:.8;transform:translate(-8px,-3px);clip-path:inset(52% 0 0 0);}
+  58%{opacity:.5;transform:translate(5px,0);}
+  70%{opacity:0;}100%{opacity:0;}
+}
+
+/* ── hero image fragility: the LINE slice device, applied to the video ──
+   Base layer tears into displaced bands (mirrors glitchMain). Two copies flash
+   as cyan/red offset slices (mirror glitchTop/glitchBot), screen-blended.
+   Copies are invisible until glitch, so they cost nothing at rest. */
+.cover-video-stack{position:absolute;inset:0;z-index:0;}
+.cover-video--cyan,.cover-video--red{opacity:0;mix-blend-mode:screen;}
+.cover-video.is-glitching{animation:vidGlitchMain .6s steps(2,end) 1;}
+.cover-video--cyan.is-glitching{animation:vidGlitchTop .6s steps(2,end) 1;}
+.cover-video--red.is-glitching{animation:vidGlitchBot .6s steps(2,end) 1;}
+.cover-video--cyan{background:#00e5ff;}
+.cover-video--red{background:#ff003c;}
+@keyframes vidGlitchMain{
+  0%{transform:none;clip-path:none;}
+  8%{transform:translate(-2px,1px);clip-path:inset(0 0 60% 0);}
+  14%{transform:translate(3px,-1px);clip-path:inset(30% 0 20% 0);}
+  20%{transform:translate(-1px,0);clip-path:none;}
+  30%{transform:translate(2px,1px);clip-path:inset(0 0 75% 0);}
+  38%{transform:none;}
+  44%{transform:translate(-2px,-1px);clip-path:inset(55% 0 0 0);}
+  58%{transform:translate(1px,1px);clip-path:none;}
+  70%{transform:none;}100%{transform:none;clip-path:none;}
+}
+@keyframes vidGlitchTop{
+  0%{opacity:0;clip-path:inset(0 0 0 0);}
+  8%{opacity:.32;transform:translate(-4px,-2px);clip-path:inset(0 0 68% 0);}
+  16%{opacity:.28;transform:translate(5px,1px);clip-path:inset(0 0 40% 0);}
+  30%{opacity:.32;transform:translate(-3px,-1px);clip-path:inset(45% 0 0 0);}
+  44%{opacity:.24;transform:translate(4px,2px);clip-path:inset(0 0 72% 0);}
+  58%{opacity:.16;transform:translate(-2px,0);}
+  70%{opacity:0;}100%{opacity:0;}
+}
+@keyframes vidGlitchBot{
+  0%{opacity:0;clip-path:inset(0 0 0 0);}
+  8%{opacity:.32;transform:translate(4px,2px);clip-path:inset(62% 0 0 0);}
+  16%{opacity:.28;transform:translate(-5px,-1px);clip-path:inset(33% 0 33% 0);}
+  30%{opacity:.32;transform:translate(3px,1px);clip-path:inset(0 0 58% 0);}
+  44%{opacity:.24;transform:translate(-4px,-2px);clip-path:inset(52% 0 0 0);}
+  58%{opacity:.16;transform:translate(2px,0);}
+  70%{opacity:0;}100%{opacity:0;}
+}
+@media(prefers-reduced-motion:reduce){
+  .cover-video.is-glitching,.cover-video--cyan.is-glitching,.cover-video--red.is-glitching{animation:none;}
+</style>
+<<<<<<MARKUP>>>>>>
+<section class="cover" id="cover">
+  <div class="cover-video-stack">
+    <video class="cover-video" autoplay muted loop playsinline preload="auto" poster="">
+      <source src="https://nofilter-shared.netlify.app/hero-trim.mp4" type="video/mp4">
+    </video>
+    <video class="cover-video cover-video--cyan" aria-hidden="true" autoplay muted loop playsinline preload="metadata">
+      <source src="https://nofilter-shared.netlify.app/hero-trim.mp4" type="video/mp4">
+    </video>
+    <video class="cover-video cover-video--red" aria-hidden="true" autoplay muted loop playsinline preload="metadata">
+      <source src="https://nofilter-shared.netlify.app/hero-trim.mp4" type="video/mp4">
+    </video>
+    <video class="cover-mega" aria-hidden="true" autoplay muted loop playsinline preload="auto">
+      <source src="https://nofilter-shared.netlify.app/mega-farm-test.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="cover-bg"></div>
+  <div class="cover-inner">
+    <h1 class="cover-hero-title cascade" id="coverTitle">
+      <span class="line-row r1"><span class="rise">Hold</span></span>
+      <span class="line-row r2"><span class="rise">the</span></span>
+      <span class="line-row r3"><span class="rise"><span class="glitch o" data-text="line">line</span></span></span>
+    </h1>
+  </div>
+  <button class="htl-cue" id="htlCue" type="button" aria-label="Scroll down">
+    <span class="htl-cue-lab">Begin</span>
+    <svg viewBox="0 0 26 16" aria-hidden="true"><path d="M1 1 L13 13 L25 1"/></svg>
+  </button>
+</section>
+<<<<<<WORDGLITCH>>>>>>
+<script>
+/* hero word glitch — from nofilter-unified.html. Gated on nf:intro-done so it does not
+   run behind the typed overlay. */
+(function(){
+  function start(){
+  var title=document.getElementById('coverTitle');
+  var word=document.querySelector('.cover-hero-title .glitch');
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  // glitch-materialise reveal — held back briefly so the footage shows alone first
+  if(title && reduce){ title.classList.add('revealed'); }
+  // non-reduce: each line is dropped in by the battle timeline below
+  // glitch flicker — starts only after the reveal has settled
+  if(reduce||!word) return;
+  var vidLayers=document.querySelectorAll('.cover-video');
+  function glitch(){
+    word.classList.remove('is-glitching'); void word.offsetWidth; word.classList.add('is-glitching');
+    if(Math.random()<0.18){   // video shudders on only some of the LINE glitches
+      vidLayers.forEach(function(v){ v.classList.remove('is-glitching'); void v.offsetWidth; v.classList.add('is-glitching'); });
+    }
+  }
+  // the LINE resolves to a held, confident state — only a rare, subtle residual flicker (~12–25s, low probability)
+  function schedule(){
+    var wait=12000+Math.random()*13000;
+    setTimeout(function(){ if(Math.random()<0.5){ glitch(); } schedule(); }, wait);
+  }
+  setTimeout(schedule, 9000);
+
+  }
+  if(document.getElementById('tt-overlay')){ document.addEventListener('nf:intro-done', start, {once:true}); }
+  else { start(); }
+})();
+</script>
+<<<<<<BATTLE>>>>>>
+<script>
+/* hero glitch-battle + converge — from nofilter-unified.html. Gated on nf:intro-done so it does not
+   run behind the typed overlay. */
+(function(){
+  function start(){
+  var cover=document.getElementById('cover');
+  var mega=cover&&cover.querySelector('.cover-mega');
+  var root=document.documentElement;
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!cover||!mega) return;
+  var vidLayers=cover.querySelectorAll('.cover-video');
+  var rises=cover.querySelectorAll('.cover-hero-title .rise');
+  function setMega(v){ root.style.setProperty('--mega',v); }
+  function tearFor(dur){
+    cover.classList.add('mega-tearing');
+    vidLayers.forEach(function(v){ v.classList.remove('is-glitching'); void v.offsetWidth; v.classList.add('is-glitching'); });
+    setTimeout(function(){ cover.classList.remove('mega-tearing'); }, dur);
+  }
+  function ramp(a,b,dur){ var t0=null;
+    function step(ts){ if(t0===null)t0=ts; var p=Math.min((ts-t0)/dur,1); var e=1-Math.pow(1-p,3);
+      setMega((a+(b-a)*e).toFixed(3)); if(p<1) requestAnimationFrame(step); }
+    requestAnimationFrame(step); }
+  function cut(from,to){ tearFor(400); ramp(from,to,440); }
+  setMega('0');                         // START ON THE HERO — NoFilter's world, established & clean
+  if(reduce){ return; }
+  // a brief mega-farm break-in: glitch tear + a flash of the cold monoculture, then back to hero
+  function flick(){ tearFor(150); setMega('0.5'); setTimeout(function(){ setMega('0'); }, 150); }
+  function hold(ms){ tearFor(Math.min(ms,460)); setMega('0.6'); setTimeout(function(){ setMega('0'); }, ms); }
+  // ── PLACE, THEN CONVERGE ────────────────────────────────────────────────
+  // The words land scattered, then close on THE and lock. The motion IS the
+  // line being held: three words drifting apart, pulled into one.
+  // Old schedule ran 5.9s before the statement was even complete; anyone who
+  // scrolled early never saw the word the company is named after. Now the whole
+  // thing states and resolves in about three seconds.
+  var title=document.querySelector('.cover-hero-title');
+  setTimeout(function(){ if(rises[0])rises[0].classList.add('place'); }, 300);    // HOLD
+  setTimeout(function(){ if(rises[1])rises[1].classList.add('place'); }, 1000);   // THE  — the pivot
+  setTimeout(function(){ tearFor(200); setMega('1'); }, 1040);                    // the monoculture breaks in
+  setTimeout(function(){ tearFor(240); ramp(1,0,320); }, 1640);                   // and is pushed back out
+  setTimeout(function(){ if(rises[2])rises[2].classList.add('place'); }, 1700);   // LINE.
+  setTimeout(function(){ if(!title) return;
+    tearFor(420);
+    // re-fire the materialise on all three words so they GLITCH while they travel.
+    // The row carries the movement, the .rise carries the tear — they stack, so the
+    // words slice and flicker across the screen rather than gliding cleanly into place.
+    rises.forEach(function(r){ if(!r) return; r.classList.remove('place'); void r.offsetWidth; r.classList.add('place'); });
+    title.classList.add('converged');
+    if(window.__nfConvergeLayout) window.__nfConvergeLayout();
+    // "One more tear as it lands" was timed at 620ms when the converge was an instant
+    // cut — back then the words were already home at t=0, so any delay landed on the
+    // settled title. Now they travel for 860ms, so 620 fired mid-flight and the settle
+    // flicker was lost inside the journey. Fire it once the words have actually stopped,
+    // and re-fire the materialise on LINE alone so the word the title lands on glitches
+    // in its final position rather than only on the way there.
+    setTimeout(function(){
+      tearFor(220);
+      if(rises[2]){ rises[2].classList.remove('place'); void rises[2].offsetWidth; rises[2].classList.add('place'); }
+    }, 900);
+  }, 3450);   // the stack HOLDS for ~1.75s before it resolves — it needs to be read as a stack first
+
+  // ── THE CLEARING DOES NOT STOP WHEN THE TITLES LAND ──────────────────────
+  // A single intrusion reads as an event that happened. A recurring one reads as
+  // pressure that hasn't gone away — which is the truer statement and the reason
+  // flick()/hold() were written. Mostly a blink; every fourth beat dwells, so it
+  // never settles into a metronome. Runs only while the cover is actually on
+  // screen and the tab is visible, and the mega layer is PAUSED outright when the
+  // cover leaves — otherwise it decodes silently behind 40 screens of pitch.
+  var beatTimer=null, coverInView=true, beatN=0;
+  function beatGap(){ return 7000+Math.random()*5000; }        // 7–12s, never regular
+  function beat(){
+    if(coverInView && !document.hidden){
+      beatN++;
+      if(beatN%4===0) hold(420); else flick();
+    }
+    beatTimer=setTimeout(beat, beatGap());
+  }
+  function quiet(){ setMega('0'); cover.classList.remove('mega-tearing'); }
+  setTimeout(function(){ beatTimer=setTimeout(beat, beatGap()); }, 1200);   // let the landing tear finish first
+
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){
+      coverInView=es[0].isIntersecting;
+      if(coverInView){ if(mega.paused){ var pr=mega.play(); if(pr&&pr.catch) pr.catch(function(){}); } }
+      else { quiet(); try{ mega.pause(); }catch(e){} }
+    },{threshold:0.15}).observe(cover);
+  }
+  document.addEventListener('visibilitychange', function(){ if(document.hidden) quiet(); });
+
+  }
+  if(document.getElementById('tt-overlay')){ document.addEventListener('nf:intro-done', start, {once:true}); }
+  else { start(); }
+})();
+</script>
+<<<<<<TREACLY>>>>>>
+<script>
+/* ═══ Treacly scroll — lerped wheel damping ═══════════════════════════════════
+   Restores the eased, weighted scroll feel. Wheel/trackpad deltas accumulate into
+   a target; the page eases toward it each frame. Deliberately inert wherever the
+   document is not the thing being scrolled:
+     · while the typed intro holds the page (body.tt-lock)
+     · in quote-builder focus mode, where #price is itself the scroll container
+       (body.nf-focus) — hijacking there would freeze the builder
+     · over any nested scrollable element (drawers, the builder's own panes)
+     · touch devices and prefers-reduced-motion (left completely alone)
+   Native scroll-behavior is switched to auto so CSS smoothing does not ease every
+   one of our own frames; explicit scrollIntoView({behavior:'smooth'}) calls still
+   animate because the behaviour is named at the call site. */
+(function(){
+  var root=document.documentElement;
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  if(window.matchMedia&&window.matchMedia('(hover:none)').matches) return;   // touch: native is better
+  var EASE=0.085, target=window.scrollY||0, cur=target, running=false;
+  root.style.scrollBehavior='auto';
+  function maxY(){ return Math.max(0,(document.scrollingElement||root).scrollHeight-window.innerHeight); }
+  function locked(){ var b=document.body; return !b || b.classList.contains('tt-lock') || b.classList.contains('nf-focus'); }
+  function nestedScrollable(el){
+    for(var n=0;el&&el!==document.body&&n<12;el=el.parentElement,n++){
+      var cs=getComputedStyle(el), oy=cs.overflowY;
+      if((oy==='auto'||oy==='scroll')&&el.scrollHeight>el.clientHeight+2) return true;
+    }
+    return false;
+  }
+  function tick(){
+    cur+=(target-cur)*EASE;
+    if(Math.abs(target-cur)<0.5){ cur=target; window.scrollTo(0,cur); running=false; return; }
+    window.scrollTo(0,cur);
+    requestAnimationFrame(tick);
+  }
+  window.addEventListener('wheel',function(e){
+    if(locked()||e.ctrlKey||e.metaKey) return;               // ctrl/⌘+wheel is zoom
+    if((window.__nfNestedScrollable||nestedScrollable)(e.target)) return;
+    e.preventDefault();
+    var d=e.deltaY*(e.deltaMode===1?16:(e.deltaMode===2?window.innerHeight:1));
+    if(!running) cur=window.scrollY;                          // resync before a new run
+    target=Math.max(0,Math.min(maxY(),(running?target:cur)+d));
+    if(!running){ running=true; requestAnimationFrame(tick); }
+  },{passive:false});
+  // keyboard, scrollbar drags and scrollIntoView move the page themselves — adopt their position
+  window.addEventListener('scroll',function(){ if(!running){ target=cur=window.scrollY; } },{passive:true});
+  window.addEventListener('resize',function(){ if(!running){ target=cur=window.scrollY; } });
+})();
+</script>
+<<<<<<RECENTRE>>>>>>
+<script>
+/* HTL optical centring — anchors the lockup on the INK of the middle word.
+   Two corrections are folded into one here. Glyph ink does not sit centred in its advance
+   box (at this size "Hold" carries a ~13px left bearing against "line"'s ~6px right), so
+   everything is measured with canvas ink metrics (actualBoundingBox*) rather than layout
+   boxes. And the target is "the" on the page centre rather than HOLD/LINE balanced about
+   it — scheme B. Re-run on resize so it holds at every width. */
+(function(){
+  var title=document.querySelector('.cover-hero-title.cascade');
+  if(!title) return;
+  var rows=[].slice.call(title.querySelectorAll('.line-row'));
+  if(rows.length!==3) return;
+  var ctx=document.createElement('canvas').getContext('2d');
+  function bearings(el){
+    var cs=getComputedStyle(el);
+    ctx.font=cs.fontStyle+' '+cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;
+    ctx.textAlign='left';
+    var m=ctx.measureText((el.textContent||'').trim());
+    return {adv:m.width, lb:-m.actualBoundingBoxLeft, rb:m.width-m.actualBoundingBoxRight};
+  }
+  var applied=0;
+  function box(el){ var r=document.createRange(); r.selectNodeContents(el);
+    var b=r.getBoundingClientRect(); r.detach&&r.detach(); return b; }
+  function step(){
+    if(!title.classList.contains('converged')||!title.offsetParent) return 0;
+    if(title.classList.contains('htl-travel')) return 0;   // mid-flight: measuring now corrects to a position the words are still leaving
+    // Scheme B: the anchor is the MIDDLE word, not the line.
+    // Centring the line put "the" half the HOLD/LINE width difference right of centre —
+    // and because the three words converge out of a vertical stack where all three were
+    // centre-aligned, the eye watches "the" start on the centre line and then drift off
+    // it. Anchoring on "the" removes that drift; HOLD and LINE now hang unevenly, which
+    // is the trade. Still measured on ink, not advance boxes, so the bearings work holds.
+    var mw=rows[1].querySelector('.rise');
+    if(!mw) return 0;
+    var bm=bearings(mw), bM=box(mw);
+    if(!(bM.width>0)||!(bm.adv>0)) return 0;
+    var gs=bM.width/bm.adv;                                   // on-screen glyph scale
+    var inkC=((bM.left + bm.lb*gs) + (bM.right - bm.rb*gs))/2;
+    var corr=window.innerWidth/2 - inkC;
+    if(!isFinite(corr)) return 0;
+    // ACCUMULATE: inkLeft/inkRight are measured with any previous correction already
+    // applied, so the delta must be added to the standing offset — recomputing from
+    // scratch each call would converge to half the required shift.
+    applied+=corr;
+    if(Math.abs(applied)>0.22*window.innerWidth){ applied=0; title.style.transform=''; return 0; }   // sanity guard: the B shift is half the HOLD/LINE width difference, far more than the old 40px bearing trim
+    title.style.transform='translateX('+applied.toFixed(2)+'px) translateY(4vh) scale(0.9)';
+    return corr;
+  }
+  // one pass measures with the previous correction baked in, so iterate to the fixed point
+  function centre(){ for(var i=0;i<6;i++){ if(Math.abs(step())<0.2) break; } }
+  // The converge TRANSITIONS the transform; measuring mid-flight reads an animated
+  // position and under-corrects. Always re-baseline from zero once motion has settled.
+  function recentre(){ requestAnimationFrame(function(){ centre(); }); }
+  window.__nfOpticalCentre=recentre;
+  window.__nfOpticalCentreSync=centre;   // same passes, no rAF — for measuring a destination before it paints
+  var base=window.__nfConvergeLayout;
+  if(typeof base==='function'){ window.__nfConvergeLayout=function(){ base(); setTimeout(recentre,60); }; }
+  window.addEventListener('resize',function(){ setTimeout(recentre,90); });
+  title.addEventListener('transitionend',function(e){ if(e.propertyName==='transform') recentre(); });
+  var poll=setInterval(function(){ if(title.classList.contains('converged')){ clearInterval(poll); setTimeout(recentre,1100); } },150);
+  setTimeout(function(){ clearInterval(poll); },25000);
+})();
+</script>

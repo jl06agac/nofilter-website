@@ -720,8 +720,15 @@ a{color:inherit;}
           t.classList.toggle('is-active',openIdx===i || dossierIdx===i);
         });
       }
-      function openDetail(i){ if(dossierIdx>=0) closeDossier(); closeAllBuys(); openIdx=i; fillDetail(COFFEES[i]); refreshTiles(); layout(true); }
+      function openDetail(i){ if(dossierIdx>=0) closeDossier(); closeAllBuys(); openIdx=i; fillDetail(COFFEES[i]); refreshTiles();
+        // the pane goes up BEFORE the layout animates, so the dossier morph that may
+        // follow already finds itself inside a scroll container of its own
+        if(window.__nfShopEnterFocus) window.__nfShopEnterFocus();
+        layout(true); }
       function closeDetail(){ openIdx=-1; refreshTiles(); layout(true); }
+      // closeDetail is also called from inside openDossier, so leaving the pane cannot
+      // hang off it — only a settled, fully-closed picker drops back to the page
+      window.__nfShopIdle = function(){ return openIdx<0 && dossierIdx<0; };
 
       var morphT, morph;
       function ensureMorph(){ if(!morph){ morph=document.createElement('div'); morph.className='cx-morph'; document.body.appendChild(morph); } return morph; }
@@ -782,6 +789,7 @@ a{color:inherit;}
       // two-beat: the wedged-in compact card DROPS DOWN then WIDENS into the dossier
       function openDossier(i){
         if(!dossier) return;
+        dossier.style.transform=''; dossier.style.opacity=''; /* clear collapse transient from a prior close */ /* focus deck grows+scrolls while open */
         var c=COFFEES[i];
         var inlineCard = cells[cells.length-1].el.querySelector('.cx-detailcard');
         var f = inlineCard ? inlineCard.getBoundingClientRect() : cells[i].el.getBoundingClientRect();
@@ -805,7 +813,7 @@ a{color:inherit;}
         void m.offsetWidth;
         closeDetail();
         if(inlineCard){ inlineCard.style.transition='opacity .1s ease'; inlineCard.style.opacity='0'; }
-        if(reduce){ dossier.classList.remove('is-flying','is-morphing'); m.style.display='none'; m.innerHTML=''; dossier.style.transition=''; if(dossier.__revealImpact) dossier.__revealImpact(); if(vid&&vid.play)vid.play().catch(function(){}); if(vp && vp.style.display!=='none'){ var vpS=vp.getBoundingClientRect().height+(parseFloat(getComputedStyle(vp).marginTop)||0)+(parseFloat(getComputedStyle(vp).marginBottom)||0); vp.style.display='none'; try{ window.scrollBy(0,-vpS); }catch(e){} } try{ window.scrollTo({top:Math.max(0,dossier.getBoundingClientRect().top+window.scrollY-100),behavior:'smooth'}); }catch(e){} return; }
+        if(reduce){ dossier.classList.remove('is-flying','is-morphing'); m.style.display='none'; m.innerHTML=''; dossier.style.transition=''; if(dossier.__revealImpact) dossier.__revealImpact(); if(vid&&vid.play)vid.play().catch(function(){}); if(vp && vp.style.display!=='none' && !document.querySelector('.nf-focus-sec')){ var vpS=vp.getBoundingClientRect().height+(parseFloat(getComputedStyle(vp).marginTop)||0)+(parseFloat(getComputedStyle(vp).marginBottom)||0); vp.style.display='none'; try{ window.scrollBy(0,-vpS); }catch(e){} } try{ nfScrollTo(dossier); }catch(e){} return; }
         var expanded=false, finished=false;
         var landed=function(){
           if(finished) return; finished=true;
@@ -817,8 +825,8 @@ a{color:inherit;}
           if(dossier.__revealImpact) dossier.__revealImpact();
           if(vid&&vid.play){var p=vid.play();if(p&&p.catch)p.catch(function(){});}
           // full clearance: pull the tile carousel out of flow so ONLY the dossier shows; compensate scroll so nothing jumps
-          if(vp && vp.style.display!=='none'){ var vpSpace=vp.getBoundingClientRect().height+(parseFloat(getComputedStyle(vp).marginTop)||0)+(parseFloat(getComputedStyle(vp).marginBottom)||0); vp.style.display='none'; try{ window.scrollBy(0,-vpSpace); }catch(e){} }
-          setTimeout(function(){ if(dossierIdx!==i) return; try{ window.scrollTo({top:Math.max(0,dossier.getBoundingClientRect().top+window.scrollY-100),behavior:'smooth'}); }catch(e){} }, 260);
+          if(vp && vp.style.display!=='none' && !document.querySelector('.nf-focus-sec')){ var vpSpace=vp.getBoundingClientRect().height+(parseFloat(getComputedStyle(vp).marginTop)||0)+(parseFloat(getComputedStyle(vp).marginBottom)||0); vp.style.display='none'; try{ window.scrollBy(0,-vpSpace); }catch(e){} }
+          setTimeout(function(){ if(dossierIdx!==i) return; try{ nfScrollTo(dossier); }catch(e){} }, 260);
         };
         var expand=function(){
           if(expanded) return; expanded=true;
@@ -839,7 +847,7 @@ a{color:inherit;}
         }); });
         clearTimeout(morphT); morphT=setTimeout(function(){ if(!expanded)expand(); setTimeout(landed,760); }, 1800);
       }
-      function nfScrollTo(el){ if(!el) return; var fs=document.querySelector('#price.nf-focus-sec');
+      function nfScrollTo(el){ if(!el) return; var fs=document.querySelector('.nf-focus-sec');
         if(fs){ var t=fs.scrollTop+(el.getBoundingClientRect().top-fs.getBoundingClientRect().top)-100; try{ fs.scrollTo({top:Math.max(0,t),behavior:'smooth'}); }catch(e){ fs.scrollTop=Math.max(0,t); } }
         else { try{ window.scrollTo({top:Math.max(0,el.getBoundingClientRect().top+window.scrollY-100),behavior:'smooth'}); }catch(e){} } }
 
@@ -983,5 +991,90 @@ footer.nf-colophon{background:var(--nb);color:rgba(255,232,195,.72);padding:clam
 <!-- ═══ end footer partial ═══ -->
 
 
+
+<style id="nf-focus-pane">
+/* ═══ THE FOCUS PANE ═══════════════════════════════════════════════════════════
+   Lifted from NoFilter-Generic-Part2-SG.html (8 Jul), where the coffee picker has
+   always lived inside one. This is the thing the dossier animation was built
+   against and the thing this page never had.
+
+   openDossier's clearance branch is guarded on `.nf-focus-sec` existing: inside a
+   pane it does NOT pull the tile carousel out of flow and does NOT touch
+   window.scrollBy — nfScrollTo drives the pane's own scrollTop instead. Outside a
+   pane that guard falls through to the window, the compensating scroll clamps at
+   zero whenever the page is scrolled less than the carousel is tall, and the panel
+   lurches. Same code, two branches; this page had been running the wrong one since
+   the picker was copied out of the pitch.
+
+   Only the pane primitive is taken. The pitch's door gates, quote deck and audio
+   pill stay where they belong. */
+.nf-focus-sec{position:fixed;inset:0;z-index:900;overflow-y:auto;overscroll-behavior:contain;
+  background:var(--cr,#F4F2EE);padding:0 !important;}
+.nf-focus-sec .wrap{max-width:1320px;margin-left:auto;margin-right:auto;padding-top:clamp(14px,2.4vh,30px);}
+.nf-focus-sec .cx-viewport{max-width:1240px;}
+.nf-focus-sec::before{display:none !important;}
+.nf-focus-hide{display:none !important;}
+/* The pitch carries this one line and the website never did: base .cx-morph sits at
+   z-index:200, the pane at 900. Without the lift the flying proxy travels BEHIND the
+   pane and the descent is simply invisible — the card vanishes on click and the panel
+   materialises at the end. Filmed it happening before spotting the rule. */
+.cx-morph{z-index:1000;}
+body.nf-focus{overflow:hidden;}
+.nf-focus-exit{position:fixed;top:16px;right:18px;z-index:940;
+  font-family:var(--font-m,monospace);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  background:rgba(26,24,21,.9);color:#F4F2EE;border:none;border-radius:999px;
+  padding:9px 15px;cursor:pointer;opacity:0;transition:opacity .3s ease;}
+.nf-focus-exit.is-on{opacity:1;}
+@media(prefers-reduced-motion:reduce){.nf-focus-exit{transition:none;}}
+</style>
+
+<script id="nf-focus-pane-js">
+/* Enter on the first Details click, leave when nothing is open. The pane must be
+   established BEFORE the dossier morph runs — entering mid-flight would reflow the
+   page under a proxy that is already in the air. Details is the natural moment:
+   the carousel is animating anyway, so the takeover rides an expected change. */
+(function(){
+  var sec = document.getElementById('cover');
+  if(!sec) return;
+  var hidden = [], exitBtn = null;
+
+  function enter(){
+    if(sec.classList.contains('nf-focus-sec')) return;
+    [].forEach.call(document.body.children, function(el){
+      if(el===sec || el.contains(sec)) return;
+      if(el.tagName==='SCRIPT' || el.tagName==='STYLE') return;
+      el.classList.add('nf-focus-hide'); hidden.push(el);
+    });
+    [].forEach.call(sec.parentElement===document.body?[]:sec.parentElement.children, function(el){
+      if(el===sec) return; el.classList.add('nf-focus-hide'); hidden.push(el);
+    });
+    document.body.classList.add('nf-focus');
+    sec.classList.add('nf-focus-sec');
+    sec.scrollTop = 0;
+    if(!exitBtn){
+      exitBtn = document.createElement('button');
+      exitBtn.type='button'; exitBtn.className='nf-focus-exit';
+      exitBtn.textContent='Back to the shop';
+      exitBtn.addEventListener('click', function(){ if(window.__nfShopLeaveFocus) window.__nfShopLeaveFocus(true); });
+      document.body.appendChild(exitBtn);
+    }
+    requestAnimationFrame(function(){ exitBtn.classList.add('is-on'); });
+    window.dispatchEvent(new Event('resize'));
+  }
+  function leave(){
+    if(!sec.classList.contains('nf-focus-sec')) return;
+    sec.classList.remove('nf-focus-sec');
+    document.body.classList.remove('nf-focus');
+    hidden.forEach(function(el){ el.classList.remove('nf-focus-hide'); }); hidden=[];
+    if(exitBtn) exitBtn.classList.remove('is-on');
+    window.dispatchEvent(new Event('resize'));
+  }
+  window.__nfShopEnterFocus = enter;
+  window.__nfShopLeaveFocus = leave;
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && sec.classList.contains('nf-focus-sec') && window.__nfShopIdle && window.__nfShopIdle()) leave();
+  });
+})();
+</script>
 </body>
 </html>

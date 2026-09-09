@@ -1,0 +1,11 @@
+import {chromium} from 'playwright';
+const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+const p=await b.newPage({viewport:{width:1350,height:940}});
+await p.goto('http://localhost:9000/',{waitUntil:'load'});
+const snap=async(l)=>console.log(l, await p.evaluate(()=>{ const q=s=>document.querySelector(s); const r=e=>{ if(!e) return null; const b=e.getBoundingClientRect(); const cs=getComputedStyle(e); return {top:Math.round(b.top),h:Math.round(b.height),tf:cs.transform.slice(0,40),mt:cs.marginTop,disp:cs.display,pos:cs.position,cls:e.className.toString().slice(0,60)}; };
+  return JSON.stringify({inner:r(q('.cover-inner')), title:r(q('.cover-hero-title')), r1:r(q('.line-row.r1')), r3:r(q('.line-row.r3')), sup:r(q('.cover-support')), hold:r(q('.hold-for-cover'))}, null, 0); }));
+await p.waitForTimeout(3000); await snap('3000');
+await p.waitForTimeout(700); await snap('3700');
+await p.waitForTimeout(250); await snap('3950');
+await p.waitForTimeout(1200); await snap('5150');
+await b.close();

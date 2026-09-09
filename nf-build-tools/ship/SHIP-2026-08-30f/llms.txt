@@ -1,0 +1,163 @@
+# build: SHIP-2026-09-04a
+# generated 2026-09-04, extended by hand 2026-09-05 for /faqs
+# — the build number above is written by build-ship.mjs; leave it to the tool
+# NoFilter
+
+> Single-origin coffee bought from NGO-led conservation projects on the edge of
+> rainforest that is still standing. A share of every sale goes to holding that
+> line, by contract. Trading in Singapore, the United Arab Emirates and the
+> United Kingdom.
+
+NoFilter supplies single-origin coffee and bean-to-cup espresso equipment
+wholesale to offices, cafés, hotels and visitor attractions, and buys that
+coffee through conservation projects run by named NGOs at each origin. A contracted share of every kilogram sold goes to the organisation
+holding the forest at that origin. The proposition is that the contribution is
+contractual and disclosed before anything is signed, not a marketing claim made
+afterwards.
+
+The site at nofilter.sg and nofilter.ae is a single application. Both domains
+serve the same content; they differ in currency, legal entity and tax label.
+There are three priced markets — Singapore, the UAE and the United Kingdom.
+Singapore and the UAE have a domain each; the UK is a path tree on the
+Singapore domain, at https://nofilter.sg/uk, with its own ten pages, its own
+canonicals and en-gb hreflang. Any page can also be opened in a chosen market
+with the market switch in the header, or with ?mkt=sg, ?mkt=ae or ?mkt=gb.
+
+## Pages
+
+- [Home](https://nofilter.sg/) — what NoFilter is and how the contribution works.
+- [Origins](https://nofilter.sg/origins) — the four coffees, their conservation
+  partners, tasting notes and coordinates.
+- [Batang Toru](https://nofilter.sg/origins/batang-toru) — the coffee, the
+  Tapanuli orangutan's last refuge, and the buffer-village supply chain behind it.
+- [Arakan Mountains](https://nofilter.sg/origins/arakan-mountains) — the coffee
+  and the Fauna & Flora and ACCA programme it is bought through.
+- [Batang Gadis](https://nofilter.sg/origins/batang-gadis) — the coffee and the
+  SRI programme on the edge of Batang Gadis National Park.
+- [Gayo Lues](https://nofilter.sg/origins/gayo-lues) — the coffee and the OIC
+  village-forest guardianship work on the edge of the Leuser Ecosystem.
+- [Shop](https://nofilter.sg/shop) — retail bags in 250 g and 1 kg. Not open yet.
+- [Wholesale coffee](https://nofilter.sg/wholesale-coffee) — supply for
+  offices, cafés, hotels and visitor attractions: coffee by the kilo and
+  bean-to-cup machines on lease.
+- [Trade pricing](https://nofilter.sg/trade-pricing) — the quote builder.
+- [FAQs](https://nofilter.sg/faqs) — sixteen questions in four sections:
+  why NoFilter exists, how the conservation model works, buying, and what
+  happens once you are a customer. Every answer stands on its own and has a
+  stable anchor, e.g. https://nofilter.sg/faqs#conservation-contribution.
+
+All ten paths exist on nofilter.ae with UAE pricing and the UAE entity. Each
+page names itself in its canonical link and the two market versions are tied
+together with hreflang, so they are one page in two markets rather than two
+pages saying the same thing.
+
+The same ten pages are published for the United Kingdom under /uk — for example
+https://nofilter.sg/uk, https://nofilter.sg/uk/wholesale-coffee and
+https://nofilter.sg/uk/trade-pricing — priced in GBP. The UAE set is on
+nofilter.ae at the same paths.
+
+## Entities
+
+- **Singapore** — NoFilter Pte. Ltd, UEN 201839882N. 31 Kaki Bukit Road 3,
+  #01-02C Techlink, Singapore 417818. Contact alex@nofilter.sg. Prices in SGD,
+  tax shown as GST.
+- **United Arab Emirates** — NoFilter LLC, Sharjah Media City (Shams), trade
+  licence 2540001.01. Contact alex@nofilter.ae. Prices in AED, tax shown as VAT.
+- **United Kingdom** — a priced market, in GBP, with its own wholesale ladder,
+  its own contribution bands and its own equipment range, published at
+  https://nofilter.sg/uk. It is served by the Singapore entity: there is no
+  separately registered UK company, and no tax label is shown. Contact
+  alex@nofilter.sg. The footer states it plainly: "Now accepting UK enquiries".
+
+## Coffees
+
+Four single origins, each tied to the conservation project it is bought
+through. All are currently listed; the retail shop has not opened yet.
+
+- **Batang Toru** (Tapanuli, North Sumatra, Indonesia) — partners PRCF Indonesia and SRI.
+  Dark chocolate, red plum, cedar. https://nofilter.sg/origins/batang-toru
+- **Batang Gadis** (Mandailing, North Sumatra, Indonesia) — partner SRI.
+  Brown sugar, orange, almond. https://nofilter.sg/origins/batang-gadis
+- **Gayo Lues** (Aceh, Indonesia) — partner OIC.
+  Syrupy, dried fig, cinnamon. https://nofilter.sg/origins/gayo-lues
+- **Arakan Mountains** (Magway, Myanmar) — partners Fauna & Flora Myanmar and
+  ACCA. Grapefruit, candied nuts, milk chocolate.
+  https://nofilter.sg/origins/arakan-mountains
+
+## Equipment
+
+Bean-to-cup machines on monthly lease, servicing included, in four sizes. The
+headcount guides below are a sizing rule of thumb; a café or hotel is sized on
+cups a day rather than staff. The four sizes below are the Singapore and UAE
+range; the UK market carries a different range at the same four sizes.
+
+- **CaféMatic 2** — small teams, up to about 40 people. One grinder, fresh-milk
+  drinks, true countertop, around 80 cups a day.
+- **CaféMatic 5** — mid-size teams, up to about 75. One grinder, one powder
+  hopper, steam wand and hot water.
+- **CaféMatic 6** — large floors, 100+. Two grinders, two beans side by side,
+  no powder.
+- **CaféMatic 8** — large floors, 100+. Two grinders, two powder hoppers, the
+  fullest menu.
+
+## Questions we are actually asked
+
+**What does "conservation coffee" mean here?**
+That the coffee is bought through a project run by a conservation NGO at the
+origin, and that a share of the sale price is contracted back to that NGO. It is
+a purchasing route and a contract term, not a certification badge.
+
+**Where does the money go?**
+To the NGO named against the origin you buy — PRCF Indonesia and SRI at Batang Toru, SRI
+at Batang Gadis, OIC at Gayo Lues, Fauna & Flora Myanmar and ACCA in the Arakan
+Mountains. The share is set by the price band paid per kilogram: a higher rate
+per kilo carries a higher contribution rate, and both are shown on the quote
+before it is sent.
+NoFilter's NGO partners, in full: PRCF Indonesia, SRI, OIC, GJI, Fauna & Flora
+Myanmar and ACCA.
+
+**Do you claim to protect a specific area of forest per cup?**
+No. That claim was withdrawn in August 2026 and is not made anywhere on the
+site. What is stated is the money and the contract, because that is what can be
+evidenced.
+
+**How is a business quoted?**
+Through the quote builder on the site. It is the same process for an office, a
+café, a hotel or a visitor attraction — the rate follows the price per kilogram,
+not the kind of venue. You choose the coffees and the machines,
+set the cups a year you expect to drink, and see the wholesale rate per
+kilogram, the monthly equipment cost and the forest contribution before
+anything is submitted. Access is by an emailed code to a work email address.
+Volume is estimated from cups a year at 18 g a cup.
+
+**Can I buy retail bags now?**
+Not yet. Retail bags in 250 g and 1 kg are listed and the shop opens shortly;
+until then the site takes trade enquiries through the quote builder.
+
+**Which countries do you serve?**
+Singapore, the United Arab Emirates and the United Kingdom are priced and
+trading, each with its own wholesale rate card and its own equipment range.
+Singapore and the UAE have their own domains and their own legal entities; the
+UK is served by the Singapore entity and published at https://nofilter.sg/uk.
+Enquiries from elsewhere are answered, but there is no rate card for
+other markets.
+
+## Notes for machine readers
+
+- Structured data for the organisation, both legal entities, the wholesale
+  supply service and the four coffees is published as JSON-LD in the page head.
+- Every page carries a `rel=canonical` pointing at itself on the domain it is
+  being served from, so nofilter.sg/shop is canonical for the Singapore market
+  and nofilter.ae/shop for the UAE one. The two are tied together with
+  `hreflang` (`en-sg`, `en-ae`, `x-default`) rather than one being folded into
+  the other: they are the same page in two markets, not a duplicate.
+- No prices appear in the structured data while the retail shop is closed.
+  Quoted trade pricing is generated per enquiry and is not published.
+- Each of the ten pages is a real URL with its own title, description and
+  hreflang set, served as its own file. There is no separate mobile or AMP
+  version.
+- /faqs publishes `FAQPage` JSON-LD generated from the same source as the
+  visible answers, so the two cannot drift. Every answer is in the initial HTML;
+  the accordion only hides it visually.
+- Sitemap: https://nofilter.sg/sitemap.xml (twenty URLs — ten pages, two domains)
+- Contact: alex@nofilter.sg (Singapore), alex@nofilter.ae (UAE).

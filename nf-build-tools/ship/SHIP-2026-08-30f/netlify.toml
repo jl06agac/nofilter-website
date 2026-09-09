@@ -1,0 +1,990 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# 28 Aug: secrets scanning, told what not to look at.
+#
+# Netlify refuses to publish if it finds an environment variable's value in the
+# files being deployed. Right idea, blunt instrument. It stopped two deploys:
+#
+#   1 - QUOTE_FROM and QUOTE_TO are email addresses that appear ON the page and
+#       in the functions as defaults. They are meant to be public. They are
+#       config, not credentials, and the scanner cannot tell the difference.
+#       PRICE_BAG_1KG is a shop price. Same story.
+#
+#   2 - it then flagged lines that read `process.env.RESEND_API_KEY` and
+#       `process.env.STRIPE_SECRET_KEY`. There is no key on those lines, only
+#       the variable's NAME, and a name is how any code reads a variable at all.
+#       No arrangement of this codebase removes them.
+#
+# So functions are excluded from the scan and three keys are named as non-secret.
+# What this does NOT do is weaken the check where it earns its keep: index.html
+# and every other published file are still scanned in full, and the real
+# credentials - RESEND_API_KEY, STRIPE_SECRET_KEY, ACCESS_SECRET - are still
+# checked against them. A function's source is executed on Netlify's servers and
+# never sent to a browser, which is the whole thing secrets scanning exists to
+# prevent.
+#
+# These live here rather than in the dashboard on purpose: they travel with the
+# folder, so a deploy cannot fail because a variable was set on a different day.
+[build.environment]
+  SECRETS_SCAN_OMIT_PATHS = "netlify/functions/**"
+  SECRETS_SCAN_OMIT_KEYS = "PRICE_BAG_1KG,QUOTE_FROM,QUOTE_TO"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── 29 Aug (pass208) · the four route pages ──────────────────────────────────
+# tools/build.js writes a real file per route — /shop/index.html and so on —
+# each carrying its own title, description and hreflang. Netlify serves those at
+# /shop, /origins, /office-coffee and /trade-pricing.
+#
+# They need naming here because the rule above matches the literal path
+# "/index.html" and nothing else: /shop is served FROM /shop/index.html but is
+# not requested as it, so it would fall through to the platform default. That
+# default happens to be the same value, which is exactly why this is worth
+# writing down — a page that must revalidate by accident is one platform change
+# away from being cached for a year, and a cached route page is a visitor
+# looking at last month's prices.
+[[headers]]
+  for = "/origins"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/shop"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/wholesale-coffee"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/trade-pricing"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── 5 Sep · /faqs joins the named routes ─────────────────────────────────────
+# Same reason as the four above: it is served FROM /faqs/index.html but is not
+# requested as it, so without a rule of its own it falls through to the platform
+# default. The answers change as the business does, so it must revalidate.
+[[headers]]
+  for = "/faqs"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── 6 Sep · the /uk tree ─────────────────────────────────────────────────────
+# The UK is a priced market in the build (GBP, its own ladder, the Dr.Coffee
+# range) but had no URL until now: it was a state inside the page, reachable
+# only by clicking the flag, so no page could be ranked, linked or crawled.
+#
+# Unlike /ae it needs no host rewrites — there is no .uk domain to redirect
+# from, and that is deliberate: a .co.uk pointed at a market with no pages buys
+# nothing, whereas these pages can rank on the domain that already does. What
+# it does need is the same revalidation rule as every other named route, for
+# the same reason: served FROM /uk/shop/index.html, never requested as it.
+[[headers]]
+  for = "/uk"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/origins"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/shop"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/wholesale-coffee"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/trade-pricing"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/faqs"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/origins/batang-toru"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/origins/arakan-mountains"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/origins/batang-gadis"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/uk/origins/gayo-lues"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── 29 Aug (pass225) · and the four origin pages ─────────────────────────────
+# Same reason as the four above: /origins/batang-toru is served FROM a file of
+# that name but is not requested as one, so it falls through to the platform
+# default without a rule of its own.
+[[headers]]
+  for = "/origins/batang-toru"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/origins/arakan-mountains"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/origins/batang-gadis"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+[[headers]]
+  for = "/origins/gayo-lues"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ── 29 Aug (pass208) · the guessable spellings ───────────────────────────────
+# The routes are called home/origins/shop/work/quote inside the app, and two of
+# them are published under different names: work is /office-coffee because that
+# is the phrase people search, and quote is /trade-pricing because that is what
+# Alex calls it. /in-offices is the spelling he used when we first talked about
+# real URLs.
+#
+# All three are things a person will type or a link will carry, and an unhandled
+# one is a 404 on a page that exists. 301 rather than 200 on purpose: there is
+# one URL per route, these are not it, and a permanent redirect says so to a
+# crawler instead of quietly creating a second address for the same page.
+# ── 29 Aug (pass213) · SAUCYBEAN, WOUND DOWN ─────────────────────────────────
+# Alex's previous brand is being retired and this domain carries the links it
+# earned — including prcfoundation.org/apes-for-apes, which names NoFilter as
+# the buyer of the entire Batang Toru crop and links to saucybean.co/ for it.
+# A 301 moves that credit to nofilter.sg without anyone at PRCF touching a page.
+#
+# THIS BLOCK MUST STAY FIRST. Netlify takes the first matching rule and a rule
+# with a bare path matches on every domain assigned to this site, so the
+# /workplaces and /shop rules further down would otherwise catch saucybean.co
+# traffic and hold it on the wrong domain. The catch-all at the end of this
+# block is the backstop: nothing on saucybean.co reaches a path-only rule.
+#
+# Inert until saucybean.co is added as a domain alias. Both schemes and both
+# www forms are covered because Force HTTPS is a per-domain toggle.
+[[redirects]]
+  from = "https://saucybean.co/our-why"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true   # the brand story
+[[redirects]]
+  from = "https://www.saucybean.co/our-why"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/our-why"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/our-why"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://saucybean.co/ngo-partners"
+  to = "https://nofilter.sg/origins"
+  status = 301
+  force = true   # the four partners, by name
+[[redirects]]
+  from = "https://www.saucybean.co/ngo-partners"
+  to = "https://nofilter.sg/origins"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/ngo-partners"
+  to = "https://nofilter.sg/origins"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/ngo-partners"
+  to = "https://nofilter.sg/origins"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://saucybean.co/corporate-wholesale"
+  to = "https://nofilter.sg/wholesale-coffee"
+  status = 301
+  force = true   # same page, new name
+[[redirects]]
+  from = "https://www.saucybean.co/corporate-wholesale"
+  to = "https://nofilter.sg/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/corporate-wholesale"
+  to = "https://nofilter.sg/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/corporate-wholesale"
+  to = "https://nofilter.sg/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://saucybean.co/coffee-carts"
+  to = "https://nofilter.sg/wholesale-coffee"
+  status = 301
+  force = true   # the events side of the same offer
+[[redirects]]
+  from = "https://www.saucybean.co/coffee-carts"
+  to = "https://nofilter.sg/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/coffee-carts"
+  to = "https://nofilter.sg/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/coffee-carts"
+  to = "https://nofilter.sg/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://saucybean.co/shop"
+  to = "https://nofilter.sg/shop"
+  status = 301
+  force = true   # like for like
+[[redirects]]
+  from = "https://www.saucybean.co/shop"
+  to = "https://nofilter.sg/shop"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/shop"
+  to = "https://nofilter.sg/shop"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/shop"
+  to = "https://nofilter.sg/shop"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://saucybean.co/cart"
+  to = "https://nofilter.sg/shop"
+  status = 301
+  force = true   # an abandoned cart lands on the bags
+[[redirects]]
+  from = "https://www.saucybean.co/cart"
+  to = "https://nofilter.sg/shop"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/cart"
+  to = "https://nofilter.sg/shop"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/cart"
+  to = "https://nofilter.sg/shop"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://saucybean.co/faqs"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.saucybean.co/faqs"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/faqs"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/faqs"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+# 29 Aug (pass214) — these two sit ahead of the catch-all below on purpose.
+# /* matched /robots.txt as well, so a crawler asking this domain for its rules
+# was handed 663KB of home page; the first fetcher to try it refused to go on.
+# A crawler that cannot read robots.txt backs off, which is the opposite of what
+# this migration is for. Netlify takes the first match, so order is the fix.
+# 29 Aug (pass215) — 200, not 301: a rewrite, so the bytes of this site's
+# robots.txt are SERVED at saucybean.co/robots.txt with no hop at all. The 301
+# pass214 put here was correct by the spec and Googlebot would have followed it,
+# but a second fetcher refused to follow a robots.txt redirect across hosts and
+# therefore would not crawl the domain. robots.txt gates everything else on a
+# domain whose only remaining job is to pass credit through, so it is worth
+# removing the hop rather than relying on every client handling it well.
+[[redirects]]
+  from = "https://saucybean.co/robots.txt"
+  to = "/robots.txt"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.saucybean.co/robots.txt"
+  to = "/robots.txt"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/robots.txt"
+  to = "/robots.txt"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/robots.txt"
+  to = "/robots.txt"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://saucybean.co/sitemap.xml"
+  to = "https://nofilter.sg/sitemap.xml"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.saucybean.co/sitemap.xml"
+  to = "https://nofilter.sg/sitemap.xml"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/sitemap.xml"
+  to = "https://nofilter.sg/sitemap.xml"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/sitemap.xml"
+  to = "https://nofilter.sg/sitemap.xml"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://saucybean.co/*"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true   # catch-all — MUST be last of this block
+[[redirects]]
+  from = "https://www.saucybean.co/*"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://saucybean.co/*"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.saucybean.co/*"
+  to = "https://nofilter.sg/"
+  status = 301
+  force = true
+
+# ── end of the saucybean block ───────────────────────────────────────────────
+
+# ── 29 Aug (pass220, extended pass225) · NAMED PATHS, NOT A WILDCARD ─────────
+# pass218 wrote this as https://nofilter.ae/* -> /ae/:splat, and /* took
+# everything with it: assets/fonts.css, favicon.ico, og-card.jpg, sitemap.xml,
+# robots.txt, llms.txt and .netlify/functions/* all resolved into a tree that
+# contains HTML pages and nothing else. The UAE domain would have rendered in a
+# fallback typeface with a dead quote builder and a 404 sitemap.
+#
+# So every page is named: the five routes, and since pass225 the four origins.
+# Everything else on nofilter.ae falls through to the shared root, which is
+# where it lives and where it was already working. Both path forms per page: a
+# link in the wild carries either, and an unmatched one serves the SINGAPORE
+# page on the UAE domain with a canonical pointing away from it.
+#
+# Generated from ROUTE_META and ORIGIN_META by tools/pass225.py. Do not add a
+# row here by hand — add the page to the table and re-run the pass, or
+# tools/build.js will fail the build for the mismatch.
+[[redirects]]
+  from = "https://nofilter.ae/"
+  to = "/ae/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/"
+  to = "/ae/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/"
+  to = "/ae/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/"
+  to = "/ae/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins"
+  to = "/ae/origins"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins"
+  to = "/ae/origins"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins"
+  to = "/ae/origins"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins"
+  to = "/ae/origins"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/"
+  to = "/ae/origins/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/"
+  to = "/ae/origins/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/"
+  to = "/ae/origins/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/"
+  to = "/ae/origins/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/shop"
+  to = "/ae/shop"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/shop"
+  to = "/ae/shop"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/shop"
+  to = "/ae/shop"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/shop"
+  to = "/ae/shop"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/shop/"
+  to = "/ae/shop/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/shop/"
+  to = "/ae/shop/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/shop/"
+  to = "/ae/shop/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/shop/"
+  to = "/ae/shop/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/wholesale-coffee"
+  to = "/ae/wholesale-coffee"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/wholesale-coffee"
+  to = "/ae/wholesale-coffee"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/wholesale-coffee"
+  to = "/ae/wholesale-coffee"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/wholesale-coffee"
+  to = "/ae/wholesale-coffee"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/wholesale-coffee/"
+  to = "/ae/wholesale-coffee/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/wholesale-coffee/"
+  to = "/ae/wholesale-coffee/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/wholesale-coffee/"
+  to = "/ae/wholesale-coffee/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/wholesale-coffee/"
+  to = "/ae/wholesale-coffee/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/trade-pricing"
+  to = "/ae/trade-pricing"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/trade-pricing"
+  to = "/ae/trade-pricing"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/trade-pricing"
+  to = "/ae/trade-pricing"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/trade-pricing"
+  to = "/ae/trade-pricing"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/trade-pricing/"
+  to = "/ae/trade-pricing/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/trade-pricing/"
+  to = "/ae/trade-pricing/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/trade-pricing/"
+  to = "/ae/trade-pricing/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/trade-pricing/"
+  to = "/ae/trade-pricing/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/batang-toru"
+  to = "/ae/origins/batang-toru"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/batang-toru"
+  to = "/ae/origins/batang-toru"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/batang-toru"
+  to = "/ae/origins/batang-toru"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/batang-toru"
+  to = "/ae/origins/batang-toru"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/batang-toru/"
+  to = "/ae/origins/batang-toru/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/batang-toru/"
+  to = "/ae/origins/batang-toru/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/batang-toru/"
+  to = "/ae/origins/batang-toru/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/batang-toru/"
+  to = "/ae/origins/batang-toru/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/arakan-mountains"
+  to = "/ae/origins/arakan-mountains"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/arakan-mountains"
+  to = "/ae/origins/arakan-mountains"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/arakan-mountains"
+  to = "/ae/origins/arakan-mountains"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/arakan-mountains"
+  to = "/ae/origins/arakan-mountains"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/arakan-mountains/"
+  to = "/ae/origins/arakan-mountains/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/arakan-mountains/"
+  to = "/ae/origins/arakan-mountains/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/arakan-mountains/"
+  to = "/ae/origins/arakan-mountains/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/arakan-mountains/"
+  to = "/ae/origins/arakan-mountains/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/batang-gadis"
+  to = "/ae/origins/batang-gadis"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/batang-gadis"
+  to = "/ae/origins/batang-gadis"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/batang-gadis"
+  to = "/ae/origins/batang-gadis"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/batang-gadis"
+  to = "/ae/origins/batang-gadis"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/batang-gadis/"
+  to = "/ae/origins/batang-gadis/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/batang-gadis/"
+  to = "/ae/origins/batang-gadis/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/batang-gadis/"
+  to = "/ae/origins/batang-gadis/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/batang-gadis/"
+  to = "/ae/origins/batang-gadis/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/gayo-lues"
+  to = "/ae/origins/gayo-lues"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/gayo-lues"
+  to = "/ae/origins/gayo-lues"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/gayo-lues"
+  to = "/ae/origins/gayo-lues"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/gayo-lues"
+  to = "/ae/origins/gayo-lues"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/origins/gayo-lues/"
+  to = "/ae/origins/gayo-lues/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/origins/gayo-lues/"
+  to = "/ae/origins/gayo-lues/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/origins/gayo-lues/"
+  to = "/ae/origins/gayo-lues/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/origins/gayo-lues/"
+  to = "/ae/origins/gayo-lues/"
+  status = 200
+  force = true
+# 5 Sep · /faqs, both path forms, same as every other page above.
+[[redirects]]
+  from = "https://nofilter.ae/faqs"
+  to = "/ae/faqs"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/faqs"
+  to = "/ae/faqs"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/faqs"
+  to = "/ae/faqs"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/faqs"
+  to = "/ae/faqs"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/faqs/"
+  to = "/ae/faqs/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/faqs/"
+  to = "/ae/faqs/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/faqs/"
+  to = "/ae/faqs/"
+  status = 200
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/faqs/"
+  to = "/ae/faqs/"
+  status = 200
+  force = true
+# And /ae/ must not be reachable on the Singapore domain, or it becomes a third
+# address for the UAE page carrying a canonical that points elsewhere. These are
+# bare paths, so they match on every domain and MUST stay below the rewrites
+# above — otherwise nofilter.ae/ae/... would be caught here first.
+[[redirects]]
+  from = "https://nofilter.sg/ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.sg/ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://nofilter.sg/ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.sg/ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/work"
+  to = "/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/in-offices"
+  to = "/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/quote"
+  to = "/trade-pricing"
+  status = 301
+  force = true
+
+# 5 Sep — the singular is the commoner typing, and the old Squarespace site had
+# a /faqs page whose 301 to "/" is in the saucybean block above. This one is for
+# people and links on this domain.
+[[redirects]]
+  from = "/faq"
+  to = "/faqs"
+  status = 301
+  force = true
+
+# 7 Sep — the last two old-site URLs still in Google's index that answered 404.
+# The other legacy paths (hotels-and-cafes, workplaces, roasted-coffee, the
+# origin pages, roasters) already redirect above; these carry their equity too.
+[[redirects]]
+  from = "/home"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/the-misfits"
+  to = "/shop"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/uk/faq"
+  to = "/uk/faqs"
+  status = 301
+  force = true
+
+# 29 Aug (pass210) — /office-coffee joins the list. It was the slug for about an
+# hour, in a build that was never deployed, so this catches nothing that exists
+# in the wild. It is here because it is the phrase with the most search volume of
+# any spelling of this page, which makes it the one a person is most likely to
+# guess or a competitor most likely to link.
+[[redirects]]
+  from = "/office-coffee"
+  to = "/wholesale-coffee"
+  status = 301
+  force = true
+
+# ── 29 Aug (pass212) · THE SQUARESPACE PAGES ─────────────────────────────────
+# Google's index of this domain is still the previous build, and every one of
+# those pages now returns 404 — verified by fetching them, not assumed. Eight
+# confirmed, listed with the titles Google still holds for them:
+#
+#   /our-values        Our Values | Coffee with Purpose
+#   /our-impact        Our Impact | Coffee That Gives Back
+#   /roasted-coffee    Roasted Coffee | Bold, Impact-Driven Brews
+#   /roasters          Roasters | No Middlemen. Just Great Coffee
+#   /workplaces        Workplaces | Fresh Coffee. Real Impact
+#   /hotels-and-cafes  Hotels & Cafes | Serve Great Coffee That Stands for More
+#   /batang-toru       Batang Toru Coffee | Jungle-Grown & Woman-Powered
+#   /arakan-mountains  Arakan Mountains Coffee | Wild-Grown with Purpose
+#
+# A 404 tells a crawler to drop the page and everything it had earned. A 301
+# tells it where the page went and to bring that with it. Each one points at the
+# nearest live route rather than at the home page, because a redirect to
+# something unrelated is read as a soft 404 and loses the same value it was
+# meant to keep.
+#
+# The two origin redirects are approximate — one old page about one coffee,
+# pointed at a route about four. Stage 3 gives each origin its own URL and makes
+# them exact.
+#
+# The last two are INFERRED from the naming convention of the two confirmed
+# origin pages, not observed in an index. A redirect for a URL that never
+# existed is harmless; a missing one is not.
+[[redirects]]
+  from = "/our-values"
+  to = "/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/our-impact"
+  to = "/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/roasted-coffee"
+  to = "/shop"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/roasters"
+  to = "/origins"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/workplaces"
+  to = "/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/hotels-and-cafes"
+  to = "/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/batang-toru"
+  to = "/origins/batang-toru"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/arakan-mountains"
+  to = "/origins/arakan-mountains"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/batang-gadis"
+  to = "/origins/batang-gadis"
+  status = 301
+  force = true   # inferred, not observed
+[[redirects]]
+  from = "/gayo-lues"
+  to = "/origins/gayo-lues"
+  status = 301
+  force = true   # inferred, not observed
+
+# ── 28 Aug · what a browser is allowed to do with this page ──────────────────
+# Alex: "i want their to be guardrails that throw people off from being copy
+# cats, i.e. copying the custom tablets."
+#
+# frame-ancestors is the one that actually stops a category of theft rather than
+# inconveniencing it: without it, anyone can put nofilter.sg inside an <iframe>
+# on their own domain, wrap it in their branding and present the whole build as
+# their work — no copying required, and it is the laziest and most common form
+# of it. X-Frame-Options says the same thing to older browsers. Both are
+# declarations the browser enforces; neither can be worked around from the
+# copying end.
+#
+# What is deliberately NOT here: a full Content-Security-Policy. This page runs
+# entirely on inline script and style, so a default-src policy needs every block
+# hashed or 'unsafe-inline' — the first is a build step we do not have yet and
+# the second protects nothing. Shipping a wrong one white-screens the site. It
+# is on the list, after launch, done properly.
+#
+# Also NOT here: any Cross-Origin-Resource-Policy on the shared asset bucket.
+# Other builds load those files from other origins, and same-site would break
+# every one of them.
+#
+# (This comment used to name those builds. The dist scan in tools/build.js
+# caught it — netlify.toml is a published file, so it is held to exactly the
+# same rules as the page, and it should be. The whole point of the minified
+# build is that no visitor learns who else we work with by reading our files.)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # 29 Aug (pass246) — the EDGE lifetime, which is a different thing from the
+    # browser lifetime below it. Netlify's own default for static content, set
+    # explicitly because every HTML rule in this file overrides Cache-Control and
+    # none of them said anything about the CDN. Deploys invalidate the cache for
+    # the deploy context, so a year is not a staleness risk — it is the platform's
+    # documented value. /assets/* already resolves to the same thing.
+    Netlify-CDN-Cache-Control = "public, s-maxage=31536000, must-revalidate"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+    Content-Security-Policy = "frame-ancestors 'self'"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
+    Cross-Origin-Opener-Policy = "same-origin"

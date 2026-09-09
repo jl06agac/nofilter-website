@@ -1,0 +1,11 @@
+import {chromium} from 'playwright';
+const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+const p=await b.newPage({viewport:{width:1350,height:940}});
+await p.goto('http://localhost:9000/',{waitUntil:'load'});
+await p.evaluate(()=>{ window.__log=[]; const q=s=>document.querySelector(s); const rows=[...document.querySelectorAll('.line-row')]; const t=q('.cover-hero-title'); const sup=q('.cover-support'); const inner=q('.cover-inner');
+  const snap=()=>({t:Math.round(performance.now()), title:[t.offsetTop,t.offsetHeight,getComputedStyle(t).gap,getComputedStyle(t).lineHeight,getComputedStyle(t).fontSize], rows:rows.map(r=>[r.offsetTop,r.offsetHeight,getComputedStyle(r).marginLeft,getComputedStyle(r).paddingTop]), sup:[sup.offsetTop,getComputedStyle(sup).marginTop], inner:[inner.offsetTop,inner.offsetHeight], cls:t.className});
+  let last=JSON.stringify(snap()); window.__log.push(last);
+  setInterval(()=>{ const s=JSON.stringify(snap()); if(s.replace(/"t":\d+/,'')!==last.replace(/"t":\d+/,'')){ window.__log.push(s); last=s; } }, 30); });
+await p.waitForTimeout(6000);
+for(const l of await p.evaluate(()=>window.__log)) console.log(l);
+await b.close();

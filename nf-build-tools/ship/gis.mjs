@@ -1,0 +1,14 @@
+import {chromium} from 'playwright';
+import http from 'node:http'; import {readFileSync, existsSync, statSync} from 'node:fs'; import {join} from 'node:path';
+const ROOT='/home/claude/ship/SHIP-2026-09-02j'; const CDN='/mnt/user-data/uploads/Desktop/NoFilter/_CDN-UPLOAD-SAFE';
+const srv=http.createServer((req,res)=>{ let p=decodeURIComponent(req.url.split('?')[0]); let f=p.startsWith('/cdn/')?join(CDN,p.slice(5)):join(ROOT,p); if(existsSync(f)&&statSync(f).isDirectory()) f=join(f,'index.html'); if(!existsSync(f)){res.writeHead(404);return res.end();} let body=readFileSync(f); if(f.endsWith('.html')) body=Buffer.from(body.toString().split('https://nofilter-shared.netlify.app/').join('http://localhost:8796/cdn/')); res.writeHead(200,{'Content-Type':f.endsWith('.html')?'text/html':f.endsWith('.webp')?'image/webp':'application/octet-stream'}); res.end(body); }).listen(8796);
+const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+const p=await b.newPage({viewport:{width:1400,height:900}}); p.on('pageerror',e=>console.log('PAGEERROR',e.message));
+const gis=[]; await p.route('**/nofilter-gis-map.netlify.app/**', r=>{ gis.push(r.request().url()); r.fulfill({status:200, contentType:'text/html', body:'<html><body>map</body></html>'}); });
+await p.goto('http://localhost:8796/wholesale-coffee/',{waitUntil:'load'}); await p.waitForTimeout(2500);
+const el=await p.$('#nwGisFacade'); await el.scrollIntoViewIfNeeded(); await p.waitForTimeout(800);
+const box=await (await p.$('#nwGisFacade')).boundingBox(); await p.screenshot({path:'gis-a.png',clip:{x:box.x-30,y:box.y-30,width:box.width+60,height:box.height+60}});
+console.log('map requests before click:', gis.length);
+await p.evaluate(()=>document.getElementById('nwGisFacade').click()); await p.waitForTimeout(1500);
+console.log('map requests after click:', gis.length, '| facade hidden:', await p.evaluate(()=>document.getElementById('nwGisFacade').hidden), '| iframe visible:', await p.evaluate(()=>!document.querySelector('iframe[data-gis-src]').hidden));
+await b.close(); srv.close();

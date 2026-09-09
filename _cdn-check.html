@@ -1,0 +1,37 @@
+<!doctype html><meta charset="utf-8"><title>NoFilter · CDN asset check</title>
+<style>
+body{font:13px/1.5 ui-monospace,Menlo,monospace;background:#0D1012;color:#F4F2EE;margin:0;padding:28px 32px}
+h1{font:700 15px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#EE4D17;margin:0 0 6px}
+p.sub{color:#8C9498;margin:0 0 20px}
+#sum{margin:0 0 18px;padding:12px 14px;border:1px solid rgba(244,242,238,.18)}
+ul{list-style:none;margin:0;padding:0;columns:2;column-gap:34px}
+li{padding:2px 0;break-inside:avoid}
+.ok{color:#3FBF6A} .bad{color:#FF6A48;font-weight:700} .wait{color:#6B7378}
+b.n{color:#F4F2EE;font-weight:400}
+</style>
+<h1>NoFilter · CDN asset check</h1>
+<p class="sub">Every asset the deploy build requests from nofilter-shared.netlify.app. Open this file in a browser; anything red is not on the CDN.</p>
+<div id="sum">checking&hellip;</div>
+<ul id="list"></ul>
+<script>
+var URLS = ["https://nofilter-shared.netlify.app/Map-Gayo-Lues.jpg","https://nofilter-shared.netlify.app/aerial-batang-toru-ricefield-mosaic.jpg","https://nofilter-shared.netlify.app/arakan-drying-house.jpg","https://nofilter-shared.netlify.app/atwork-rain-loop.mp4","https://nofilter-shared.netlify.app/atwork-rain-poster.jpg","https://nofilter-shared.netlify.app/bag-arakan.png","https://nofilter-shared.netlify.app/bag-batang-gadis.png","https://nofilter-shared.netlify.app/bag-batang-toru.png","https://nofilter-shared.netlify.app/bag-gayo-lues.png","https://nofilter-shared.netlify.app/batang-arakan-banner-poster.jpg","https://nofilter-shared.netlify.app/batang-arakan-banner.mp4","https://nofilter-shared.netlify.app/batang-gadis-banner-poster.jpg","https://nofilter-shared.netlify.app/batang-gadis-banner.mp4","https://nofilter-shared.netlify.app/batang-gadis-farmer.jpg","https://nofilter-shared.netlify.app/batang-gadis-signoff.jpg","https://nofilter-shared.netlify.app/batang-toru-banner-poster.jpg","https://nofilter-shared.netlify.app/batang-toru-banner.mp4","https://nofilter-shared.netlify.app/cafematic-2.png","https://nofilter-shared.netlify.app/cafematic-5.png","https://nofilter-shared.netlify.app/cafematic-6.png","https://nofilter-shared.netlify.app/cafematic-8.png","https://nofilter-shared.netlify.app/coffee-cart.jpg","https://nofilter-shared.netlify.app/gayo-lues-banner-poster.jpg","https://nofilter-shared.netlify.app/gayo-lues-banner.mp4","https://nofilter-shared.netlify.app/gayo-patrol.jpg","https://nofilter-shared.netlify.app/hero-poster.jpg","https://nofilter-shared.netlify.app/hero-trim.mp4","https://nofilter-shared.netlify.app/keeps-standing.mp4","https://nofilter-shared.netlify.app/keystroke.mp3","https://nofilter-shared.netlify.app/mega-farm-test.mp4","https://nofilter-shared.netlify.app/mono-coffee-poster.jpg","https://nofilter-shared.netlify.app/nf-counter.html","https://nofilter-shared.netlify.app/ngo-acca.png","https://nofilter-shared.netlify.app/ngo-ff.png","https://nofilter-shared.netlify.app/ngo-kub.png","https://nofilter-shared.netlify.app/ngo-oic.webp","https://nofilter-shared.netlify.app/ngo-prcf.png","https://nofilter-shared.netlify.app/ngo-sri.svg","https://nofilter-shared.netlify.app/nofilter-mark-white.png","https://nofilter-shared.netlify.app/nofilter-wordmark.svg","https://nofilter-shared.netlify.app/nofilter_favicon.svg","https://nofilter-shared.netlify.app/nw-bag-rotate-poster.jpg","https://nofilter-shared.netlify.app/nw-bag-rotate.mp4","https://nofilter-shared.netlify.app/orangutan-batang-toru.jpg","https://nofilter-shared.netlify.app/quote-pour.jpg","https://nofilter-shared.netlify.app/quote-pour.mp4","https://nofilter-shared.netlify.app/rainforest.mp3","https://nofilter-shared.netlify.app/sabar-agroforest.jpg","https://nofilter-shared.netlify.app/signoff-orangutan.mp4","https://nofilter-shared.netlify.app/tape-this-was-forest.webp","https://nofilter-shared.netlify.app/unit-machine.jpg","https://nofilter-shared.netlify.app/verify-drone-poster.jpg","https://nofilter-shared.netlify.app/verify-drone.mp4","https://nofilter-shared.netlify.app/wp-compost.jpg","https://nofilter-shared.netlify.app/wp-office.mp4","https://nofilter-shared.netlify.app/wp-pour-atmos.jpg","https://nofilter-shared.netlify.app/wp-pour-atmos.mp4","https://nofilter-shared.netlify.app/wp-pour-poster.jpg","https://nofilter-shared.netlify.app/wp-pour.mp4","https://nofilter-shared.netlify.app/wp-prcf.mp4","https://nofilter-shared.netlify.app/wp-roasting.mp4"];
+var list = document.getElementById('list'), sum = document.getElementById('sum');
+var ok = 0, bad = 0, done = 0, missing = [];
+URLS.forEach(function(u){
+  var name = u.split('/').pop();
+  var li = document.createElement('li');
+  li.innerHTML = '<span class="wait">····</span> <b class="n">' + name + '</b>';
+  list.appendChild(li);
+  fetch(u, { method: 'HEAD', cache: 'no-store' })
+    .then(function(r){ return r.ok ? 'ok' : r.status; })
+    .catch(function(){ return 'ERR'; })
+    .then(function(res){
+      done++;
+      if (res === 'ok') { ok++; li.innerHTML = '<span class="ok">OK  </span> <b class="n">' + name + '</b>'; }
+      else { bad++; missing.push(name); li.innerHTML = '<span class="bad">' + res + '</span> <b class="n">' + name + '</b>'; }
+      sum.innerHTML = done + ' / ' + URLS.length + ' checked &nbsp;·&nbsp; <span class="ok">' + ok +
+        ' present</span> &nbsp;·&nbsp; <span class="bad">' + bad + ' missing</span>' +
+        (done === URLS.length && missing.length ? '<br><br>UPLOAD THESE:<br>' + missing.join('<br>') : '');
+    });
+});
+</script>

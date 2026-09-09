@@ -1,0 +1,61 @@
+# NoFilter · nofilter.sg / nofilter.ae
+User-agent: *
+Allow: /
+
+# The shared asset bucket is not a site. It has no pages, only files the
+# builds load, and letting a crawler index it puts our video and image URLs
+# into search results detached from the pages that give them meaning.
+# (This file governs THIS site; the bucket needs its own.)
+
+# ── 29 Aug · THE AI CRAWLERS, NAMED ON PURPOSE ──────────────────────────────
+# The wildcard above already allows all of these, so none of the lines below
+# change what any crawler is permitted to do today. They are here so the
+# decision is on the record and cannot be reversed by accident — the common way
+# a site disappears from AI answers is somebody adding a blanket Disallow for
+# "the scrapers" without knowing that three of them do three different jobs.
+#
+# OpenAI runs three, and they are not interchangeable:
+#   GPTBot          collects content that trains future models
+#   OAI-SearchBot   builds the index behind ChatGPT's search results
+#   ChatGPT-User    fetches a page live, when someone's question needs it
+# Block GPTBot to stop "scraping" and you keep the search index but lose the
+# model's background knowledge of who NoFilter is. Block OAI-SearchBot and you
+# vanish from the answers entirely. We want all three.
+#
+# The others are the same shape for the other assistants.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# A plain-language brief written for exactly these readers: what NoFilter is,
+# the four origins and their conservation partners, both legal entities, and
+# the questions we actually get asked. Not a standard directive — no crawler is
+# obliged to read it — but it costs one line and the convention is spreading.
+# The facts in it are the same ones in the JSON-LD in every page's head.
+Sitemap: https://nofilter.sg/sitemap.xml

@@ -1,4 +1,31 @@
+# ── Build OUTPUT. Regenerated from the master by nf-build-tools; never tracked.
+#    Deleting a SHIP folder loses nothing the generator cannot rebuild.
+# Anchored with a leading / so they match at the REPO ROOT ONLY. Without the
+# anchor, SHIP-2026-*/ also swallowed nf-build-tools/ship/SHIP-2026-08-30f/ --
+# the template bundle every build grafts its heads from. That MUST be tracked.
+/SHIP-2026-*/
+/_SHIP-*.tgz
+/_ship*.tgz
+/_build/
+
+# ── Snapshots of the tools. Superseded 9 Sep 2026: the tools themselves are now
+#    tracked below, and the six patches that existed ONLY inside the 3 Sep
+#    tarball were extracted to patches/_not-in-build-chain/ before this was set.
+nf-build-tools-*.tgz
+nf-build-tools/faq/nf-faq-tools-*.tgz
+
+# ── Generated, read by nothing (51 MB computed-style dump)
+nf-build-tools/ship/base-styles.json
+
+# ── Working scratch and machine noise
+_archive/
+.tmpcheck/
+_compare/
+node_modules/
+__pycache__/
+.DS_Store
+*.log
+
+# ── Media lives on the CDN (_CDN-UPLOAD-SAFE -> nofilter-shared), not in git
 *.mp4
 *.mp3
-node_modules/
-.DS_Store

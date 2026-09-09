@@ -1,0 +1,101 @@
+WHAT IS USED IN THIS FOLDER — generated 30 Aug 2026
+==================================================
+
+Two questions, answered per file by the machine, not by opinion:
+  1. Is it reachable from the live site?  (loaded by NoFilter-Website-Master.html,
+     present in SHIP-2026-08-30f, named in _PROTECTED-DO-NOT-DELETE.md, or a doc)
+  2. If not reachable — does a byte-identical copy exist elsewhere on the machine?
+
+SAFE  = no to 1, yes to 2. Deleting loses nothing; the copy is named.
+LOOK  = no to 1, no to 2. This is the only copy. A human decides.
+KEEP  = yes to 1.
+
+
+KEEP  · it is in the deployed bundle   (1 files, 0.1 MB)
+       0.08 MB  index.html
+
+KEEP  · master, its backups, or a doc   (9 files, 6.3 MB)
+       1.58 MB  NoFilter-Website-Master.PRE-DEADVAR-2026-08-30.html.bak
+       1.58 MB  _OPTION-D.PRE-RENAME-2026-08-30.html.bak
+       1.58 MB  NoFilter-Website-Master.PRE-DEADCODE-2026-08-30.html.bak
+       1.55 MB  NoFilter-Website-Master.html
+       0.01 MB  _HANDOFF-next-session.md
+       0.01 MB  NoFilter-Website-Structure.md
+       0.01 MB  _PROTECTED-DO-NOT-DELETE.md
+       0.00 MB  NoFilter-the-problem-longform.md
+       0.00 MB  _SITE-DEPLOY-README.md
+
+KEEP  · on your protected list   (17 files, 2.1 MB)
+       0.44 MB  nf-impact-standalone.html
+       0.43 MB  workplace-builder.html
+       0.40 MB  workplace-builder.PRE-CANON-SLIDER.html
+       0.29 MB  _test-impact-slider.html
+       0.11 MB  nofilter-counter.html
+       0.09 MB  workplace.html
+       0.07 MB  origins.html
+       0.05 MB  keystroke-audio.js
+       0.04 MB  keystroke.mp3
+       0.02 MB  workplace.src.html
+       0.02 MB  index.src.PRE-ORIGINS.html
+       0.02 MB  origins.src.html
+       0.02 MB  _test-private-reveal.html
+       0.02 MB  _test-crt-gate.html
+       0.01 MB  workplace-access.html
+       0.01 MB  _test-gutter-slider.html
+       0.01 MB  _test-mani-squeeze.html
+
+KEEP  · the master loads it   (2 files, 0.2 MB)
+       0.11 MB  mono-coffee-poster.jpg
+       0.06 MB  atwork-rain-poster.jpg
+
+SAFE — not reachable AND an identical copy exists elsewhere  (17 files, 50.1 MB)
+      12.85 MB  hero-trim.mp4                                copy at: Desktop/NoFilter/_CDN/_CDN-INCOMPLETE-DO-NOT-DEPLOY/hero-trim.mp4
+      11.79 MB  mono-coffee-long.mp4                         copy at: Downloads/_REVIEW-30aug/2-NOT-YET-EXAMINED/Video/\.mp4
+       8.58 MB  hero.mp4                                     copy at: Desktop/NoFilter/Clients/Zoos/Pittsburgh Zoo/hero.mp4
+       4.95 MB  clears-forest.mp4                            copy at: Desktop/NoFilter/Clients/Zoos/Pittsburgh Zoo/clears-forest.mp4
+       2.95 MB  nofilter-site.html                           copy at: Downloads/_REVIEW-30aug/2-NOT-YET-EXAMINED/HTML/nofilter-site_20.html
+       2.62 MB  keeps-standing.mp4                           copy at: Desktop/NoFilter/Clients/Zoos/Pittsburgh Zoo/keeps-standing.mp4
+       1.31 MB  mega-farm-test.mp4                           copy at: Downloads/_REVIEW-30aug/2-NOT-YET-EXAMINED/Video/12493598-sd_960_506_2
+       1.31 MB  mono-coffee-loop.mp4                         copy at: Downloads/_REVIEW-30aug/2-NOT-YET-EXAMINED/Video/12493598-sd_960_506_2
+       1.12 MB  atwork-rain-loop.mp4                         copy at: Desktop/NoFilter/Clients/_shared/atwork-rain-loop.mp4
+       1.03 MB  atwork-forest-loop.mp4                       copy at: Desktop/NoFilter/Clients/_shared/atwork-forest-loop.mp4
+       0.81 MB  atwork-loop.mp4                              copy at: Desktop/NoFilter/Clients/_shared/atwork-loop.mp4
+       0.41 MB  coffee-plantation.jpg                        copy at: Desktop/NoFilter/Clients/Zoos/Taronga Zoo/assets/coffee-plantation.jpg
+       0.30 MB  deforestation-image.jpg                      copy at: Desktop/NoFilter/Clients/Zoos/Taronga Zoo/assets/deforestation-image.j
+       0.08 MB  mono-coffee-long-poster.jpg                  copy at: Desktop/NoFilter/Clients/_shared/mono-coffee-long-poster.jpg
+       0.01 MB  origins-separation-options.html              copy at: Downloads/_REVIEW-30aug/2-NOT-YET-EXAMINED/HTML/origins-separation-opt
+       0.01 MB  thesis-B-backgrounds.html                    copy at: Downloads/_REVIEW-30aug/2-NOT-YET-EXAMINED/HTML/thesis-B-backgrounds.h
+       0.01 MB  thesis-options.html                          copy at: Downloads/_REVIEW-30aug/2-NOT-YET-EXAMINED/HTML/thesis-options.html
+
+LOOK — not reachable AND this is the ONLY copy  (31 files, 24.0 MB)
+       7.59 MB  01_home.png
+       5.74 MB  03_origins.png
+       3.09 MB  _evidence-wall-preview.png
+       2.30 MB  02_work.png
+       1.48 MB  option_d_code.txt
+       1.42 MB  _origins-palette-test.html
+       0.86 MB  nofilter-unified.html
+       0.30 MB  04_shop.png
+       0.24 MB  _ORIGINS-options.html
+       0.21 MB  _founders-note-options.html
+       0.15 MB  _four-coffees-colour-test.png
+       0.10 MB  shop.html
+       0.09 MB  _hero-contact.jpg
+       0.06 MB  atwork-forest-poster.jpg
+       0.06 MB  _rain-check.jpg
+       0.06 MB  atwork-loop-poster.jpg
+       0.04 MB  _frames-check.jpg
+       0.04 MB  machines.html
+       0.03 MB  _extract-cover-css.txt
+       0.02 MB  _extract-eastspring-hero.txt
+       0.02 MB  _component-choice-scroll.html
+       0.02 MB  _why-route.src.html
+       0.02 MB  index.src.html
+       0.02 MB  _REFERENCE-layout-brief.html
+       0.01 MB  machines.src.html
+       0.01 MB  _cdn-check.html
+       0.00 MB  _extract-mani-squeeze.txt
+       0.00 MB  _ed-cheapest-LOCKED.html
+       0.00 MB  shop.src.html
+       0.00 MB  _extract-converge.txt
+       0.00 MB  .gitignore

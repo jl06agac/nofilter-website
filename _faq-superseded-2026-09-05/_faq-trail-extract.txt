@@ -1,0 +1,71 @@
+mage/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 56' fill='none'><path d='M 13 4 L 13 44 C 13 49 17 52 20 52 C 23 52 25 49 25 44 L 25 10 C 25 6 22 3 19 3 C 16 3 13 6 13 10 L 13 38 C 13 41 11 43 9 43 C 7 43 5 41 5 38 L 5 16' stroke='%23d8d4c7' stroke-width='1.4' stroke-linecap='round'/></svg>");
+}
+
+/* =====================================================================
+   TAPANULI TRAIL — orangutan footprint watermark on §02.1.
+   Tiles horizontally across the full chapter width (breaks out of
+   chapter padding via negative margins) and sits behind the title
+   row. Decorative only; aria-hidden in markup. The PNG repeats at
+   its natural height — no distortion — so the prints stay sharp.
+   ===================================================================== */
+.qt-tapanuli-trail {
+  position: absolute;
+  top: var(--s-6);
+  left: 0;
+  right: 0;
+  height: 100px;
+  background-image: url("assets/tapanuli-trail.png");
+  background-repeat: repeat-x;
+  background-position: left center;
+  background-size: auto 100px;
+  opacity: 0.18;
+  z-index: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 18px rgba(138, 70, 35, 0.35));
+}
+@media (max-width: 720px) {
+  .qt-tapanuli-trail {
+    height: 72px;
+    background-size: auto 72px;
+  }
+}
+
+</style>
+</head>
+<body>
+<div class="qt-doc">
+
+<!-- =====================================================================
+     §00 · COVER
+
+     A deliberate visual replication of pittsburghzoo.org's homepage.
+     Their nav bar (utility orange + white main + teal logo plate) sits
+     at the top. Their tagline "We Connect People to Wildlife..." types in
+     in their font (Bogue Medium). After a beat, "through coffee." types
+     in below in red-coral, with a soft halo behind it. The PZA torn-edge
+     at the bottom matches their site's hero tear. JS lives at the end of
+     the document and animates on load.
+     ===================================================================== -->
+<section class="qt-cover qt-cover--torn">
+
+  <!-- Photo (full-bleed, mirrored so the orangutan sits on the right) -->
+  <div class="qt-cover-photo"></div>
+  <div class="qt-cover-shade"></div>
+
+  <!-- PZA nav replica -->
+  <div class="qt-pza-utility">
+    <div class="qt-pza-util-links">
+      <span class="qt-pza-util-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 9h18M7 13h6M7 17h4"/></svg></span>
+        Membership
+      </span>
+      <span class="qt-pza-util-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-7-10a4 4 0 017-2.65A4 4 0 0119 11c0 5.65-7 10-7 10z"/></svg></span>
+        Support
+      </span>
+      <span class="qt-pza-util-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 7h18v4a2 2 0 000 4v4H3v-4a2 2 0 000-4V7z"/></svg></span>
+        Tickets
+      </span>
+      <span class="qt-pza-util-item">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M11 3C7 5 5 9 5 13c0 4 3 7 6 8 3-1 6-4 6-8 0-4-2-8-6-10z"/></s
