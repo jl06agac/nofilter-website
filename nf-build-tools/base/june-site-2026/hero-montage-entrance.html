@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoFilter hero - montage entrance</title>
+<style>
+  :root{
+    --nf-orange:#ee4d17;
+    --nf-cream:#F4F2EE;
+    --nf-near-black:#1A1815;
+    --ease-nf:cubic-bezier(.2,.7,.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:var(--nf-near-black);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+
+  .picker{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;flex-wrap:wrap;background:rgba(15,14,12,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(244,242,238,.12);}
+  .picker button{flex:1 1 0;min-width:0;background:none;border:none;color:var(--nf-cream);font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:13px 6px;cursor:pointer;opacity:.5;transition:opacity .2s,background .2s;border-right:1px solid rgba(244,242,238,.08);white-space:nowrap;}
+  .picker button:last-child{border-right:none;}
+  .picker button.on{opacity:1;background:var(--nf-orange);color:#fff;}
+  .ctrls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:10px;}
+  .ctrls button{background:rgba(238,77,23,.92);color:#fff;border:none;font-family:"SF Mono",Menlo,monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:11px 22px;border-radius:6px;cursor:pointer;}
+  .ctrls .slow{background:rgba(244,242,238,.16);}
+
+  .cover{position:relative;height:100vh;overflow:hidden;background:var(--nf-near-black);}
+
+  /* montage frames */
+  .frame{position:absolute;inset:0;opacity:0;z-index:1;background-size:cover;background-position:center;}
+  .frame.show{opacity:1;}
+  .frame .lbl{position:absolute;left:0;right:0;bottom:8%;text-align:center;font-family:"SF Mono",Menlo,monospace;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:rgba(244,242,238,.7);}
+
+  /* the final video */
+  .cover-video-stack{position:absolute;inset:0;opacity:0;z-index:2;}
+  .cover-video-stack.show{opacity:1;transition:opacity .4s var(--ease-nf);}
+  .cover-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .cover-video--cyan,.cover-video--red{mix-blend-mode:screen;opacity:0;}
+  .cover-bg{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 45%,rgba(26,24,21,.18),rgba(26,24,21,.78));z-index:3;opacity:0;}
+  .cover-bg.show{opacity:1;transition:opacity .5s linear;}
+
+  .cover-inner{position:relative;z-index:4;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .wm{
+    font-family:"SF Mono",Menlo,Consolas,monospace;font-weight:700;text-transform:uppercase;
+    line-height:.9;letter-spacing:-.01em;color:var(--nf-cream);text-align:center;
+    font-size:clamp(54px,13vw,170px);text-shadow:0 6px 50px rgba(0,0,0,.6);
+  }
+  .wm .row{display:block;}
+  .wm .o{color:var(--nf-orange);position:relative;display:inline-block;}
+
+  /* flashing single words during montage */
+  .flashword{position:absolute;z-index:5;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;
+    font-family:"SF Mono",Menlo,monospace;font-weight:700;text-transform:uppercase;color:var(--nf-cream);
+    font-size:clamp(54px,13vw,170px);opacity:0;text-shadow:0 6px 40px rgba(0,0,0,.6);}
+  .flashword.o{color:var(--nf-orange);}
+  .flashword.show{opacity:1;}
+
+  /* settled title */
+  .wm{opacity:0;}
+  .wm.show{opacity:1;transition:opacity .5s var(--ease-nf);}
+
+  .glitch.is-glitching::before,.glitch.is-glitching::after{content:attr(data-text);position:absolute;inset:0;}
+  .glitch.is-glitching::before{color:#00e5ff;mix-blend-mode:screen;animation:gTop .55s steps(2,end) 1;}
+  .glitch.is-glitching::after{color:#ff003c;mix-blend-mode:screen;animation:gBot .55s steps(2,end) 1;}
+  @keyframes gTop{0%{opacity:0}10%{opacity:.95;transform:translate(-7px,-3px);clip-path:inset(0 0 66% 0)}35%{opacity:.95;clip-path:inset(44% 0 0 0)}70%{opacity:0}100%{opacity:0}}
+  @keyframes gBot{0%{opacity:0}10%{opacity:.95;transform:translate(7px,3px);clip-path:inset(62% 0 0 0)}35%{opacity:.95;clip-path:inset(0 0 56% 0)}70%{opacity:0}100%{opacity:0}}
+</style>
+</head>
+<body>
+  <div class="picker">
+    <button data-mode="frantic" class="on">A · frantic (10 cuts, strobe)</button>
+    <button data-mode="deliberate">B · deliberate (6 firm cuts)</button>
+    <button data-mode="settle-video">C · settle on video</button>
+    <button data-mode="settle-still">D · still becomes video</button>
+  </div>
+
+  <section class="cover" id="cover">
+    <div id="frames"></div>
+    <div class="cover-video-stack" id="stack">
+      <video class="cover-video" autoplay muted loop playsinline preload="auto"><source src="hero.mp4" type="video/mp4"></video>
+      <video class="cover-video cover-video--cyan" aria-hidden="true" autoplay muted loop playsinline preload="metadata"><source src="hero.mp4" type="video/mp4"></video>
+      <video class="cover-video cover-video--red" aria-hidden="true" autoplay muted loop playsinline preload="metadata"><source src="hero.mp4" type="video/mp4"></video>
+    </div>
+    <div class="cover-bg" id="bg"></div>
+    <div class="cover-inner">
+      <h1 class="wm" id="wm">
+        <span class="row">Hold</span><span class="row">the</span><span class="row"><span class="glitch o" data-text="line." id="lineword">line.</span></span>
+      </h1>
+    </div>
+    <div class="flashword" id="flash"></div>
+  </section>
+
+  <div class="ctrls">
+    <button id="replay">Replay</button>
+    <button id="slow" class="slow">Slow-mo</button>
+  </div>
+
+<script>
+(function(){
+  var cover=document.getElementById('cover');
+  var framesEl=document.getElementById('frames');
+  var stack=document.getElementById('stack');
+  var bg=document.getElementById('bg');
+  var wm=document.getElementById('wm');
+  var flash=document.getElementById('flash');
+  var lineword=document.getElementById('lineword');
+  var mode='frantic', slow=false, timers=[], idleTimer=null;
+
+  // candidate real images (swap in automatically if they sit beside the file); fallback colour+label otherwise
+  var IMGS=[
+    {src:'orangutan-cover.jpg',label:'Batang Toru',c:'#2a3b2e'},
+    {src:'assets/sabar-agroforest.jpg',label:'Agroforest',c:'#3a3322'},
+    {src:'batang-gadis-signoff.jpg',label:'Batang Gadis',c:'#2e2a26'},
+    {src:'assets/gayo-patrol.jpg',label:'Gayo Lues',c:'#23302b'},
+    {src:'cinta-raja-aerial.jpg',label:'Cinta Raja',c:'#1f2a22'},
+    {src:'coffee-cart.jpg',label:'The cup',c:'#3a2a1e'},
+    {src:'nf-cherries-end.jpg',label:'At origin',c:'#3a201a'},
+    {src:'assets/coffee-plantation.jpg',label:'The buffer',c:'#2c3326'},
+    {src:'batang-toru-sampean-map-1.jpg',label:'The line',c:'#26221d'},
+    {src:'wp-bag-mockup.jpg',label:'NoFilter',c:'#2a2622'}
+  ];
+
+  // build frame elements
+  var frameEls=[];
+  IMGS.forEach(function(im){
+    var d=document.createElement('div');d.className='frame';
+    d.style.background=im.c;
+    // attempt the real image; if it loads, use it
+    var probe=new Image();
+    probe.onload=function(){d.style.backgroundImage='url("'+im.src+'")';};
+    probe.src=im.src;
+    var l=document.createElement('div');l.className='lbl';l.textContent=im.label;
+    d.appendChild(l);
+    framesEl.appendChild(d);
+    frameEls.push(d);
+  });
+
+  function clearAll(){timers.forEach(clearTimeout);timers=[];clearTimeout(idleTimer);
+    frameEls.forEach(function(f){f.classList.remove('show');});
+    stack.classList.remove('show');bg.classList.remove('show');wm.classList.remove('show');
+    flash.classList.remove('show','o');flash.textContent='';lineword.classList.remove('is-glitching');}
+  function T(fn,ms){timers.push(setTimeout(fn,slow?ms*2.4:ms));}
+
+  function showFrame(i){frameEls.forEach(function(f,k){f.classList.toggle('show',k===i);});}
+  function hideFrames(){frameEls.forEach(function(f){f.classList.remove('show');});}
+
+  function startIdle(){function loop(){lineword.classList.remove('is-glitching');void lineword.offsetWidth;lineword.classList.add('is-glitching');idleTimer=setTimeout(loop,(slow?5200:2600)+Math.random()*3800);}idleTimer=setTimeout(loop,slow?3400:2900);}
+
+  function play(){
+    clearAll();
+
+    var count = (mode==='deliberate')?6:10;
+    var cut = (mode==='deliberate')?(slow?460:230):(slow?200:100);
+    var words=['Hold','the','line.'];
+    var wordAt=[Math.floor(count*0.2),Math.floor(count*0.5),Math.floor(count*0.8)];
+
+    var t=slow?500:250;
+    for(var i=0;i<count;i++){
+      (function(idx,time){
+        T(function(){
+          showFrame(idx % frameEls.length);
+          // flash a word at certain cuts
+          var w=wordAt.indexOf(idx);
+          if(w>=0){
+            flash.textContent=words[w];
+            flash.classList.toggle('o',w===2);
+            flash.classList.add('show');
+            T(function(){flash.classList.remove('show');}, cut*0.7);
+          }
+        }, time);
+      })(i, t);
+      t+=cut;
+    }
+
+    // settle
+    var settleAt=t+ (slow?200:100);
+    T(function(){
+      hideFrames();
+      flash.classList.remove('show');
+      if(mode==='settle-still'){
+        // hold last still a beat, then video fades over it
+        frameEls[ (count-1)%frameEls.length ].classList.add('show');
+        T(function(){ stack.classList.add('show'); frameEls.forEach(function(f){f.classList.remove('show');}); }, slow?700:350);
+      }else{
+        stack.classList.add('show');
+      }
+      bg.classList.add('show');
+      wm.classList.add('show');
+      startIdle();
+    }, settleAt);
+  }
+
+  document.querySelectorAll('.picker button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.picker button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); mode=b.dataset.mode; play();
+    });
+  });
+  document.getElementById('replay').addEventListener('click',play);
+  document.getElementById('slow').addEventListener('click',function(){slow=!slow;this.style.background=slow?'rgba(238,77,23,.92)':'rgba(244,242,238,.16)';play();});
+
+  play();
+})();
+</script>
+</body>
+</html>

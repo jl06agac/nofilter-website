@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoFilter hero - entrance treatments</title>
+<style>
+  :root{
+    --nf-orange:#ee4d17;
+    --nf-cream:#F4F2EE;
+    --nf-near-black:#1A1815;
+    --ease-nf:cubic-bezier(.2,.7,.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:var(--nf-near-black);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+
+  /* picker */
+  .picker{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;gap:0;background:rgba(15,14,12,.9);backdrop-filter:blur(8px);border-bottom:1px solid rgba(244,242,238,.12);}
+  .picker button{flex:1;background:none;border:none;color:var(--nf-cream);font-family:"SF Mono",Menlo,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px 8px;cursor:pointer;opacity:.5;transition:opacity .2s,background .2s;border-right:1px solid rgba(244,242,238,.08);}
+  .picker button:last-child{border-right:none;}
+  .picker button:hover{opacity:.85;}
+  .picker button.on{opacity:1;background:var(--nf-orange);color:#fff;}
+  .replay{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;background:rgba(238,77,23,.92);color:#fff;border:none;font-family:"SF Mono",Menlo,monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:11px 22px;border-radius:6px;cursor:pointer;}
+
+  /* HERO (real structure) */
+  .cover{position:relative;height:100vh;overflow:hidden;background:var(--nf-near-black);}
+  .cover-video-stack{position:absolute;inset:0;}
+  .cover-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .cover-video--cyan,.cover-video--red{mix-blend-mode:screen;opacity:0;}
+  .cover-bg{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 40%,rgba(26,24,21,.15),rgba(26,24,21,.78));z-index:2;}
+  .cover-inner{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+  .cover-hero-title{
+    font-family:"SF Mono",Menlo,Consolas,monospace;
+    font-weight:700;text-transform:uppercase;letter-spacing:-.01em;
+    font-size:clamp(54px,13vw,170px);line-height:.92;color:var(--nf-cream);text-align:center;
+    text-shadow:0 6px 40px rgba(0,0,0,.55);
+  }
+  .line-row{display:block;overflow:hidden;}
+  .rise{display:inline-block;}
+  .glitch.o{color:var(--nf-orange);position:relative;display:inline-block;}
+
+  /* glitch idle (shared) */
+  .glitch.is-glitching::before,.glitch.is-glitching::after{content:attr(data-text);position:absolute;inset:0;}
+  .glitch.is-glitching::before{color:#00e5ff;mix-blend-mode:screen;animation:gTop .55s steps(2,end) 1;}
+  .glitch.is-glitching::after{color:#ff003c;mix-blend-mode:screen;animation:gBot .55s steps(2,end) 1;}
+  @keyframes gTop{0%{opacity:0}10%{opacity:.95;transform:translate(-7px,-3px);clip-path:inset(0 0 66% 0)}35%{opacity:.95;transform:translate(-6px,-1px);clip-path:inset(44% 0 0 0)}70%{opacity:0}100%{opacity:0}}
+  @keyframes gBot{0%{opacity:0}10%{opacity:.95;transform:translate(7px,3px);clip-path:inset(62% 0 0 0)}35%{opacity:.95;transform:translate(6px,2px);clip-path:inset(0 0 56% 0)}70%{opacity:0}100%{opacity:0}}
+
+  .vid-glitch{animation:vidShift .5s steps(2,end) 1;}
+  @keyframes vidShift{0%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}100%{transform:translateX(0)}}
+
+  /* ============ TREATMENT 1 — LINE WIPE ============ */
+  /* "Hold the" sits; "line." revealed by an orange edge sweeping L->R */
+  .t1 .r1 .rise,.t1 .r2 .rise{opacity:0;transform:translateY(20px);}
+  .t1.go .r1 .rise{animation:settleUp .7s var(--ease-nf) .15s forwards;}
+  .t1.go .r2 .rise{animation:settleUp .7s var(--ease-nf) .3s forwards;}
+  .t1 .r3{position:relative;}
+  .t1 .r3 .rise{clip-path:inset(0 100% 0 0);}
+  .t1.go .r3 .rise{animation:wipeIn .8s var(--ease-nf) .75s forwards;}
+  .t1 .wipe-edge{position:absolute;top:0;bottom:0;width:4px;background:var(--nf-orange);left:0;opacity:0;}
+  .t1.go .wipe-edge{animation:edgeSweep .8s var(--ease-nf) .75s forwards;}
+  @keyframes wipeIn{to{clip-path:inset(0 0 0 0);}}
+  @keyframes edgeSweep{0%{opacity:1;left:0}90%{opacity:1}100%{left:100%;opacity:0}}
+  @keyframes settleUp{to{opacity:1;transform:translateY(0);}}
+
+  /* ============ TREATMENT 2 — WEIGHT DROP ============ */
+  .t2 .rise{opacity:0;transform:translateY(-40px);}
+  .t2.go .r1 .rise{animation:drop .9s var(--ease-nf) .1s forwards;}
+  .t2.go .r2 .rise{animation:drop .9s var(--ease-nf) .22s forwards;}
+  .t2.go .r3 .rise{animation:drop .9s var(--ease-nf) .34s forwards;}
+  @keyframes drop{0%{opacity:0;transform:translateY(-40px)}60%{opacity:1;transform:translateY(8px)}80%{transform:translateY(-3px)}100%{transform:translateY(0)}}
+
+  /* ============ TREATMENT 3 — VIDEO RESOLVES ============ */
+  /* channel-split pushed wide + title set, snaps into focus */
+  .t3 .cover-video{filter:blur(14px) brightness(.7);transform:scale(1.08);}
+  .t3 .cover-video--cyan{opacity:.9;transform:translateX(-40px) scale(1.08);}
+  .t3 .cover-video--red{opacity:.9;transform:translateX(40px) scale(1.08);}
+  .t3 .cover-hero-title{opacity:0;}
+  .t3.go .cover-video{animation:focusIn 1.1s var(--ease-nf) .2s forwards;}
+  .t3.go .cover-video--cyan{animation:cyanIn 1.1s var(--ease-nf) .2s forwards;}
+  .t3.go .cover-video--red{animation:redIn 1.1s var(--ease-nf) .2s forwards;}
+  .t3.go .cover-hero-title{animation:fadeSet .8s var(--ease-nf) .75s forwards;}
+  @keyframes focusIn{to{filter:blur(0) brightness(1);transform:scale(1);}}
+  @keyframes cyanIn{to{opacity:0;transform:translateX(0) scale(1);}}
+  @keyframes redIn{to{opacity:0;transform:translateX(0) scale(1);}}
+  @keyframes fadeSet{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
+
+  /* ============ TREATMENT 4 — HOLD THEN CUT ============ */
+  .t4 .cover-video-stack{opacity:0;}
+  .t4 .cover-bg{background:var(--nf-near-black);z-index:4;}
+  .t4 .cover-hero-title{opacity:0;}
+  .t4.go .cover-hero-title{animation:quietIn 1s var(--ease-nf) .3s forwards;}
+  .t4.go .cover-video-stack{animation:punchIn .15s steps(1,end) 1.6s forwards;}
+  .t4.go .cover-bg{animation:bgClear .8s var(--ease-nf) 1.6s forwards;}
+  @keyframes quietIn{from{opacity:0;letter-spacing:.12em}to{opacity:1;letter-spacing:-.01em}}
+  @keyframes punchIn{to{opacity:1;}}
+  @keyframes bgClear{to{background:radial-gradient(120% 120% at 50% 40%,rgba(26,24,21,.15),rgba(26,24,21,.78));}}
+</style>
+</head>
+<body>
+  <div class="picker">
+    <button data-t="t1" class="on">1 · Line wipe</button>
+    <button data-t="t2">2 · Weight drop</button>
+    <button data-t="t3">3 · Video resolves</button>
+    <button data-t="t4">4 · Hold then cut</button>
+  </div>
+
+  <section class="cover t1 go" id="cover">
+    <div class="cover-video-stack">
+      <video class="cover-video" autoplay muted loop playsinline preload="auto"><source src="hero.mp4" type="video/mp4"></video>
+      <video class="cover-video cover-video--cyan" aria-hidden="true" autoplay muted loop playsinline preload="metadata"><source src="hero.mp4" type="video/mp4"></video>
+      <video class="cover-video cover-video--red" aria-hidden="true" autoplay muted loop playsinline preload="metadata"><source src="hero.mp4" type="video/mp4"></video>
+    </div>
+    <div class="cover-bg"></div>
+    <div class="cover-inner">
+      <h1 class="cover-hero-title" id="coverTitle">
+        <span class="line-row r1"><span class="rise">Hold</span></span>
+        <span class="line-row r2"><span class="rise">the</span></span>
+        <span class="line-row r3"><span class="rise"><span class="glitch o" data-text="line.">line.</span></span><span class="wipe-edge"></span></span>
+      </h1>
+    </div>
+  </section>
+
+  <button class="replay" id="replay">Replay entrance</button>
+
+<script>
+(function(){
+  var cover=document.getElementById('cover');
+  var word=cover.querySelector('.glitch');
+  var vids=cover.querySelectorAll('.cover-video');
+  var current='t1';
+  var idleTimer=null;
+
+  function glitch(){
+    word.classList.remove('is-glitching');void word.offsetWidth;word.classList.add('is-glitching');
+    if(Math.random()<0.4){vids.forEach(function(v){v.classList.remove('vid-glitch');void v.offsetWidth;v.classList.add('vid-glitch');});}
+  }
+  function scheduleIdle(){
+    clearTimeout(idleTimer);
+    function loop(){glitch();idleTimer=setTimeout(loop,2400+Math.random()*4000);}
+    // idle starts after the entrance has finished
+    idleTimer=setTimeout(loop,2600);
+  }
+
+  function play(t){
+    current=t;
+    cover.className='cover '+t;            // reset (no .go)
+    void cover.offsetWidth;                // reflow so animations restart
+    cover.classList.add('go');
+    scheduleIdle();
+  }
+
+  document.querySelectorAll('.picker button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.picker button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      play(b.dataset.t);
+    });
+  });
+  document.getElementById('replay').addEventListener('click',function(){play(current);});
+
+  // kick off treatment 1
+  scheduleIdle();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoFilter - The Line: brand and packaging thesis</title>
+<style>
+  :root{
+    --nf-orange:#ee4d17;
+    --nf-cream:#F4F2EE;
+    --nf-near-black:#1A1815;
+    --nf-parchment:#EDE7D9;
+    --ink:#1A1815;
+    --ink-2:#4a443d;
+    --rule:#cdc6b8;
+    --maxw:680px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--nf-cream);
+    color:var(--ink);
+    font-family:Georgia,"Times New Roman",serif;
+    line-height:1.62;
+    font-size:18px;
+    padding:0 24px;
+  }
+  .doc{max-width:var(--maxw);margin:0 auto;padding:96px 0 140px;}
+
+  /* masthead */
+  .mast{margin-bottom:80px;}
+  .eyebrow{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--nf-orange);margin-bottom:28px;}
+  h1{font-size:clamp(38px,7vw,62px);line-height:1.02;font-weight:400;letter-spacing:-.015em;margin-bottom:24px;}
+  h1 .em{font-style:italic;color:var(--nf-orange);}
+  .standfirst{font-size:21px;line-height:1.5;color:var(--ink-2);max-width:30em;}
+  .meta{font-family:"SF Mono",Menlo,monospace;font-size:12px;letter-spacing:.08em;color:var(--ink-2);margin-top:36px;text-transform:uppercase;}
+
+  /* the line motif — a thin rule that recurs, the document's spine */
+  .line-rule{height:0;border:none;border-top:1px solid var(--rule);margin:64px 0;position:relative;}
+  .line-rule::after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--nf-cream);color:var(--nf-orange);font-family:"SF Mono",monospace;font-size:18px;padding:0 12px;}
+
+  section{margin-bottom:8px;}
+  h2{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--nf-orange);margin:64px 0 8px;}
+  h2 .n{color:var(--ink-2);margin-right:12px;}
+  h3{font-size:27px;font-weight:400;letter-spacing:-.01em;line-height:1.15;margin:0 0 22px;}
+  p{margin:0 0 20px;}
+  p .em{font-style:italic;}
+  strong{font-weight:400;background:linear-gradient(transparent 62%, rgba(238,77,23,.18) 62%);}
+
+  .pull{
+    font-size:25px;line-height:1.34;letter-spacing:-.01em;color:var(--ink);
+    border-left:3px solid var(--nf-orange);padding-left:26px;margin:42px 0;font-style:italic;
+  }
+
+  .layers{list-style:none;margin:24px 0 28px;border-top:1px solid var(--rule);}
+  .layers li{border-bottom:1px solid var(--rule);padding:16px 0;display:flex;gap:18px;align-items:baseline;}
+  .layers .lk{font-family:"SF Mono",monospace;font-size:12px;color:var(--nf-orange);letter-spacing:.1em;white-space:nowrap;min-width:96px;}
+  .layers .lv{font-size:17px;line-height:1.45;color:var(--ink);}
+  .layers .lv b{font-weight:400;font-style:normal;color:var(--ink);}
+
+  .callout{background:var(--nf-parchment);border-radius:4px;padding:28px 30px;margin:36px 0;font-size:16px;line-height:1.55;}
+  .callout .ct{font-family:"SF Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--nf-orange);margin-bottom:12px;}
+
+  .spec{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:14.5px;line-height:1.75;background:var(--nf-near-black);color:var(--nf-cream);border-radius:4px;padding:30px 32px;margin:36px 0;}
+  .spec .sh{color:var(--nf-orange);letter-spacing:.14em;text-transform:uppercase;font-size:11px;display:block;margin-bottom:16px;}
+  .spec b{color:#fff;font-weight:400;}
+
+  .flag{border:1px solid var(--nf-orange);border-radius:4px;padding:22px 26px;margin:36px 0;font-size:15.5px;line-height:1.55;color:var(--ink-2);}
+  .flag .ft{font-family:"SF Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--nf-orange);margin-bottom:10px;}
+
+  .end{margin-top:80px;font-family:"SF Mono",monospace;font-size:12px;letter-spacing:.1em;color:var(--ink-2);text-transform:uppercase;text-align:center;}
+
+  @media(max-width:560px){
+    body{font-size:17px;}
+    .layers li{flex-direction:column;gap:4px;}
+    .layers .lk{min-width:0;}
+  }
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+<article class="doc">
+
+  <header class="mast">
+    <div class="eyebrow">Brand &amp; packaging thesis</div>
+    <h1>The brand is <span class="em">the line.</span></h1>
+    <p class="standfirst">There is a line at the edge of protected forest. Some people hold it. NoFilter is one of the things that helps them.</p>
+    <div class="meta">NoFilter · Internal thesis · For design handover</div>
+  </header>
+
+  <hr class="line-rule">
+
+  <section>
+    <h2><span class="n">01</span>The idea</h2>
+    <h3>A boundary, held.</h3>
+    <p>NoFilter exists at the edge of protected primary forest. On one side, an agroforestry zone where coffee grows under canopy. On the other, the primary forest itself. Between them runs a line: the edge of protection.</p>
+    <p>The line is the brand. Not a metaphor reached for after the fact, but the actual subject. Everything NoFilter does is in service of that line staying where it is, and the work is to make the land beside it worth more standing than cleared.</p>
+    <p class="pull">A standing forest should be worth more than a cleared one. The line is where that argument is settled, hectare by hectare.</p>
+  </section>
+
+  <hr class="line-rule">
+
+  <section>
+    <h2><span class="n">02</span>The two zones</h2>
+    <h3>Not good against barren. Living against living.</h3>
+    <p>This is not Brazil. There is no stark plantation pressed against untouched jungle. The agroforestry zone is not a sacrifice strip and not a monoculture. It is living, productive, biodiverse land with real value in its own right, ecological and economic. It is the place NoFilter operates.</p>
+    <p>The primary forest beyond the line is what is being kept standing. Intact, protected, older. The two zones are genuinely different things, different management, different protection status, different role, but they are not opposites, and they are not a clean cut between dead and pristine.</p>
+    <p><strong>Degradation is the avoided outcome, not a depicted third zone.</strong> The cleared alternative is what does not happen because the agroforestry pays. Showing barren land as an equal field would import a starkness that is not true of these landscapes.</p>
+  </section>
+
+  <hr class="line-rule">
+
+  <section>
+    <h2><span class="n">03</span>The line itself</h2>
+    <h3>Placed, not found.</h3>
+    <p>How visible the boundary is varies by place. In some origins the transition from worked agroforest to dense forest is obvious. In others it blends, and you cannot tell by eye, the forest simply gets denser. Neither is the rule.</p>
+    <p>So the line does not rely on the eye. It is placed from the conservation mapping, accurate whether or not the edge happens to be visible at that spot. Where the edge is plain, the line confirms it. Where the edge is soft, the line is the only way to know. <strong>It is drawn from data, not because the boundary is always invisible, but because its visibility cannot be relied upon</strong>, and a claim about protection has to hold regardless.</p>
+  </section>
+
+  <hr class="line-rule">
+
+  <section>
+    <h2><span class="n">04</span>How the line is held</h2>
+    <h3>Layers, corroborating each other, over time.</h3>
+    <p>The line is not located or kept by any single source. It is held by layers that check one another, maintained over time. No one layer is the answer.</p>
+    <ul class="layers">
+      <li><span class="lk">Mapping</span><span class="lv">The cartographic boundary, from the conservation agreements. Fixes <b>where</b> the line is.</span></li>
+      <li><span class="lk">KLHK data</span><span class="lv">Official Indonesian forestry and environment ministry boundaries. The line answers to the public record, not only to NoFilter.</span></li>
+      <li><span class="lk">Drone</span><span class="lv">Flying the contour, comparing the canopy over time. Shows <b>whether</b> the line has moved.</span></li>
+      <li><span class="lk">NGO ground</span><span class="lv">Partners physically there, who know the place. Verifies the line <b>in person.</b></span></li>
+      <li><span class="lk">Economics</span><span class="lv">The coffee paying enough that there is <b>no reason to cross.</b> Removes the incentive in the first place.</span></li>
+    </ul>
+    <p>Together they make the line both known and kept. That is what holding the line actually means: not a mark made once, but a system maintained.</p>
+  </section>
+
+  <hr class="line-rule">
+
+  <section>
+    <h2><span class="n">05</span>Where NoFilter stands</h2>
+    <h3>Behind the line. One layer of many.</h3>
+    <p>NoFilter works <span class="em">behind</span> the line, in the agroforestry zone, on the farmed side. Not on the line, and not in the forest. The commercial layer: better farmgate prices, a stable buyer, a reason to keep the trees standing.</p>
+    <p><strong>NoFilter is one of many layers, not the hero.</strong> The line is held by the farmers and the NGOs who are actually there. NoFilter is the channel that makes their work add up. For the record, in the thinking, on the website, in conversation, that honesty stands: we are not the protagonists, and we are not the only thing holding the line.</p>
+    <div class="callout">
+      <div class="ct">The distinction that governs everything</div>
+      <p style="margin:0;">Philosophical honesty and the packaging&rsquo;s job are different axes. NoFilter is one layer among many, that truth lives in the brand thinking and is told once someone is engaged. But on the pack, NoFilter is front and centre, because the pack&rsquo;s job is to push the brand. The humility is carried by <span class="em">restraint in the words</span>, never by shrinking the mark. You can be front and centre visually while modest in claim.</p>
+    </div>
+  </section>
+
+  <hr class="line-rule">
+
+  <section>
+    <h2><span class="n">06</span>The packaging</h2>
+    <h3>The bag is the landscape, and the line runs through it.</h3>
+    <p>The bag is a continuous landscape wrapping front to side: the two zones, split by the line, with NoFilter&rsquo;s mark at the boundary. As the landscape wraps the cylinder, the line wraps too, it encircles, it does not stop. NoFilter is one point on a boundary far longer than NoFilter.</p>
+
+    <h3 style="font-size:22px;margin-top:40px;">Why duotone, not honest colour.</h3>
+    <p>Honest colour would defeat the bag. On the ground the two zones are often a near-contiguous mass of similar green, and faithfully reproducing that would make the boundary, the whole subject, almost invisible.</p>
+    <p><strong>So the zones are rendered in contrasting duotone.</strong> This is not decoration and not a falsification. It does exactly what the placed line does: it makes a real-but-faint distinction legible. The duotone is the line&rsquo;s argument carried in colour. And where the differentiation genuinely is not clear on the ground, that is precisely where the layers do the work, the duotone makes it legible on the pack, the mapping, KLHK data, drone and NGO knowledge make it real in the world. The same job at two scales.</p>
+
+    <h3 style="font-size:22px;margin-top:40px;">The blend justifies the line.</h3>
+    <p>At the meeting of the two zones, the duotones should <span class="em">blend</span>, a narrow, located band where the two intermix, so the seam reads as slightly nebulous. This is the truth: on the ground the eye often cannot find a clean edge there.</p>
+    <p>The concern is obvious, a blurred seam could seem to undercut a precise line laid over it, as if even the brand is unsure where the boundary is. It does not, and the reason is the whole point: <strong>the line exists because the ground blends.</strong> If the edge were crisp, no placed line would be needed, the colours would do it. A crisp line over a blurred meeting is the line doing real work, asserting a known boundary where the eye sees none. The blur is the problem; the cartographic line, laid on top, is the answer. The ambiguity beneath does not weaken the line, it is the visible reason the line had to be placed at all.</p>
+    <p>This holds on one condition: <strong>the blend and the line must read as different orders of information.</strong> The blend is photographic truth, what the eye sees. The line is cartographic truth, what the record knows. So the line cannot look like another painted colour-edge or it competes with the seam. It must read as an instrument laid on top, hard-edged, of the map not the landscape, arriving from above. The softer the seam, the harder and more clearly applied the line must be. Keep the blend narrow and located at the meeting only; let the zones hold their distinct character everywhere else, so the line has something decisive to be decisive against.</p>
+
+    <div class="spec">
+      <span class="sh">The packaging system</span>
+      <b>Landscape</b> — two zones, agroforestry and primary forest, wrapping front to side, rendered in contrasting duotone so the distinction reads.<br><br>
+      <b>The line</b> — the real surveyed boundary, placed and sourced, splitting the two zones. Reads as an applied cartographic instrument, of the map, not the landscape, laid on top from above. Encircles the bag.<br><br>
+      <b>The seam</b> — the two duotones blend in a narrow band where they meet, nebulous, honest to the eye. The line sits on that band and resolves it. Blend located at the meeting only; zones hold their distinct character elsewhere.<br><br>
+      <b>The mark</b> — NoFilter front and centre at the boundary. Wordmark in its orange field, positioned on the agroforest side, the line reading forest-ward of it. We work behind the line, not on it.<br><br>
+      <b>Orange</b> — NoFilter&rsquo;s presence at the edge. Never the land. Never the line.<br><br>
+      <b>Structure fixed, origin variable</b> — same composition, same line treatment, same mark every time. The zone character and the coordinates change per origin. The system is the constant; the place tells you where you are before you read the name.
+    </div>
+
+    <div class="flag">
+      <div class="ft">Open decision — defer, do not assume</div>
+      The duotone colours themselves are a meaning decision, not a free aesthetic one. Which treatment reads as the protected forest and which as the agroforest carries weight, and the agroforest must never read as the <span class="em">lesser</span> zone when its whole point is that it has value. Lock these deliberately when the design is built, with verified values. One further call to make on press: <span class="em">how nebulous the seam should feel</span>, from a whisper where the two duotones just kiss, to a real band of intermixing. The narrow blend is more legible and keeps the line clearly dominant; a stronger blend states the &ldquo;you cannot tell by eye&rdquo; truth harder but demands the line read unmistakably as an applied instrument to survive it.
+    </div>
+  </section>
+
+  <hr class="line-rule">
+
+  <section>
+    <h2><span class="n">07</span>What this asks of every execution</h2>
+    <h3>The tests a piece has to pass.</h3>
+    <p>Any bag, any image, any page carrying the line should be able to answer yes to each:</p>
+    <ul class="layers">
+      <li><span class="lk">Honest edge</span><span class="lv">Does it avoid the stark cleared-vs-pristine binary? Is the agroforest shown as living and valuable, not barren?</span></li>
+      <li><span class="lk">Placed line</span><span class="lv">Does the line read as a sourced claim, not a decorative divider found in the image?</span></li>
+      <li><span class="lk">Line on top</span><span class="lv">Where the zones blend at the seam, does the line read as an applied instrument resolving the ambiguity, of a different order from the painted colour, rather than competing with it?</span></li>
+      <li><span class="lk">Right side</span><span class="lv">Does NoFilter sit behind the line, in the agroforest, not on it and not in the forest?</span></li>
+      <li><span class="lk">Modest claim</span><span class="lv">Do the words avoid claiming NoFilter holds the line alone? Is the humility in the copy, not the logo size?</span></li>
+      <li><span class="lk">Reads as a bag</span><span class="lv">Does it still function, legible, recognisable, repeatable across origins, brand front and centre?</span></li>
+    </ul>
+  </section>
+
+  <hr class="line-rule">
+
+  <p class="end">There&rsquo;s a line. Some people still hold it.<br>NoFilter is how we make it pay to keep holding it.</p>
+
+</article>
+</body>
+</html>

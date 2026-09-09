@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoFilter hero - scroll expand test</title>
+<style>
+  :root{
+    --nf-orange:#ee4d17;
+    --nf-cream:#F4F2EE;
+    --nf-near-black:#1A1815;
+    --ease-nf:cubic-bezier(.2,.7,.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:var(--nf-near-black);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+
+  .picker{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;background:rgba(15,14,12,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(244,242,238,.12);}
+  .picker button{flex:1;background:none;border:none;color:var(--nf-cream);font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:13px 6px;cursor:pointer;opacity:.5;transition:opacity .2s,background .2s;border-right:1px solid rgba(244,242,238,.08);}
+  .picker button:last-child{border-right:none;}
+  .picker button.on{opacity:1;background:var(--nf-orange);color:#fff;}
+
+  /* tall runway drives the pin */
+  .hero-track{position:relative;height:320vh;}
+  .hero-pin{position:sticky;top:0;height:100vh;overflow:hidden;background:var(--nf-near-black);display:flex;align-items:center;justify-content:center;}
+
+  /* the oversized wordmark sits behind/around the video */
+  .wm{
+    position:absolute;z-index:1;width:100%;text-align:center;
+    font-family:"SF Mono",Menlo,Consolas,monospace;font-weight:700;text-transform:uppercase;
+    line-height:.86;letter-spacing:-.01em;color:var(--nf-cream);
+    font-size:clamp(64px,17vw,210px);pointer-events:none;
+  }
+  .wm .row{display:block;}
+  .wm .o{color:var(--nf-orange);}
+
+  /* the video box — starts framed, expands to full via clip-path inset + scale */
+  .vbox{position:absolute;z-index:2;top:50%;left:50%;width:100%;height:100%;transform:translate(-50%,-50%);
+    will-change:clip-path,transform;}
+  .vbox video{width:100%;height:100%;object-fit:cover;display:block;}
+  .vbox .scrim{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 45%,rgba(26,24,21,.1),rgba(26,24,21,.6));}
+
+  /* tagline + scroll cue */
+  .sub{position:absolute;z-index:3;bottom:9%;left:0;right:0;text-align:center;color:var(--nf-cream);
+    font-family:"SF Mono",Menlo,monospace;font-size:13px;letter-spacing:.2em;text-transform:uppercase;opacity:.0;}
+  .cue{position:absolute;z-index:3;bottom:4%;left:50%;transform:translateX(-50%);color:var(--nf-orange);font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;}
+
+  .after{height:60vh;display:flex;align-items:center;justify-content:center;color:rgba(244,242,238,.4);font-family:"SF Mono",Menlo,monospace;font-size:13px;letter-spacing:.15em;text-transform:uppercase;}
+</style>
+</head>
+<body>
+  <div class="picker">
+    <button data-mode="expand" class="on">A · framed box expands to full</button>
+    <button data-mode="reveal">B · inset reveal (curtain opens)</button>
+    <button data-mode="title">C · expand + title parts around it</button>
+  </div>
+
+  <div class="hero-track" id="track">
+    <div class="hero-pin">
+      <h1 class="wm" id="wm">
+        <span class="row" id="rowHold">Hold</span>
+        <span class="row" id="rowThe">the</span>
+        <span class="row"><span class="o" id="rowLine">line.</span></span>
+      </h1>
+      <div class="vbox" id="vbox">
+        <video autoplay muted loop playsinline preload="auto"><source src="hero.mp4" type="video/mp4"></video>
+        <div class="scrim"></div>
+      </div>
+      <p class="sub" id="sub">Conservation coffee from the forest edge</p>
+      <p class="cue" id="cue">Scroll</p>
+    </div>
+  </div>
+  <div class="after">next section</div>
+
+<script>
+(function(){
+  var track=document.getElementById('track');
+  var vbox=document.getElementById('vbox');
+  var wm=document.getElementById('wm');
+  var sub=document.getElementById('sub');
+  var cue=document.getElementById('cue');
+  var rowHold=document.getElementById('rowHold'),rowThe=document.getElementById('rowThe'),rowLine=document.getElementById('rowLine');
+  var mode='expand';
+
+  var targetP=0,smoothP=0;
+  function readTarget(){
+    var r=track.getBoundingClientRect();
+    var total=track.offsetHeight-window.innerHeight;
+    targetP=total>0?Math.min(1,Math.max(0,(-r.top)/total)):0;
+  }
+  function lerp(a,b,t){return a+(b-a)*t;}
+
+  function render(){
+    smoothP+=(targetP-smoothP)*0.085;
+    if(Math.abs(targetP-smoothP)<0.0004)smoothP=targetP;
+    var p=smoothP;
+
+    if(mode==='expand'){
+      // box starts at ~38% width framed, grows to full; slight scale settle on video
+      var inset=lerp(31,0,Math.min(1,p/0.85));      // % inset from each edge -> 0
+      var insV=lerp(26,0,Math.min(1,p/0.85));
+      vbox.style.clipPath='inset('+insV.toFixed(2)+'% '+inset.toFixed(2)+'% '+insV.toFixed(2)+'% '+inset.toFixed(2)+'% round '+lerp(10,0,Math.min(1,p/0.85)).toFixed(1)+'px)';
+      vbox.querySelector('video').style.transform='scale('+lerp(1.18,1.0,Math.min(1,p/0.85)).toFixed(4)+')';
+      // wordmark drifts back/fades as video takes over
+      wm.style.opacity=lerp(1,0,Math.min(1,p/0.6)).toFixed(3);
+      wm.style.transform='scale('+lerp(1,1.06,p).toFixed(4)+')';
+    }
+    else if(mode==='reveal'){
+      // curtain: inset opens top+bottom like a letterbox unsealing
+      var v=lerp(50,0,Math.min(1,p/0.85));
+      vbox.style.clipPath='inset('+v.toFixed(2)+'% 0% '+v.toFixed(2)+'% 0%)';
+      vbox.querySelector('video').style.transform='scale('+lerp(1.12,1.0,Math.min(1,p/0.85)).toFixed(4)+')';
+      wm.style.opacity=lerp(1,0,Math.min(1,p/0.5)).toFixed(3);
+    }
+    else if(mode==='title'){
+      // video expands AND the title rows part: HOLD up, THE/LINE down, out of the way
+      var k=Math.min(1,p/0.85);
+      var inset=lerp(31,0,k), insV=lerp(26,0,k);
+      vbox.style.clipPath='inset('+insV.toFixed(2)+'% '+inset.toFixed(2)+'% '+insV.toFixed(2)+'% '+inset.toFixed(2)+'%)';
+      vbox.querySelector('video').style.transform='scale('+lerp(1.18,1.0,k).toFixed(4)+')';
+      rowHold.style.transform='translateY('+lerp(0,-46,k).toFixed(1)+'vh)';
+      rowThe.style.transform='translateY('+lerp(0,40,k).toFixed(1)+'vh)';
+      rowLine.parentElement.style.transform='translateY('+lerp(0,46,k).toFixed(1)+'vh)';
+      wm.style.opacity=lerp(1,0.0,Math.min(1,p/0.7)).toFixed(3);
+    }
+
+    // tagline fades in as it completes; cue fades out
+    sub.style.opacity=lerp(0,1,Math.max(0,(p-0.7)/0.3)).toFixed(3);
+    cue.style.opacity=lerp(1,0,Math.min(1,p/0.2)).toFixed(3);
+
+    requestAnimationFrame(render);
+  }
+
+  function reset(){
+    wm.style.opacity='1';wm.style.transform='none';
+    rowHold.style.transform='none';rowThe.style.transform='none';rowLine.parentElement.style.transform='none';
+    vbox.querySelector('video').style.transform='';vbox.style.clipPath='';
+  }
+  document.querySelectorAll('.picker button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.picker button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');mode=b.dataset.mode;reset();
+    });
+  });
+
+  window.addEventListener('scroll',readTarget,{passive:true});
+  window.addEventListener('resize',readTarget);
+  readTarget();render();
+})();
+</script>
+</body>
+</html>

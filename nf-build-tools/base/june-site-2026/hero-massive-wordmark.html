@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoFilter hero - massive wordmark variations</title>
+<style>
+  :root{
+    --nf-orange:#ee4d17;
+    --nf-cream:#F4F2EE;
+    --nf-near-black:#1A1815;
+    --ease-nf:cubic-bezier(.2,.7,.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:var(--nf-near-black);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+
+  .picker{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;flex-wrap:wrap;background:rgba(15,14,12,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(244,242,238,.12);}
+  .picker button{flex:1 1 0;min-width:0;background:none;border:none;color:var(--nf-cream);font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:13px 6px;cursor:pointer;opacity:.5;transition:opacity .2s,background .2s;border-right:1px solid rgba(244,242,238,.08);white-space:nowrap;}
+  .picker button:last-child{border-right:none;}
+  .picker button.on{opacity:1;background:var(--nf-orange);color:#fff;}
+  .ctrls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:10px;}
+  .ctrls button{background:rgba(238,77,23,.92);color:#fff;border:none;font-family:"SF Mono",Menlo,monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:11px 22px;border-radius:6px;cursor:pointer;}
+  .ctrls .slow{background:rgba(244,242,238,.16);}
+
+  .cover{position:relative;height:100vh;overflow:hidden;background:var(--nf-near-black);}
+  .cover-video-stack{position:absolute;inset:0;opacity:0;}
+  .cover-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .cover-video--cyan,.cover-video--red{mix-blend-mode:screen;opacity:0;}
+  .cover-bg{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 45%,rgba(26,24,21,.2),rgba(26,24,21,.82));z-index:2;}
+  .cover-inner{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 4vw;}
+
+  .wm{
+    font-family:"SF Mono",Menlo,Consolas,monospace;
+    font-weight:700;text-transform:uppercase;color:var(--nf-cream);
+    line-height:.82;letter-spacing:-.02em;text-align:center;
+    text-shadow:0 6px 50px rgba(0,0,0,.6);
+  }
+  .wm .o{color:var(--nf-orange);position:relative;display:inline-block;}
+  .glitch.is-glitching::before,.glitch.is-glitching::after{content:attr(data-text);position:absolute;inset:0;}
+  .glitch.is-glitching::before{color:#00e5ff;mix-blend-mode:screen;animation:gTop .55s steps(2,end) 1;}
+  .glitch.is-glitching::after{color:#ff003c;mix-blend-mode:screen;animation:gBot .55s steps(2,end) 1;}
+  @keyframes gTop{0%{opacity:0}10%{opacity:.95;transform:translate(-7px,-3px);clip-path:inset(0 0 66% 0)}35%{opacity:.95;transform:translate(-6px,-1px);clip-path:inset(44% 0 0 0)}70%{opacity:0}100%{opacity:0}}
+  @keyframes gBot{0%{opacity:0}10%{opacity:.95;transform:translate(7px,3px);clip-path:inset(62% 0 0 0)}35%{opacity:.95;transform:translate(6px,2px);clip-path:inset(0 0 56% 0)}70%{opacity:0}100%{opacity:0}}
+
+  /* the LINE element animates; HOLD THE is already placed */
+  .lineword{opacity:0;transform:translateY(-30px);}
+  .go .lineword{animation:lineDrop .7s var(--ease-nf) var(--d3,1.95s) forwards;}
+  @keyframes lineDrop{0%{opacity:0;transform:translateY(-30px)}62%{opacity:1;transform:translateY(6px)}82%{transform:translateY(-3px)}100%{transform:translateY(0)}}
+
+  .cover-video-stack.settled{opacity:1;transition:opacity .25s linear;}
+  .cover-video-stack.flick-on{opacity:1;}
+  .cover-video-stack.flick-off{opacity:0;}
+  .cover-video-stack.unstable{animation:unstable 1.1s steps(1,end) infinite;}
+  @keyframes unstable{0%{opacity:1}82%{opacity:1}86%{opacity:.22}91%{opacity:1}95%{opacity:.4}100%{opacity:1}}
+
+  /* ===== LAYOUT A — stacked monolith: HOLD / THE / LINE. all massive ===== */
+  .layA .wm{font-size:clamp(70px,19vw,260px);}
+  .layA .wm span.row{display:block;}
+
+  /* ===== LAYOUT B — HOLD THE huge stacked, LINE. as offset orange counterpoint ===== */
+  .layB .cover-inner{align-items:flex-start;justify-content:center;}
+  .layB .wm{text-align:left;font-size:clamp(64px,17vw,230px);}
+  .layB .holdthe{display:block;opacity:.95;}
+  .layB .lineword{display:block;font-size:.42em;margin-top:.12em;margin-left:.06em;letter-spacing:0;}
+
+  /* ===== LAYOUT C — HOLD THE massive backdrop (pale), LINE. centered punch ===== */
+  .layC .wm{font-size:clamp(80px,22vw,300px);}
+  .layC .holdthe{display:block;color:rgba(244,242,238,.16);}
+  .layC .lineword{display:block;font-size:.5em;color:var(--nf-orange);margin-top:-.18em;}
+
+  /* ===== LAYOUT D — single line, HOLD THE massive, LINE. drops on its own row beneath, tight ===== */
+  .layD .wm{font-size:clamp(58px,14vw,200px);}
+  .layD .holdthe{display:block;}
+  .layD .lineword{display:block;}
+</style>
+</head>
+<body>
+  <div class="picker">
+    <button data-lay="layA" class="on">A · stacked monolith</button>
+    <button data-lay="layB">B · offset counterpoint</button>
+    <button data-lay="layC">C · pale backdrop + punch</button>
+    <button data-lay="layD">D · tight two-row</button>
+  </div>
+
+  <section class="cover layA go" id="cover">
+    <div class="cover-video-stack" id="stack">
+      <video class="cover-video" autoplay muted loop playsinline preload="auto"><source src="hero.mp4" type="video/mp4"></video>
+      <video class="cover-video cover-video--cyan" aria-hidden="true" autoplay muted loop playsinline preload="metadata"><source src="hero.mp4" type="video/mp4"></video>
+      <video class="cover-video cover-video--red" aria-hidden="true" autoplay muted loop playsinline preload="metadata"><source src="hero.mp4" type="video/mp4"></video>
+    </div>
+    <div class="cover-bg"></div>
+    <div class="cover-inner">
+      <h1 class="wm" id="wm">
+        <span class="holdthe"><span class="row">Hold</span><span class="row">the</span></span><span class="lineword"><span class="glitch o" data-text="line." id="lineword">line.</span></span>
+      </h1>
+    </div>
+  </section>
+
+  <div class="ctrls">
+    <button id="replay">Replay</button>
+    <button id="slow" class="slow">Slow-mo</button>
+  </div>
+
+<script>
+(function(){
+  var cover=document.getElementById('cover');
+  var stack=document.getElementById('stack');
+  var word=document.getElementById('lineword');
+  var lay='layA', slow=false, timers=[], idleTimer=null;
+
+  function clearAll(){timers.forEach(clearTimeout);timers=[];clearTimeout(idleTimer);}
+  function T(fn,ms){timers.push(setTimeout(fn,slow?ms*2.2:ms));}
+  function glitch(){word.classList.remove('is-glitching');void word.offsetWidth;word.classList.add('is-glitching');}
+  function startIdle(){function loop(){glitch();idleTimer=setTimeout(loop,(slow?5200:2400)+Math.random()*4000);}idleTimer=setTimeout(loop,slow?3200:2800);}
+
+  function play(){
+    clearAll();
+    cover.className='cover '+lay;
+    stack.className='cover-video-stack';
+    word.classList.remove('is-glitching');
+    cover.style.setProperty('--d3',slow?'3.9s':'1.95s');
+    void cover.offsetWidth;
+    cover.classList.add('go');
+
+    // HOLD THE already placed (massive). Video flickers in against it.
+    var blinks=[60,150,210,360,440,650,780,1000];
+    blinks.forEach(function(t,i){ T(function(){ stack.className='cover-video-stack '+(i%2===0?'flick-on':'flick-off'); }, t); });
+    // stay faintly unstable through the pause; LINE landing stops it (mode B feel, the stronger one)
+    T(function(){ stack.className='cover-video-stack settled unstable'; }, 1090);
+    T(function(){ stack.className='cover-video-stack settled'; }, 2250);
+    T(startIdle, 2800);
+  }
+
+  document.querySelectorAll('.picker button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.picker button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); lay=b.dataset.lay; play();
+    });
+  });
+  document.getElementById('replay').addEventListener('click',play);
+  document.getElementById('slow').addEventListener('click',function(){slow=!slow;this.style.background=slow?'rgba(238,77,23,.92)':'rgba(244,242,238,.16)';play();});
+
+  play();
+})();
+</script>
+</body>
+</html>

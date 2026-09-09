@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoFilter hero - flip-counter title entrance</title>
+<style>
+  :root{
+    --nf-orange:#ee4d17;
+    --nf-cream:#F4F2EE;
+    --nf-near-black:#1A1815;
+    --ease-nf:cubic-bezier(.2,.7,.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:var(--nf-near-black);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+
+  .picker{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;flex-wrap:wrap;background:rgba(15,14,12,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(244,242,238,.12);}
+  .picker button{flex:1 1 0;min-width:0;background:none;border:none;color:var(--nf-cream);font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:13px 6px;cursor:pointer;opacity:.5;transition:opacity .2s,background .2s;border-right:1px solid rgba(244,242,238,.08);white-space:nowrap;}
+  .picker button:last-child{border-right:none;}
+  .picker button.on{opacity:1;background:var(--nf-orange);color:#fff;}
+  .ctrls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:10px;}
+  .ctrls button{background:rgba(238,77,23,.92);color:#fff;border:none;font-family:"SF Mono",Menlo,monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:11px 22px;border-radius:6px;cursor:pointer;}
+  .ctrls .slow{background:rgba(244,242,238,.16);}
+  .modenote{position:fixed;bottom:62px;left:50%;transform:translateX(-50%);z-index:100;color:rgba(244,242,238,.6);font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.06em;text-align:center;white-space:nowrap;}
+
+  .cover{position:relative;height:100vh;overflow:hidden;background:var(--nf-near-black);}
+  .cover-video-stack{position:absolute;inset:0;}
+  .cover-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .cover-video--cyan,.cover-video--red{mix-blend-mode:screen;opacity:0;}
+  .cover-bg{position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 45%,rgba(26,24,21,.2),rgba(26,24,21,.8));z-index:2;}
+  .cover-inner{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 4vw;}
+
+  .wm{
+    font-family:"SF Mono",Menlo,Consolas,monospace; /* mono = true split-flap look */
+    font-weight:700;text-transform:uppercase;color:var(--nf-cream);
+    line-height:.9;letter-spacing:.01em;text-align:center;
+    text-shadow:0 6px 50px rgba(0,0,0,.55);
+    display:flex;flex-direction:column;align-items:center;gap:.06em;
+  }
+  .wm .o{color:var(--nf-orange);}
+  .row{display:flex;justify-content:center;gap:.04em;}
+
+  /* flap tile */
+  .ch{
+    display:inline-block;position:relative;
+    perspective:400px;
+  }
+  .ch .face{display:inline-block;transform-origin:center;backface-visibility:hidden;}
+
+  /* idle glitch retained on the orange line word after entrance */
+  .glitch{position:relative;display:inline-flex;}
+  .glitch.is-glitching .gl::before,.glitch.is-glitching .gl::after{content:attr(data-t);position:absolute;inset:0;}
+  .glitch.is-glitching .gl::before{color:#00e5ff;mix-blend-mode:screen;animation:gTop .55s steps(2,end) 1;}
+  .glitch.is-glitching .gl::after{color:#ff003c;mix-blend-mode:screen;animation:gBot .55s steps(2,end) 1;}
+  @keyframes gTop{0%{opacity:0}10%{opacity:.95;transform:translate(-6px,-2px)}40%{opacity:.95}70%{opacity:0}100%{opacity:0}}
+  @keyframes gBot{0%{opacity:0}10%{opacity:.95;transform:translate(6px,2px)}40%{opacity:.95}70%{opacity:0}100%{opacity:0}}
+
+  .layMono .wm{font-size:clamp(50px,11vw,150px);}
+  .layMassive .wm{font-size:clamp(64px,17vw,240px);letter-spacing:-.01em;gap:0;line-height:.84;}
+</style>
+</head>
+<body>
+  <div class="picker">
+    <button data-mode="all" class="on">A · whole title flaps</button>
+    <button data-mode="holdthenline">B · HOLD THE flaps, LINE last</button>
+    <button data-mode="lineonly">C · LINE only flaps</button>
+    <button data-mode="massive">D · massive, LINE flaps</button>
+  </div>
+
+  <section class="cover layMono" id="cover">
+    <div class="cover-video-stack" id="stack">
+      <video class="cover-video" autoplay muted loop playsinline preload="auto"><source src="hero.mp4" type="video/mp4"></video>
+      <video class="cover-video cover-video--cyan" aria-hidden="true" autoplay muted loop playsinline preload="metadata"><source src="hero.mp4" type="video/mp4"></video>
+      <video class="cover-video cover-video--red" aria-hidden="true" autoplay muted loop playsinline preload="metadata"><source src="hero.mp4" type="video/mp4"></video>
+    </div>
+    <div class="cover-bg"></div>
+    <div class="cover-inner">
+      <h1 class="wm" id="wm"></h1>
+    </div>
+  </section>
+
+  <div class="modenote" id="modenote"></div>
+  <div class="ctrls">
+    <button id="replay">Replay</button>
+    <button id="slow" class="slow">Slow-mo</button>
+  </div>
+
+<script>
+(function(){
+  var cover=document.getElementById('cover');
+  var wm=document.getElementById('wm');
+  var note=document.getElementById('modenote');
+  var mode='all', slow=false, timers=[], idleTimer=null;
+  var GLYPHS='ABCDEFGHIJKLMNOPQRSTUVWXYZ#@%&';
+
+  // rows: each is array of {ch, orange}
+  var ROWS=[
+    [{c:'H'},{c:'O'},{c:'L'},{c:'D'}],
+    [{c:'T'},{c:'H'},{c:'E'}],
+    [{c:'L',o:1},{c:'I',o:1},{c:'N',o:1},{c:'E',o:1},{c:'.',o:1}]
+  ];
+
+  var notes={
+    all:'Every letter flaps and resolves',
+    holdthenline:'HOLD THE flaps in, LINE resolves last',
+    lineonly:'HOLD THE placed, only LINE flaps',
+    massive:'Massive Iceberg scale, LINE flaps as payoff'
+  };
+
+  function clearAll(){timers.forEach(clearTimeout);timers=[];clearTimeout(idleTimer);}
+  function T(fn,ms){timers.push(setTimeout(fn,slow?ms*2.4:ms));}
+
+  // build DOM, return array of cells with their target char + whether they flap
+  function build(){
+    wm.innerHTML='';
+    var cells=[];
+    ROWS.forEach(function(row,ri){
+      var rEl=document.createElement('span');rEl.className='row';
+      row.forEach(function(item){
+        var span=document.createElement('span');
+        span.className='ch'+(item.o?' o':'');
+        var face=document.createElement('span');face.className='face';
+        span.appendChild(face);
+        rEl.appendChild(span);
+        cells.push({el:face,target:item.c,orange:item.o,row:ri,span:span});
+      });
+      wm.appendChild(rEl);
+    });
+    return cells;
+  }
+
+  function flap(cell,delay,onDone){
+    var ticks=4+Math.floor(Math.random()*3);
+    var i=0;
+    function step(){
+      if(i<ticks){
+        cell.el.textContent=GLYPHS[Math.floor(Math.random()*GLYPHS.length)];
+        cell.el.animate([{transform:'rotateX(0)'},{transform:'rotateX(-90deg)'},{transform:'rotateX(0)'}],{duration:slow?150:70,easing:'cubic-bezier(.2,.7,.2,1)'});
+        i++;timers.push(setTimeout(step,slow?160:75));
+      }else{
+        cell.el.textContent=cell.target;
+        cell.el.animate([{transform:'rotateX(-90deg)'},{transform:'rotateX(0)'}],{duration:slow?260:130,easing:'cubic-bezier(.2,.7,.2,1)'});
+        if(onDone)onDone();
+      }
+    }
+    timers.push(setTimeout(step,delay));
+  }
+
+  function idleGlitchSetup(cells){
+    // attach a light idle glitch to the orange LINE letters as a group, like the holding pattern
+    var lineCells=cells.filter(function(c){return c.orange;});
+    function loop(){
+      lineCells.forEach(function(c){
+        c.el.animate([{filter:'none',transform:'translateX(0)'},{filter:'none',transform:'translateX(-2px)'},{transform:'translateX(2px)'},{transform:'translateX(0)'}],{duration:160,easing:'steps(2,end)'});
+      });
+      idleTimer=setTimeout(loop,(slow?5200:2600)+Math.random()*3800);
+    }
+    idleTimer=setTimeout(loop,slow?3400:2900);
+  }
+
+  function play(){
+    clearAll();
+    note.textContent=notes[mode];
+    cover.className='cover '+(mode==='massive'?'layMassive':'layMono');
+    var cells=build();
+
+    // placed (non-flapping) cells render instantly; flapping cells start blank
+    function placeInstant(c){c.el.textContent=c.target;}
+    function blank(c){c.el.textContent='';}
+
+    var flapCells=[], instantCells=[];
+    if(mode==='all'){
+      flapCells=cells;
+    }else if(mode==='holdthenline'){
+      flapCells=cells; // all flap, but LINE row delayed
+    }else if(mode==='lineonly'||mode==='massive'){
+      flapCells=cells.filter(function(c){return c.orange;});
+      instantCells=cells.filter(function(c){return !c.orange;});
+    }
+    instantCells.forEach(placeInstant);
+    flapCells.forEach(blank);
+
+    // stagger
+    var base=slow?700:350;
+    if(mode==='all'){
+      cells.forEach(function(c,i){ flap(c, base + i*(slow?120:60)); });
+    }else if(mode==='holdthenline'){
+      var hold=cells.filter(function(c){return !c.orange;});
+      var line=cells.filter(function(c){return c.orange;});
+      hold.forEach(function(c,i){ flap(c, base + i*(slow?120:60)); });
+      var holdEnd=base + hold.length*(slow?120:60) + (slow?700:380); // pause
+      line.forEach(function(c,i){ flap(c, holdEnd + i*(slow?140:70)); });
+    }else{ // lineonly / massive — HOLD THE placed, pause, LINE flaps
+      var line2=cells.filter(function(c){return c.orange;});
+      var start=slow?1500:780; // the pause after HOLD THE is already showing
+      line2.forEach(function(c,i){ flap(c, start + i*(slow?150:75)); });
+    }
+
+    idleGlitchSetup(cells);
+  }
+
+  document.querySelectorAll('.picker button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.picker button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); mode=b.dataset.mode; play();
+    });
+  });
+  document.getElementById('replay').addEventListener('click',play);
+  document.getElementById('slow').addEventListener('click',function(){slow=!slow;this.style.background=slow?'rgba(238,77,23,.92)':'rgba(244,242,238,.16)';play();});
+
+  play();
+})();
+</script>
+</body>
+</html>
