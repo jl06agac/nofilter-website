@@ -6,12 +6,17 @@ Recreates the cover's "mega-farm battle" from the site's own source clips and it
 own CSS, with no browser and no screen recording:
 
   spine   _CDN-UPLOAD-SAFE/hero.mp4            1920x1080, 24fps, 30s (agroforest)
-  intrus. _CDN-UPLOAD-SAFE/mono-coffee-long.mp4 960x506, 53.6s (industrial monocrop)
+  intrus. _CDN-UPLOAD-SAFE/clears-forest.mp4   1280x720, 20.75s (industrial monocrop)
 
-  The intruder MUST be one of the golden/olive aerials. The site's grade is only cold
-  because hue-rotate(165deg) maps that palette to blue-grey; feed it a vivid green
-  plantation (clears-forest.mp4) and the same matrix returns silver frost. Checked
-  frame by frame, 9 Sep 2026.
+  PRE_HUE is not decoration. The site's grade only reads cold because hue-rotate(165deg)
+  maps a GOLDEN/OLIVE palette to blue-grey. clears-forest.mp4 is vivid green, and the
+  same matrix returns silver frost on it. Rotating it into the palette the filter expects
+  first is what makes the site's own CSS land where the site lands. Checked frame by
+  frame against a graded mega-farm-test.mp4 reference, 9 Sep 2026.
+
+  It is used rather than the golden aerials because it is top-down: every horizontal
+  slice shows regimented rows and machinery. The horizon clips put sky in the top band,
+  which reads as a blank grey bar rather than as a plantation.
 
 Two things are lifted verbatim from NoFilter-Website-Master.html so the clip and the
 site cannot drift apart:
@@ -29,8 +34,9 @@ Usage:  python3 make_hero_cut.py [out.mp4]
 import math, subprocess, sys, os
 
 CDN = os.path.expanduser("/sessions/rcw-01djhabq5dlqkc198szyl1mg/mnt/NoFilter/_CDN-UPLOAD-SAFE")
-SPINE, INTRUDER = f"{CDN}/hero.mp4", f"{CDN}/mono-coffee-long.mp4"
+SPINE, INTRUDER = f"{CDN}/hero.mp4", f"{CDN}/clears-forest.mp4"
 W, H, FPS, DUR = 1920, 1080, 24, 30.0
+PRE_HUE = -55        # see the note above; green -> the golden palette the grade expects
 
 # ── the CSS filter chain, composed ────────────────────────────────────────────
 def mul(A, B):
@@ -73,34 +79,38 @@ CCM = ("colorchannelmixer="
 
 # ── coverMegaTear: (top inset %, bottom inset %, x translate %) ───────────────
 TEAR = [(0, 88, -1.0), (42, 44, 1.4), (70, 16, -1.4), (18, 66, 1.0)]
-STEP = 0.1          # one band per 100ms, as the .5s/steps(3) loop reads on screen
+STEP = 0.1          # one state per 100ms, as the .5s/steps(3) loop reads on screen
 
-# ── where the monocrop interrupts, and for how long ──────────────────────────
-# placed on the spine's own beats: over the canopy, the bridge, the drying,
-# the forest drone, then the longest hold before the village closes it out.
-INSERTS = [(5.0, 6.2), (10.4, 11.2), (15.0, 16.6), (20.2, 21.2), (25.0, 27.0)]
-TEAR_OUT = 0.3
+# Five states, cycled: the four CSS bands, then both outer bands at once. The double
+# is not in the stylesheet; it is here because a band that sits across the frame in
+# two places makes the comparison legible in a single glance, which is the whole job.
+STATES = [(0,), (1,), (2,), (3,), (0, 2)]
+
+# ── where the monocrop intrudes ──────────────────────────────────────────────
+# Long banded episodes rather than cuts. The forest is never replaced, it is sliced:
+# roughly 85% of every frame stays agroforest while the dead rows run through it, so
+# the disparity is on screen AT THE SAME TIME instead of either side of a cut.
+EPISODES = [(4.5, 7.0), (10.0, 12.0), (14.5, 17.5), (20.0, 22.5), (25.0, 28.0)]
+FLASH = (16.0, 16.25)   # one full-frame statement, at the middle episode's peak
 
 def windows():
-    """(x, y, w, h, start, end) for every band, and (None,...) for full frame."""
-    out = []
-    for s, e in INSERTS:
+    """(x, y, w, h, start, end) per band; the flash is appended as a full frame."""
+    out, n = [], 0
+    for s, e in EPISODES:
         t = s
-        for i, (top, bot, dx) in enumerate(TEAR):        # tear in
-            y = round(H*top/100); h = round(H*(100-top-bot)/100)
-            out.append((round(W*dx/100), y, W, h, t, t+STEP)); t += STEP
-        full_end = e - TEAR_OUT
-        if full_end > t:
-            out.append((None, None, None, None, t, full_end))
-        t = full_end
-        for top, bot, dx in reversed(TEAR[:3]):          # tear out
-            y = round(H*top/100); h = round(H*(100-top-bot)/100)
-            out.append((round(W*dx/100), y, W, h, t, min(t+STEP, e))); t += STEP
+        while t < e - 1e-6:
+            for bi in STATES[n % len(STATES)]:
+                top, bot, dx = TEAR[bi]
+                y = round(H*top/100); h = round(H*(100-top-bot)/100)
+                out.append((round(W*dx/100), y, W, h, t, min(t+STEP, e)))
+            n += 1
+            t += STEP
+    out.append((None, None, None, None, FLASH[0], FLASH[1]))
     return out
 
 def build():
     parts = [f"[1:v]scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,"
-             f"crop={W}:{H},setsar=1,format=rgb24,"
+             f"crop={W}:{H},setsar=1,format=rgb24,hue=h={PRE_HUE},"
              f"{CCM},eq=brightness={OFFSET:.5f},format=yuv420p[mono]"]
     wins = windows()
     parts.append("[mono]split=%d%s" % (len(wins), "".join(f"[m{i}]" for i in range(len(wins)))))
