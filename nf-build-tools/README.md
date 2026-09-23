@@ -91,3 +91,20 @@ replaces the whole bucket. Check what the build actually needs first:
     while read -r f; do c=$(curl -s -o /dev/null -w '%{http_code}' \
       "https://nofilter-shared.netlify.app/$f"); [ "$c" != 200 ] && echo "$c $f"; \
       done < ../../_cdn-referenced-assets.txt
+
+## After every build-ship: the FAQ step (learnt the hard way, 23 Sep 2026)
+
+`build-ship.mjs` does NOT produce `/faqs`. The live site has them because of
+`faq/build_faq.py` + `faq/wire_links.py`, run after the bundle is cut. A bundle
+deployed without that step deletes the FAQ pages from the live site (Netlify
+replaces the whole site). Before any drag or `netlify deploy`, run from `faq/`:
+
+    B=../../SHIP-<date>
+    python3 build_faq.py $B/index.html    $B/faqs/index.html    sg
+    python3 build_faq.py $B/ae/index.html $B/ae/faqs/index.html ae
+    python3 build_faq.py $B/uk/index.html $B/uk/faqs/index.html uk
+    python3 wire_links.py --site $B
+
+then stamp, then diff the file set against the live bundle:
+
+    diff <(cd SHIP-live && find . -type f | sort) <(cd SHIP-new && find . -type f | sort)
