@@ -16300,15 +16300,6 @@ function rateFor(p){
   if(B.length!==2) return bandFor(p).rate;
   return p>=hi.from-1e-9 ? hi.rate : lo.rate;
 }
-/* 120: on a two-point market the gap between floor and opener is not for sale.
-   A price inside it snaps to whichever end is nearer. */
-function snapPrice(p, dir){
-  var B=BANDS; if(!B || B.length!==2) return p;
-  var lo=B[0].from, hi=B[1].from;
-  if(p>lo && p<hi) return dir>0 ? hi : (dir<0 ? lo : ((p-lo < hi-p) ? lo : hi));
-  return p;
-}
-window.__nfSnapPrice = snapPrice;
 function bandFor(p){
   var b=null;
   for(var i=0;i<BANDS.length;i++){ if(p <= BANDS[i].to + 1e-9){ b=BANDS[i]; break; } }
@@ -18045,7 +18036,7 @@ if (_sheetRef) _sheetRef.textContent = QREF;   /* 113: quote route only */
 
 /* Module B — price slider */
 var slider = $('#priceSlider');
-if (slider) slider.addEventListener('input', function(){ var p=snapPrice(parseFloat(slider.value)); if(String(p)!==slider.value) slider.value=String(p); Q.price = p; recalc(); });
+if (slider) slider.addEventListener('input', function(){ Q.price = parseFloat(slider.value); recalc(); });
 
 /* ── bridges for the ported morph instrument ──────────────────────────────
    Its compute() asks this build two questions — what rate applies at a price,
@@ -18057,7 +18048,6 @@ window.__nfBandRate = function(p){ return bandFor(p).rate; };
    the other two as "5.0" and "10.0". This gives exactly 5, 7.5, 10. */
 window.__nfPct = function(r){ return String(Math.round(r * 400) / 4); };
 window.__nfSetPrice = function(p){
-  p = snapPrice(p);
   if(Math.abs(Q.price - p) < 0.001) return;
   Q.price = p;
   if(slider) slider.value = String(p);
@@ -21426,7 +21416,7 @@ function applyMarket(k){
      var ramp = BANDS.length===2, h='';
      for(var i=0;i<BANDS.length;i++){ var b=BANDS[i], last=i===BANDS.length-1;
        var pct = window.__nfPct(b.rate)+'%';
-       var sub = last ? 'Full rate' : (ramp ? 'Floor' : (i===0 ? 'Base share' : 'Stepped share'));
+       var sub = last ? 'Full rate' : (ramp ? 'Below the opener' : (i===0 ? 'Base share' : 'Stepped share'));
        h += '<div class="band" data-band="'+(i+1)+'"><span class="bl2" id="bR'+(i+1)+'">Band 0'+(i+1)+' · '+b.range+'</span><span class="bp">'+pct+'</span><span class="bl2">'+sub+'</span></div>'; }
      host.innerHTML = h; })();
   /* the on-page placeholder caveat is gone at Alex's request — the warning now
@@ -25185,7 +25175,6 @@ window.__nfRoller(
       if(!locked()){
         var p=PMIN+(x/w)*(PMAX-PMIN);
         p=Math.round(Math.min(PMAX,Math.max(PMIN,p))/PSTEP)*PSTEP;
-        if(window.__nfSnapPrice) p=window.__nfSnapPrice(p);   /* 120 */
         setNative(pS,p.toFixed(2));
       } else {
         if(x < PIN_FRAC*w-6){
@@ -25212,7 +25201,7 @@ window.__nfRoller(
     thumb.addEventListener('keydown',function(e){
       if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight') return;
       var d=(e.key==='ArrowRight')?1:-1;
-      if(!locked()){ var np=Math.min(PMAX,Math.max(PMIN,price()+d*PSTEP)); if(window.__nfSnapPrice) np=window.__nfSnapPrice(np, d); setNative(pS,np.toFixed(2)); }
+      if(!locked()){ setNative(pS,Math.min(PMAX,Math.max(PMIN,price()+d*PSTEP)).toFixed(2)); }
       else { setNative(tS,Math.min(TMAX,Math.max(0,topup()+d*TSTEP)).toFixed(1)); }
       render(); e.preventDefault();
     });
@@ -25253,7 +25242,6 @@ window.__nfRoller(
   function compute(){
     var pS = $('wholePrice'), tS = $('topUp'), vS = $('volCups');
     var price = pS ? +pS.value : 48;
-    if(pS && window.__nfSnapPrice){ var sp=window.__nfSnapPrice(price); if(sp!==price){ price=sp; pS.value=String(sp); } }   /* 120 */
     var topUp = tS ? +tS.value : 0;
     var vol   = vS ? +vS.value : 43000;
     var rate  = (window.__nfBandRate ? window.__nfBandRate(price) : 0.10);
@@ -25572,7 +25560,6 @@ window.__nfRoller(
 
     function derived(){
       var price=+pSlider.value||42;
-      if(window.__nfSnapPrice){ var sp=window.__nfSnapPrice(price); if(sp!==price){ price=sp; pSlider.value=String(sp); } }   /* 120 */
       var topUp=+(tuSlider?tuSlider.value:0)||0;
       var vol=+(volSlider?volSlider.value:43000)||43000;   // her actual volume, not the old placeholder
       /* [THE ONE AMEND] The line here read

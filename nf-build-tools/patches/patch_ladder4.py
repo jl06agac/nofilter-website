@@ -8,16 +8,15 @@ def fix(old, new, count=1):
     assert n == count, "anchor count %d (want %d) for %r" % (n, count, old[:70])
     src = src.replace(old, new)
 
-# ══ 120 · TWO PRICES, NOT TWO LABELS (23 Sep 2026) ═══════════════════════════
+# ══ 120 · ONE STEP AT THE OPENER (23 Sep 2026) ════════════════════════════════
 # 117 ramped the rate between the two points. Alex: "ramping up the price
-# basically translated into no extra margin for me, that's why we removed the
-# 7.5% and only had the 10% at 165." Inside a ramp NoFilter keeps 6 of every 15
-# dirhams a client adds; the ramp reproduced the thing the two-point ladder was
-# meant to end. So on a two-point market there are no prices between the floor
-# and the opener: the dial offers the floor (5%), then the opener (10%) and
-# everything above it (still 10%, so each extra dirham is 90% NoFilter's). The
-# rate steps once, at the opener, and no client can stand on the step because
-# the prices beside it do not exist. UK (three bands) is untouched.
+# basically translated into no extra margin for me." Inside a ramp NoFilter kept
+# 6 of every 15 dirhams a client added. Now, on a two-point market, any price
+# from the floor up is for sale: 5% below the opener, 10% at the opener and
+# above. Between floor and opener every dirham is 95% NoFilter's; above the
+# opener, 90%. The step at the opener is the device: "165 is where the forest
+# gets the full 10%". Alex chose it knowing a client at 164.50 leaves 156.28
+# and at 165 leaves 148.50. UK (three bands) is untouched.
 
 # A · the rate: a step at the opener, no ramp
 fix("""function rateFor(p){
@@ -31,26 +30,9 @@ fix("""function rateFor(p){
   var B=BANDS, lo=B[0], hi=B[B.length-1];
   if(B.length!==2) return bandFor(p).rate;
   return p>=hi.from-1e-9 ? hi.rate : lo.rate;
-}
-/* 120: on a two-point market the gap between floor and opener is not for sale.
-   A price inside it snaps to whichever end is nearer. */
-function snapPrice(p, dir){
-  var B=BANDS; if(!B || B.length!==2) return p;
-  var lo=B[0].from, hi=B[1].from;
-  if(p>lo && p<hi) return dir>0 ? hi : (dir<0 ? lo : ((p-lo < hi-p) ? lo : hi));
-  return p;
-}
-window.__nfSnapPrice = snapPrice;""")
+}""")
 
-# B · every route into Q.price goes through the snap
-fix("if (slider) slider.addEventListener('input', function(){ Q.price = parseFloat(slider.value); recalc(); });",
-    "if (slider) slider.addEventListener('input', function(){ var p=snapPrice(parseFloat(slider.value)); if(String(p)!==slider.value) slider.value=String(p); Q.price = p; recalc(); });")
-fix("""window.__nfSetPrice = function(p){
-  if(Math.abs(Q.price - p) < 0.001) return;""",
-"""window.__nfSetPrice = function(p){
-  p = snapPrice(p);
-  if(Math.abs(Q.price - p) < 0.001) return;""")
-# the quote reset carried a stale SG literal (48) whatever the market; it resets to the market's opener
+# B · the quote reset carried a stale SG literal (48) whatever the market; it resets to the market's opener
 fix("  Q.price = 48.00; slider.value = '48';",
     "  Q.price = MKT.kg.def; slider.value = String(MKT.kg.def);   /* 120: was a stale 48 */")
 
@@ -62,24 +44,7 @@ fix("""              ? '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slic
 fix("""       var pct = ramp && !last ? window.__nfPct(b.rate)+'% → '+window.__nfPct(BANDS[BANDS.length-1].rate)+'%' : window.__nfPct(b.rate)+'%';
        var sub = last ? 'Full rate' : (ramp ? 'Rises with the price' : (i===0 ? 'Base share' : 'Stepped share'));""",
     """       var pct = window.__nfPct(b.rate)+'%';
-       var sub = last ? 'Full rate' : (ramp ? 'Floor' : (i===0 ? 'Base share' : 'Stepped share'));""")
-
-# E · the visible dial writes #wholePrice, not #priceSlider; snap there too, so the
-#     thumb cannot rest inside the gap and the figure never shows a price that is
-#     not for sale. Drag, keyboard nudge, and both morph readers.
-fix("""        var p=PMIN+(x/w)*(PMAX-PMIN);
-        p=Math.round(Math.min(PMAX,Math.max(PMIN,p))/PSTEP)*PSTEP;
-        setNative(pS,p.toFixed(2));""",
-"""        var p=PMIN+(x/w)*(PMAX-PMIN);
-        p=Math.round(Math.min(PMAX,Math.max(PMIN,p))/PSTEP)*PSTEP;
-        if(window.__nfSnapPrice) p=window.__nfSnapPrice(p);   /* 120 */
-        setNative(pS,p.toFixed(2));""")
-fix("      if(!locked()){ setNative(pS,Math.min(PMAX,Math.max(PMIN,price()+d*PSTEP)).toFixed(2)); }",
-    "      if(!locked()){ var np=Math.min(PMAX,Math.max(PMIN,price()+d*PSTEP)); if(window.__nfSnapPrice) np=window.__nfSnapPrice(np, d); setNative(pS,np.toFixed(2)); }")
-fix("    var price = pS ? +pS.value : 48;",
-    "    var price = pS ? +pS.value : 48;\n    if(pS && window.__nfSnapPrice){ var sp=window.__nfSnapPrice(price); if(sp!==price){ price=sp; pS.value=String(sp); } }   /* 120 */")
-fix("      var price=+pSlider.value||42;",
-    "      var price=+pSlider.value||42;\n      if(window.__nfSnapPrice){ var sp=window.__nfSnapPrice(price); if(sp!==price){ price=sp; pSlider.value=String(sp); } }   /* 120 */")
+       var sub = last ? 'Full rate' : (ramp ? 'Below the opener' : (i===0 ? 'Base share' : 'Stepped share'));""")
 
 io.open(F, "w", encoding="utf-8").write(src)
 print("patch_ladder4 OK")
