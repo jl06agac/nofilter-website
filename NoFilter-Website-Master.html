@@ -16298,10 +16298,17 @@ var BANDS = MKT.bands;
 function rateFor(p){
   var B=BANDS, lo=B[0], hi=B[B.length-1];
   if(B.length!==2) return bandFor(p).rate;
-  if(p>=hi.from) return hi.rate;
-  if(p<=lo.from) return lo.rate;
-  return Math.round((lo.rate+(hi.rate-lo.rate)*(p-lo.from)/(hi.from-lo.from))*400)/400;
+  return p>=hi.from-1e-9 ? hi.rate : lo.rate;
 }
+/* 120: on a two-point market the gap between floor and opener is not for sale.
+   A price inside it snaps to whichever end is nearer. */
+function snapPrice(p){
+  var B=BANDS; if(!B || B.length!==2) return p;
+  var lo=B[0].from, hi=B[1].from;
+  if(p>lo && p<hi) return (p-lo < hi-p) ? lo : hi;
+  return p;
+}
+window.__nfSnapPrice = snapPrice;
 function bandFor(p){
   var b=null;
   for(var i=0;i<BANDS.length;i++){ if(p <= BANDS[i].to + 1e-9){ b=BANDS[i]; break; } }
@@ -18038,7 +18045,7 @@ if (_sheetRef) _sheetRef.textContent = QREF;   /* 113: quote route only */
 
 /* Module B — price slider */
 var slider = $('#priceSlider');
-if (slider) slider.addEventListener('input', function(){ Q.price = parseFloat(slider.value); recalc(); });
+if (slider) slider.addEventListener('input', function(){ var p=snapPrice(parseFloat(slider.value)); if(String(p)!==slider.value) slider.value=String(p); Q.price = p; recalc(); });
 
 /* ── bridges for the ported morph instrument ──────────────────────────────
    Its compute() asks this build two questions — what rate applies at a price,
@@ -18050,6 +18057,7 @@ window.__nfBandRate = function(p){ return bandFor(p).rate; };
    the other two as "5.0" and "10.0". This gives exactly 5, 7.5, 10. */
 window.__nfPct = function(r){ return String(Math.round(r * 400) / 4); };
 window.__nfSetPrice = function(p){
+  p = snapPrice(p);
   if(Math.abs(Q.price - p) < 0.001) return;
   Q.price = p;
   if(slider) slider.value = String(p);
@@ -21192,7 +21200,7 @@ var _reset = $('#resetQuote');
 if (_reset) _reset.addEventListener('click', function(){
   ORIGINS.forEach(function(o){ Q.kg[o.k] = 0; });
   MACHINES.forEach(function(m){ Q.m[m.k] = { q:0, mode:'rental', term:36, cooler:true, svc:true, wrap:true, counter:true }; });
-  Q.price = 48.00; slider.value = '48';
+  Q.price = MKT.kg.def; slider.value = String(MKT.kg.def);   /* 120: was a stale 48 */
   $$('.mcard').forEach(function(c){
     $$('[data-mode]', c).forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-mode') === 'rental'); });
     $$('[data-term]', c).forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-term') === '36'); });
@@ -21417,8 +21425,8 @@ function applyMarket(k){
   (function(){ var host=document.querySelector('.bands'); if(!host) return;
      var ramp = BANDS.length===2, h='';
      for(var i=0;i<BANDS.length;i++){ var b=BANDS[i], last=i===BANDS.length-1;
-       var pct = ramp && !last ? window.__nfPct(b.rate)+'% → '+window.__nfPct(BANDS[BANDS.length-1].rate)+'%' : window.__nfPct(b.rate)+'%';
-       var sub = last ? 'Full rate' : (ramp ? 'Rises with the price' : (i===0 ? 'Base share' : 'Stepped share'));
+       var pct = window.__nfPct(b.rate)+'%';
+       var sub = last ? 'Full rate' : (ramp ? 'Floor' : (i===0 ? 'Base share' : 'Stepped share'));
        h += '<div class="band" data-band="'+(i+1)+'"><span class="bl2" id="bR'+(i+1)+'">Band 0'+(i+1)+' · '+b.range+'</span><span class="bp">'+pct+'</span><span class="bl2">'+sub+'</span></div>'; }
      host.innerHTML = h; })();
   /* the on-page placeholder caveat is gone at Alex's request — the warning now
@@ -25337,7 +25345,7 @@ window.__nfRoller(
         var pct = function(b){ return (b.rate*100).toString().replace(/\.0$/,'')+'%'; };
         return '<p>Every kilo you buy carries a conservation share: a slice of <b>what you pay</b> that goes straight to the NGOs and farmers, on top of the coffee itself.</p>'
           + (B.length===2
-              ? '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup, rising with the price to the full <b>'+pct(B[1])+'</b> from <b>'+Math.round(B[1].from)+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), however high you go.</p>'
+              ? '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup. From <b>'+Math.round(B[1].from)+'</b> it is the full <b>'+pct(B[1])+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), on the whole price, however high you go.</p>'
               : '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup. From <b>'+Math.round(B[1].from)+'</b> it steps up to <b>'+pct(B[1])+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), and from <b>'+Math.round(B[B.length-1].from)+'</b> the full <b>'+pct(B[B.length-1])+'</b> (about <b>'+cup(B[B.length-1])+' '+c.word+'</b>).</p>')
           + '<p>Small numbers on a cup, real money at the forest edge: across the climb, what reaches the forest <b>more than doubles</b>.</p>';
       }
