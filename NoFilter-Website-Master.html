@@ -15901,7 +15901,7 @@ var MARKETS = {
 
         /* 114: the one public price and rate, for the estimator */
 
-        ref:{ kg:41.00, floor:39.00, rate:0.075 }, k:'UK', name:'UNITED KINGDOM', short:'UK', where:'the UK', cur:'GBP', loc:'en-GB',
+        ref:{ kg:43.00, floor:39.00, rate:0.100 }, k:'UK', name:'UNITED KINGDOM', short:'UK', where:'the UK', cur:'GBP', loc:'en-GB',
         priced:true, tax:'', email:'alex@nofilter.sg',
         /* tax is EMPTY on purpose: the UK entity is not VAT-registered, so no
            VAT is charged and nothing is "ex VAT" — Alex, 2 Sep: "leave it off
@@ -15998,10 +15998,10 @@ var RATES = {
         buyx:{ cooler:1900, install:1100, svc1:2200,
                svcYr1:3600, svcYr:5000, wrap:3000, wrapOff:1200,
                calloutBase:600, calloutHr:150, counter:3000, wrapFreeFrom:24 } },
-  UK: { kg:{ floor:39.00, def:41.00, ceil:46.00, step:0.25, full:43.00 },
-        bands:[ { id:1, from:39.00, to:40.99, rate:0.050, label:'BAND 01', range:'39.00–40.99' },
-                { id:2, from:41.00, to:42.99, rate:0.075, label:'BAND 02', range:'41.00–42.99' },
-                { id:3, from:43.00, to:46.00, rate:0.100, label:'BAND 03', range:'43.00+' } ],
+  UK: { kg:{ floor:39.00, def:43.00, ceil:52.00, step:0.25, full:43.00 },
+        /* 121: two points, one step at the opener (see rateFor) */
+        bands:[ { id:1, from:39.00, to:42.99, rate:0.050, label:'BAND 01', range:'39.00–42.99' },
+                { id:2, from:43.00, to:52.00, rate:0.100, label:'BAND 02', range:'43.00+' } ],
         mach:{ cm2:{ r24:370, r36:290, buy:2050 },
                cm5:{ r24:475, r36:370, buy:3350 },
                cm6:{ r24:735, r36:550, buy:7350 },
