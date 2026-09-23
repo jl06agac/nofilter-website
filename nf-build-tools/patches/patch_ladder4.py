@@ -34,10 +34,10 @@ fix("""function rateFor(p){
 }
 /* 120: on a two-point market the gap between floor and opener is not for sale.
    A price inside it snaps to whichever end is nearer. */
-function snapPrice(p){
+function snapPrice(p, dir){
   var B=BANDS; if(!B || B.length!==2) return p;
   var lo=B[0].from, hi=B[1].from;
-  if(p>lo && p<hi) return (p-lo < hi-p) ? lo : hi;
+  if(p>lo && p<hi) return dir>0 ? hi : (dir<0 ? lo : ((p-lo < hi-p) ? lo : hi));
   return p;
 }
 window.__nfSnapPrice = snapPrice;""")
@@ -63,6 +63,23 @@ fix("""       var pct = ramp && !last ? window.__nfPct(b.rate)+'% → '+window._
        var sub = last ? 'Full rate' : (ramp ? 'Rises with the price' : (i===0 ? 'Base share' : 'Stepped share'));""",
     """       var pct = window.__nfPct(b.rate)+'%';
        var sub = last ? 'Full rate' : (ramp ? 'Floor' : (i===0 ? 'Base share' : 'Stepped share'));""")
+
+# E · the visible dial writes #wholePrice, not #priceSlider; snap there too, so the
+#     thumb cannot rest inside the gap and the figure never shows a price that is
+#     not for sale. Drag, keyboard nudge, and both morph readers.
+fix("""        var p=PMIN+(x/w)*(PMAX-PMIN);
+        p=Math.round(Math.min(PMAX,Math.max(PMIN,p))/PSTEP)*PSTEP;
+        setNative(pS,p.toFixed(2));""",
+"""        var p=PMIN+(x/w)*(PMAX-PMIN);
+        p=Math.round(Math.min(PMAX,Math.max(PMIN,p))/PSTEP)*PSTEP;
+        if(window.__nfSnapPrice) p=window.__nfSnapPrice(p);   /* 120 */
+        setNative(pS,p.toFixed(2));""")
+fix("      if(!locked()){ setNative(pS,Math.min(PMAX,Math.max(PMIN,price()+d*PSTEP)).toFixed(2)); }",
+    "      if(!locked()){ var np=Math.min(PMAX,Math.max(PMIN,price()+d*PSTEP)); if(window.__nfSnapPrice) np=window.__nfSnapPrice(np, d); setNative(pS,np.toFixed(2)); }")
+fix("    var price = pS ? +pS.value : 48;",
+    "    var price = pS ? +pS.value : 48;\n    if(pS && window.__nfSnapPrice){ var sp=window.__nfSnapPrice(price); if(sp!==price){ price=sp; pS.value=String(sp); } }   /* 120 */")
+fix("      var price=+pSlider.value||42;",
+    "      var price=+pSlider.value||42;\n      if(window.__nfSnapPrice){ var sp=window.__nfSnapPrice(price); if(sp!==price){ price=sp; pSlider.value=String(sp); } }   /* 120 */")
 
 io.open(F, "w", encoding="utf-8").write(src)
 print("patch_ladder4 OK")
