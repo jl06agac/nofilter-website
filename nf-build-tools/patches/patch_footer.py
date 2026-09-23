@@ -31,7 +31,7 @@ fix(""".foot-grid{column-gap:clamp(18px,2.2vw,36px);}
 .foot-entities{padding-top:clamp(14px,1.6vw,20px);gap:clamp(16px,3vw,56px);}
 .foot-ent p{line-height:1.7;}
 .foot-ent .region{color:rgba(244,242,238,.5);}
-.foot-ent-mkt p{color:var(--signal);}
+.foot .foot-ent-mkt p{color:var(--signal);}
 .foot-copy{margin-top:16px;}
 .foot .fc-ico:hover{border-color:var(--signal);color:var(--signal);background:rgba(238,77,23,.08);}
 @media(max-width:1080px){
