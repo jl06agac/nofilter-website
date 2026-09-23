@@ -87,25 +87,34 @@ STEP = 0.1          # one state per 100ms, as the .5s/steps(3) loop reads on scr
 STATES = [(0,), (1,), (2,), (3,), (0, 2)]
 
 # ── where the monocrop intrudes ──────────────────────────────────────────────
-# Long banded episodes rather than cuts. The forest is never replaced, it is sliced:
-# roughly 85% of every frame stays agroforest while the dead rows run through it, so
-# the disparity is on screen AT THE SAME TIME instead of either side of a cut.
-EPISODES = [(4.5, 7.0), (10.0, 12.0), (14.5, 17.5), (20.0, 22.5), (25.0, 28.0)]
-FLASH = (16.0, 16.25)   # one full-frame statement, at the middle episode's peak
+# Six events, each: banded tear IN, a full-frame hold long enough to actually read,
+# banded tear OUT. Two earlier passes each failed one half of the brief -- straight
+# cuts to full frame showed the monocrop but ate the forest; bands alone kept the
+# forest but never let you see what it was being compared to, and 30s of slow drone
+# footage between sparse bands reads as a still. This does both, and spaces the events
+# so nothing holds still for more than about two seconds.
+EVENTS = [(3.5, 5.7), (8.0, 10.2), (12.5, 14.7), (17.0, 19.2), (21.0, 23.2), (25.5, 27.7)]
+TEAR_LEN = 0.5      # banded ramp at each end of an event
 
 def windows():
-    """(x, y, w, h, start, end) per band; the flash is appended as a full frame."""
+    """(x, y, w, h, start, end) per band; full frame carries x=None."""
     out, n = [], 0
-    for s, e in EPISODES:
-        t = s
+    for s, e in EVENTS:
+        t = s                                            # tear in
+        while t < s + TEAR_LEN - 1e-6:
+            for bi in STATES[n % len(STATES)]:
+                top, bot, dx = TEAR[bi]
+                y = round(H*top/100); h = round(H*(100-top-bot)/100)
+                out.append((round(W*dx/100), y, W, h, t, t+STEP))
+            n += 1; t += STEP
+        out.append((None, None, None, None, t, e - TEAR_LEN))   # the hold
+        t = e - TEAR_LEN                                 # tear out
         while t < e - 1e-6:
             for bi in STATES[n % len(STATES)]:
                 top, bot, dx = TEAR[bi]
                 y = round(H*top/100); h = round(H*(100-top-bot)/100)
                 out.append((round(W*dx/100), y, W, h, t, min(t+STEP, e)))
-            n += 1
-            t += STEP
-    out.append((None, None, None, None, FLASH[0], FLASH[1]))
+            n += 1; t += STEP
     return out
 
 def build():
