@@ -21325,7 +21325,7 @@ function applyMarket(k){
      live market's real thresholds instead, so the marks follow the band table
      (and the AE card) rather than a copy of SG's old numbers. */
   (function(){ var b=MKT.bands, L=b[b.length-1];
-     window.__nfBandMarks = { base: b[0].from, mid: (b.length>2 ? b[1].from : (b[0].from+L.from)/2), full: L.from }; })();
+     window.__nfBandMarks = { base: b[0].from, mid: (b.length>2 ? b[1].from : (b[0].from+L.from)/2), full: L.from, two: b.length===2 }; })();
   /* MKT.mach[k] is now { r24, r36, buy } — copy all three, and keep m.price
      as the "From" figure the tiles print, which is the 36-month rate. */
   MACHINES.forEach(function(m){
@@ -25131,7 +25131,8 @@ window.__nfRoller(
         mk.style.left=mFull+'px'; mkl.style.left=mFull+'px';
         mk.style.opacity=1; mkl.style.opacity=1;
         if(mk2){ mk2.style.left=mMid+'px'; mkl2.style.left=mMid+'px';
-                 mk2.style.opacity=1; mkl2.style.opacity=1; }
+                 var showMid = !(BM.two);
+                 mk2.style.opacity=showMid?1:0; mkl2.style.opacity=showMid?1:0; }
         if(mk3){ var mBase=(((BM.base!=null?BM.base:PMIN)-PMIN)/(PMAX-PMIN))*w;
                  mk3.style.left=mBase+'px'; mkl3.style.left=mBase+'px';
                  mk3.style.opacity=1; mkl3.style.opacity=1; }
@@ -25336,7 +25337,7 @@ window.__nfRoller(
         var pct = function(b){ return (b.rate*100).toString().replace(/\.0$/,'')+'%'; };
         return '<p>Every kilo you buy carries a conservation share: a slice of <b>what you pay</b> that goes straight to the NGOs and farmers, on top of the coffee itself.</p>'
           + (B.length===2
-              ? '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup. It rises with every step in price, and from <b>'+Math.round(B[1].from)+'</b> it is the full <b>'+pct(B[1])+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), on the whole price, however high you go.</p>'
+              ? '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup, rising with the price to the full <b>'+pct(B[1])+'</b> from <b>'+Math.round(B[1].from)+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), however high you go.</p>'
               : '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup. From <b>'+Math.round(B[1].from)+'</b> it steps up to <b>'+pct(B[1])+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), and from <b>'+Math.round(B[B.length-1].from)+'</b> the full <b>'+pct(B[B.length-1])+'</b> (about <b>'+cup(B[B.length-1])+' '+c.word+'</b>).</p>')
           + '<p>Small numbers on a cup, real money at the forest edge: across the climb, what reaches the forest <b>more than doubles</b>.</p>';
       }
@@ -25652,7 +25653,7 @@ window.__nfRoller(
           var rateNow = window.__nfBandRate ? window.__nfBandRate(d.price)
                         : (d.price>=MK.full?0.10:(d.price>=MK.mid?0.075:0.05));
           var atFull = d.price>=MK.full;
-          var atMid  = d.price>=MK.mid && d.price<MK.full;
+          var atMid  = !MK.two && d.price>=MK.mid && d.price<MK.full;
           if(track) track.classList.toggle('at-full', atFull);
           if(enc){
             enc.classList.toggle('at-full', atFull);
