@@ -15740,7 +15740,7 @@ var ORIGINS = [
 var MARKETS = {
   SG: {
         /* 114: the one public price and rate, for the estimator */
-        ref:{ kg:48.00, floor:45.00, rate:0.075 }, k:'SG', name:'SINGAPORE', short:'SINGAPORE', where:'Singapore', cur:'SGD', loc:'en-SG',
+        ref:{ kg:51.00, floor:46.00, rate:0.100 }, k:'SG', name:'SINGAPORE', short:'SINGAPORE', where:'Singapore', cur:'SGD', loc:'en-SG',
         priced:true, tax:'GST', email:'alex@nofilter.sg',
         entity:'NoFilter Pte. Ltd · UEN 201839882N',
         addr:'31 Kaki Bukit Road 3 · #01-02C Techlink · Singapore 417818',
@@ -15830,7 +15830,7 @@ var MARKETS = {
 
         /* 114: the one public price and rate, for the estimator */
 
-        ref:{ kg:155.00, floor:145.00, rate:0.075 }, k:'AE', name:'UNITED ARAB EMIRATES', short:'UAE', where:'the UAE', cur:'AED', loc:'en-AE',
+        ref:{ kg:165.00, floor:150.00, rate:0.100 }, k:'AE', name:'UNITED ARAB EMIRATES', short:'UAE', where:'the UAE', cur:'AED', loc:'en-AE',
         priced:true, tax:'VAT', email:'alex@nofilter.ae',
         entity:'NoFilter LLC · Sharjah Media City (Shams) · TL 2540001.01',
         addr:'Sharjah Media City (Shams) · Sharjah, United Arab Emirates',
@@ -15958,10 +15958,10 @@ var MARKETS = {
    readable source of truth. Do not render from this directly —
    read MARKETS, which nfMergeRates() fills in once rates arrive. */
 var RATES = {
-  SG: { kg:{ floor:45.00, def:48.00, ceil:55.00, step:0.25, full:51.00 },
-        bands:[ { id:1, from:45.00, to:47.99, rate:0.050, label:'BAND 01', range:'45.00–47.99' },
-                { id:2, from:48.00, to:50.99, rate:0.075, label:'BAND 02', range:'48.00–50.99' },
-                { id:3, from:51.00, to:55.00, rate:0.100, label:'BAND 03', range:'51.00+' } ],
+  SG: { kg:{ floor:46.00, def:51.00, ceil:60.00, step:0.25, full:51.00 },
+        /* 117: two points, the rate ramps between them (see rateFor) */
+        bands:[ { id:1, from:46.00, to:50.99, rate:0.050, label:'BAND 01', range:'46.00–50.99' },
+                { id:2, from:51.00, to:60.00, rate:0.100, label:'BAND 02', range:'51.00+' } ],
         mach:{ cm2:{ r24:380, r36:315, buy:3600  },
                cm5:{ r24:545, r36:425, buy:6500  },
                cm6:{ r24:565, r36:440, buy:8000  },
@@ -15970,10 +15970,10 @@ var RATES = {
         buyx:{ cooler:800, install:300, svc1:750,
                svcYr1:1250, svcYr:1750, wrap:1000, wrapOff:400,
                calloutBase:200, calloutHr:50, counter:1000, wrapFreeFrom:24 } },
-  AE: { kg:{ floor:145.00, def:155.00, ceil:165.00, step:0.50, full:157.00 },
-        bands:[ { id:1, from:145.00, to:150.99, rate:0.050, label:'BAND 01', range:'145.00–150.99' },
-                { id:2, from:151.00, to:156.99, rate:0.075, label:'BAND 02', range:'151.00–156.99' },
-                { id:3, from:157.00, to:165.00, rate:0.100, label:'BAND 03', range:'157.00+' } ],
+  AE: { kg:{ floor:150.00, def:165.00, ceil:200.00, step:0.50, full:165.00 },
+        /* 117: two points, the rate ramps between them (see rateFor) */
+        bands:[ { id:1, from:150.00, to:164.99, rate:0.050, label:'BAND 01', range:'150.00–164.99' },
+                { id:2, from:165.00, to:200.00, rate:0.100, label:'BAND 02', range:'165.00+' } ],
         mach:{ cm2:{ r24:1275, r36:1035, buy:8600  },
                cm5:{ r24:1805, r36:1390, buy:16900 },
                cm6:{ r24:1940, r36:1480, buy:19000 },
@@ -16276,7 +16276,24 @@ function buyTotal(m, cfg){
 }
 
 var BANDS = MKT.bands;
-function bandFor(p){ for(var i=0;i<BANDS.length;i++){ if(p <= BANDS[i].to + 1e-9) return BANDS[i]; } return BANDS[2]; }
+/* 117: on a two-point market the rate ramps from the floor's rate to the opener's,
+   quantised to a quarter of a point, so a client paying more never leaves NoFilter
+   with less. Three-band markets (UK) keep stepping. */
+function rateFor(p){
+  var B=BANDS, lo=B[0], hi=B[B.length-1];
+  if(B.length!==2) return bandFor(p).rate;
+  if(p>=hi.from) return hi.rate;
+  if(p<=lo.from) return lo.rate;
+  return Math.round((lo.rate+(hi.rate-lo.rate)*(p-lo.from)/(hi.from-lo.from))*400)/400;
+}
+function bandFor(p){
+  var b=null;
+  for(var i=0;i<BANDS.length;i++){ if(p <= BANDS[i].to + 1e-9){ b=BANDS[i]; break; } }
+  b = b || BANDS[BANDS.length-1];
+  if(BANDS.length!==2) return b;
+  var r=rateFor(p); if(r===b.rate) return b;
+  var o={}; for(var k in b) o[k]=b[k]; o.rate=r; return o;
+}
 
 /* ── 1 · ROLLING DIGITS (mechanical flip / roll) ──────────────────────── */
 function rollSet(el, str){
@@ -18015,7 +18032,7 @@ window.__nfBandRate = function(p){ return bandFor(p).rate; };
 /* One way to write a band rate, everywhere. Math.round() was turning 0.075
    into "8%" — a rate this build does not offer — and .toFixed(1) was writing
    the other two as "5.0" and "10.0". This gives exactly 5, 7.5, 10. */
-window.__nfPct = function(r){ return String(+(r * 100).toFixed(1)); };
+window.__nfPct = function(r){ return String(Math.round(r * 400) / 4); };
 window.__nfSetPrice = function(p){
   if(Math.abs(Q.price - p) < 0.001) return;
   Q.price = p;
@@ -20680,9 +20697,9 @@ function recalc(){
     mb.classList.toggle('deck-next--skip', skip);
   })();
   paintLetter(c);
-  $('#rateVal').textContent = (c.band.rate * 100).toFixed(1);
+  $('#rateVal').textContent = window.__nfPct(c.band.rate);
   $('#bandHd').textContent = c.band.label;
-  $('#contribRate').textContent = (c.band.rate * 100).toFixed(1) + '%';
+  $('#contribRate').textContent = window.__nfPct(c.band.rate) + '%';
   $$('.band').forEach(function(b){
     b.classList.toggle('on', parseInt(b.getAttribute('data-band'),10) === c.band.id);
   });
@@ -20699,7 +20716,7 @@ function recalc(){
   if(c.kgTotal === 0){
     st.textContent = 'NO VOLUME';
     line('Set a coffee volume in Module A to see the step-up ledger.');
-  } else if(c.band.id < 3){
+  } else if(c.band.id < BANDS.length){
     var next = BANDS[c.band.id];
     var nPrice = next.from;
     var nCoffee = c.kgTotal * nPrice, nContrib = nCoffee * next.rate;
@@ -21291,7 +21308,8 @@ function applyMarket(k){
   /* the dial drew its two rungs from hardcoded 45.50 / 46.00. Publish the
      live market's real thresholds instead, so the marks follow the band table
      (and the AE card) rather than a copy of SG's old numbers. */
-  window.__nfBandMarks = { base: MKT.bands[0].from, mid: MKT.bands[1].from, full: MKT.bands[2].from };
+  (function(){ var b=MKT.bands, L=b[b.length-1];
+     window.__nfBandMarks = { base: b[0].from, mid: (b.length>2 ? b[1].from : (b[0].from+L.from)/2), full: L.from }; })();
   /* MKT.mach[k] is now { r24, r36, buy } — copy all three, and keep m.price
      as the "From" figure the tiles print, which is the 36-month rate. */
   MACHINES.forEach(function(m){
@@ -21380,9 +21398,13 @@ function applyMarket(k){
   setT('#slFloor', 'Floor ' + MKT.kg.floor.toFixed(2));
   setT('#slDef',   'Default ' + MKT.kg.def.toFixed(2));
   setT('#slCeil',  'Ceiling ' + MKT.kg.ceil.toFixed(2));
-  setT('#bR1', 'Band 01 · ' + BANDS[0].range);
-  setT('#bR2', 'Band 02 · ' + BANDS[1].range);
-  setT('#bR3', 'Band 03 · ' + BANDS[2].range);
+  (function(){ var host=document.querySelector('.bands'); if(!host) return;
+     var ramp = BANDS.length===2, h='';
+     for(var i=0;i<BANDS.length;i++){ var b=BANDS[i], last=i===BANDS.length-1;
+       var pct = ramp && !last ? window.__nfPct(b.rate)+'% → '+window.__nfPct(BANDS[BANDS.length-1].rate)+'%' : window.__nfPct(b.rate)+'%';
+       var sub = last ? 'Full rate' : (ramp ? 'Rises with the price' : (i===0 ? 'Base share' : 'Stepped share'));
+       h += '<div class="band" data-band="'+(i+1)+'"><span class="bl2" id="bR'+(i+1)+'">Band 0'+(i+1)+' · '+b.range+'</span><span class="bp">'+pct+'</span><span class="bl2">'+sub+'</span></div>'; }
+     host.innerHTML = h; })();
   /* the on-page placeholder caveat is gone at Alex's request — the warning now
      lives only in this file's header comment. THE PRICES ARE STILL INVENTED. */
   /* 28 Aug (pass146): on an unpriced market the whole block is hidden — the label
@@ -25293,11 +25315,13 @@ window.__nfRoller(
         var M = window.__nfMkt ? window.__nfMkt() : null;
         var c = window.__nfCup();
         var cur = window.__nfCur || 'SGD';
-        var B = (M && M.bands) || [{from:45,rate:.05},{from:48,rate:.075},{from:51,rate:.1}];
+        var B = (M && M.bands) || [{from:46,rate:.05},{from:51,rate:.1}];
         var cup = function(b){ return (b.from*b.rate/(1000/18)*100).toFixed(1); };
         var pct = function(b){ return (b.rate*100).toString().replace(/\.0$/,'')+'%'; };
         return '<p>Every kilo you buy carries a conservation share: a slice of <b>what you pay</b> that goes straight to the NGOs and farmers, on top of the coffee itself.</p>'
-          + '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup. From <b>'+Math.round(B[1].from)+'</b> it steps up to <b>'+pct(B[1])+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), and from <b>'+Math.round(B[2].from)+'</b> the full <b>'+pct(B[2])+'</b> (about <b>'+cup(B[2])+' '+c.word+'</b>).</p>'
+          + (B.length===2
+              ? '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup. It rises with every step in price, and from <b>'+Math.round(B[1].from)+'</b> it is the full <b>'+pct(B[1])+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), on the whole price, however high you go.</p>'
+              : '<p>At <b>'+cur+' '+Math.round(B[0].from)+'</b> that slice is <b>'+pct(B[0])+'</b>, about <b>'+cup(B[0])+' '+c.word+'</b> a cup. From <b>'+Math.round(B[1].from)+'</b> it steps up to <b>'+pct(B[1])+'</b> (about <b>'+cup(B[1])+' '+c.word+'</b>), and from <b>'+Math.round(B[B.length-1].from)+'</b> the full <b>'+pct(B[B.length-1])+'</b> (about <b>'+cup(B[B.length-1])+' '+c.word+'</b>).</p>')
           + '<p>Small numbers on a cup, real money at the forest edge: across the climb, what reaches the forest <b>more than doubles</b>.</p>';
       }
       var gr=mk('r','Where it goes',__whereItGoes());
@@ -25625,12 +25649,14 @@ window.__nfRoller(
             else {
               // Name the next rung on the ladder and what crossing to it is worth —
               // site band points, ES mechanism.
-              var nextPrice = atMid ? MK.full : MK.mid;      /* pass141: from the market */
-              var nextRate  = atMid ? 0.10 : 0.075;
+              /* 117: on a ramp the only named step is the opener; three-band markets keep the mid rung */
+              var ramp = (typeof BANDS!=='undefined' && BANDS && BANDS.length===2);
+              var nextPrice = (ramp || atMid) ? MK.full : MK.mid;
+              var nextRate  = (ramp || atMid) ? 0.10 : 0.075;
               var away=(nextPrice-d.price);
               var gainCup=(nextPrice*nextRate - d.price*rateNow)*DOSE/1000*100;   /* extra ¢/cup at the next step */
               var gainYr=Math.round(gainCup/100*d.vol);                            /* extra SGD/yr at her volume */
-              var label = atMid ? 'the full 10%' : '7.5%';
+              var label = (ramp || atMid) ? 'the full 10%' : '7.5%';
               enc.textContent=CURP+' '+away.toFixed(2)+' more steps up to '+label+' — about +'
                 +gainCup.toFixed(1).replace(/\.0$/,'')+window.__nfCup().sym+' a cup, and ~'+CURP+' '+gainYr.toLocaleString('en-SG')
                 +'/yr more to the forests →';
