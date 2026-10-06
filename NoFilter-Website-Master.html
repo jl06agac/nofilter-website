@@ -10907,6 +10907,11 @@ addEventListener('error', function(e){
 .fbh-origin-sub .fbh-sub-eyebrow{font-family:var(--fbh-font-mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--fbh-orange);margin-bottom:var(--fbh-s-4);display:flex;align-items:center;gap:10px;}
 .fbh-origin-sub .fbh-sub-eyebrow::before{content:"";width:28px;height:1px;background:var(--fbh-orange);display:inline-block;}
 .fbh-origin-sub .fbh-sub-copy h4{font-family:var(--fbh-font-display);font-weight:800;font-size:clamp(24px,3vw,40px);line-height:1.02;text-transform:uppercase;letter-spacing:-.01em;margin:0 0 var(--fbh-s-4);}
+/* 6 Oct · the Record drawers live in .fbh-lab, not .fbh-origin-sub, so the h4 rule
+   above never reached them and the new lede lines fell back to the global 16px
+   reset. Same type, scoped to where the drawers actually are. */
+.fbh-drawer .fbh-sub-copy h4{font-family:var(--fbh-font-display);font-weight:800;font-size:clamp(26px,3vw,40px);line-height:1.02;text-transform:uppercase;letter-spacing:-.01em;color:var(--fbh-fg-dark,#F4EFE2);margin:0 0 var(--fbh-s-4)}
+.fbh-drawer .fbh-sub-copy h4+p{margin-top:0}
 .fbh-origin-sub .fbh-sub-copy p{font-size:var(--fbh-t-body-lg);line-height:1.62;max-width:48ch;margin:0;}
 .fbh-o-arakan-sub .fbh-sub-copy p{color:var(--fbh-fg-2-dark);}
 .fbh-origin-sub .fbh-sub-copy .fbh-invest{margin-top:var(--fbh-s-5);font-family:var(--fbh-font-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--fbh-orange);}
