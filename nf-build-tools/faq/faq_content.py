@@ -146,7 +146,7 @@ CATEGORIES = [
         "n": "03", "id": "buying", "cls": "The setup", "plate": "CaféMatic 8 · NoFilter livery",
         "title": "Buying NoFilter",
         "strap": "Coffee, machines and what it actually costs.",
-        "img": "https://nofilter-shared.netlify.app/cafematic-8-w1400.webp",
+        "img": "https://nofilter-shared.netlify.app/cafematic-8-v4-w1254.webp",
         "alt": "A CaféMatic 8 bean-to-cup machine in NoFilter livery",
         "items": [
             {
@@ -178,7 +178,7 @@ CATEGORIES = [
             },
             {
                 "id": "sizing",
-                "img": "https://nofilter-shared.netlify.app/cafematic-8-w1400.webp",
+                "img": "https://nofilter-shared.netlify.app/cafematic-8-v4-w1254.webp",
                 "alt": 'A CaféMatic 8 bean-to-cup machine in NoFilter livery',
                 "cap": 'CaféMatic 8 · NoFilter livery',
                 "q": "How do you work out which machine and how much coffee we need?",

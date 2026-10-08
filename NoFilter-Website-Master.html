@@ -7215,7 +7215,7 @@ html:not(.nf-unlocked) .mgut{display:none !important}
 /* THE PHOTO WELL IS CREAM, NOT BLACK — and that is not a whim. The coffee
    dossier can use a #0c0c0b video well because its sheet is a saturated origin
    colour, so the well reads as a frame cut into it. Our machine shots
-   (cafematic-*-w1400.webp) are product photography on a cream ground of
+   (cafematic-*-v4-w1254.webp) are product photography on a cream ground of
    #F0E9DE, which on an ink sheet would be a pale rectangle floating in the
    dark. So the well is GIVEN that cream instead: the photo's own ground runs
    out to the frame edge and the machine sits in a lit panel inset in a dark
@@ -13981,8 +13981,9 @@ addEventListener('error', function(e){
                every client pitch off this shared folder, so it is neither
                replaced nor removed. -->
           <picture>
-            <source srcset="../../_CDN-UPLOAD-SAFE/cafematic-8-w1400.webp" type="image/webp">
-            <img class="nw-sw is-on" src="../../_CDN-UPLOAD-SAFE/cafematic-8.png"
+            <!-- 125 (8 Oct): current-wrap render; JPEG fallback instead of the 1.49 MB PNG. -->
+            <source srcset="../../_CDN-UPLOAD-SAFE/cafematic-8-v4-w1254.webp" type="image/webp">
+            <img class="nw-sw is-on" src="../../_CDN-UPLOAD-SAFE/cafematic-8-v4.jpg"
                  alt="CaféMatic 8 in Hold The Line livery"
                  width="1254" height="1254" loading="lazy" decoding="async">
           </picture>
@@ -16061,22 +16062,22 @@ var MACHINES = [
     spec:['1 grinder','Fresh-milk drinks','True countertop'],
     specLine:'1 grinder · fresh-milk drinks · true countertop',
     r24:0, r36:0, buy:0, price:0,   /* 117: written by applyMarket() from MKT.mach */
-    img:'../../_CDN-UPLOAD-SAFE/cafematic-2-w1400.webp' },   /* pass109 */
+    img:'../../_CDN-UPLOAD-SAFE/cafematic-2-v4-w1254.webp' },   /* pass109 */
   { k:'cm5', name:'CaféMatic 5', forWho:'Mid-size teams · up to ~75',
     spec:['1 grinder','1 powder hopper','Steam wand + hot water'],
     specLine:'1 grinder · 1 powder hopper · steam wand + hot water',
     r24:0, r36:0, buy:0, price:0,   /* 117: written by applyMarket() from MKT.mach */
-    img:'../../_CDN-UPLOAD-SAFE/cafematic-5-w1400.webp' },   /* pass109 */
+    img:'../../_CDN-UPLOAD-SAFE/cafematic-5-v4-w1254.webp' },   /* pass109 */
   { k:'cm6', name:'CaféMatic 6', forWho:'Large floors · 100+',
     spec:['2 grinders','Two beans side by side','No powder'],
     specLine:'2 grinders · two beans side by side · no powder',
     r24:0, r36:0, buy:0, price:0,   /* 117: written by applyMarket() from MKT.mach */
-    img:'../../_CDN-UPLOAD-SAFE/cafematic-6-w1400.webp' },   /* pass109 */
+    img:'../../_CDN-UPLOAD-SAFE/cafematic-6-v4-w1254.webp' },   /* pass109 */
   { k:'cm8', name:'CaféMatic 8', forWho:'Large floors · 100+',
     spec:['2 grinders','2 powder hoppers','The fullest menu'],
     specLine:'2 grinders · 2 powder hoppers · the fullest menu',
     r24:0, r36:0, buy:0, price:0,   /* 117: written by applyMarket() from MKT.mach */
-    img:'../../_CDN-UPLOAD-SAFE/cafematic-8-w1400.webp' }   /* pass109 */
+    img:'../../_CDN-UPLOAD-SAFE/cafematic-8-v4-w1254.webp' }   /* pass109 */
 ];
 
 /* TERM36_FACTOR and PURCHASE_FACTOR are GONE (30 Aug 2026).
@@ -18951,7 +18952,7 @@ MACHINES.forEach(function(m){
 
   /* asset paths are DERIVED from a machine's own img rather than typed, so if
      the CDN prefix ever moves these move with it. m.img is
-     '../../_CDN-UPLOAD-SAFE/cafematic-6-w1400.webp'. */
+     '../../_CDN-UPLOAD-SAFE/cafematic-6-v4-w1254.webp'. */
   var ASSET = String((MACHINES[0] && MACHINES[0].img) || '').replace(/[^/]+$/, '');
 
   /* nfScrollTo — the console's scroller is .nf-focus-sec, NOT the document, so
@@ -26628,7 +26629,7 @@ function initSpecs(){
     capEl.textContent=CAP[machine].replace(/&amp;/g,'&');
     imgEl.style.opacity='';
     imgEl.src = (__live && __mk && __mk.machMeta && __mk.machMeta[__live.k]) ? __live.img
-              : '../../_CDN-UPLOAD-SAFE/cafematic-'+SLUG[machine].slice(2)+'.png';
+              : '../../_CDN-UPLOAD-SAFE/cafematic-'+SLUG[machine].slice(2)+'-v4-w1254.webp';   /* 125 */
     statsEl.innerHTML=STATS[machine].map(function(s,i){
       return '<div class="mx-stat" style="--s:'+i+'"><div class="mx-stat-n">'+s[0]+'</div><div class="mx-stat-l">'+s[1]+'</div></div>';
     }).join('');
