@@ -3238,6 +3238,7 @@ html.rail-slim .rail-tele{height:0;opacity:0;overflow:hidden;pointer-events:none
   padding:clamp(18px,2vw,26px) 0;overflow:hidden;
   margin:clamp(30px,4vw,56px) calc(var(--bleed-r, var(--gut)) * -1) 0
                               calc(var(--bleed-l, var(--gut)) * -1)}
+.cmq-note{margin:clamp(14px,1.6vw,20px) var(--gut,32px) 0;text-align:center;line-height:1.9;text-transform:none;letter-spacing:.06em;font-size:11px;max-width:980px;margin-left:auto;margin-right:auto}
 .cmq-vp{position:relative;overflow:hidden;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
@@ -10153,6 +10154,10 @@ window.__nfRelayout = function(el, fn){
   <div class="cmq-vp">
     <div class="cmq-track" id="cmqTrack"></div>
   </div>
+  <!-- 128 · the strip above is built by script, so this line is the only place a
+       crawler meets a client name or an appearance. Static on purpose. -->
+  <p class="lab cmq-note">Poured at Microsoft, Accenture, Blackstone, Eastspring, Sprinklr and Cempedak Island, and through ISS, EFS and Lyreco.
+    Served at the World Economic Forum in Davos and World of Coffee Indonesia; shown at Singapore International Agri-Food Week, October 2026, for EUDR-ready traceability.</p>
 </div>
 
 <script>
@@ -14257,34 +14262,6 @@ addEventListener('error', function(e){
     </div>
   </section>
 
-    <!-- 126 · 28 Oct. Everything a procurement reader asks for in the first call,
-         and nothing the site said anywhere: where the coffee has been served,
-         who pours it daily, and what the traceability means for EUDR reporting.
-         Facts as Alex stated them; no claim of certification. -->
-    <section class="beat" data-beat data-ground="paper" id="record" style="padding:96px 0;margin:0;width:auto;min-height:0">
-      <div class="wrap" style="padding:0 clamp(40px,6vw,110px)">
-      <div class="beat-hd"><span class="sn">09</span><span class="st">On the record</span></div>
-      <div class="two">
-        <div class="two-a">
-          <h2 class="d2"><span class="rl"><span>Where it&rsquo;s</span></span><span class="rl"><span style="color:var(--signal)">poured.</span></span></h2>
-          <p class="body-lg fade d1x" style="margin-top:20px">NoFilter coffee has been served at the World
-            Economic Forum in Davos and at World of Coffee Indonesia, and was shown at Singapore
-            International Agri-Food Week in October 2026 for EUDR-ready traceability.</p>
-          <p class="body-sm fade d1x" style="margin-top:18px">Every origin is mapped to GPS plot boundaries
-            and cross-checked with the conservation partner on the ground, so the geolocation an EU
-            Deforestation Regulation due-diligence statement asks for is on file for each lot rather
-            than reconstructed afterwards.</p>
-        </div>
-        <div class="two-b fade d1x">
-          <p class="lab" style="margin-top:6px">Poured daily at</p>
-          <p class="body-lg" style="margin-top:10px">Microsoft &middot; Accenture &middot; Eastspring &middot; Sprinklr &middot; Blackstone</p>
-          <p class="lab" style="margin-top:22px">Markets</p>
-          <p class="body-sm" style="margin-top:8px">Singapore and the United Arab Emirates, with workplace supply in Dubai and
-            Abu Dhabi. Now taking on clients in the United Kingdom.</p>
-        </div>
-      </div>
-      </div>
-    </section>
 
 </div>
 
