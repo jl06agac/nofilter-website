@@ -182,17 +182,23 @@ if (!index.includes('/assets/keystroke-audio.js')) { console.error('keystroke-au
 // three ids the retired beats carry are null-guarded (machGrid, machTable,
 // svcTable). Each block must be found exactly once or the build stops.
 {
-  const cut = (open, label) => {
+  // sections nest (#why holds <section class="beat">s), so the close is found
+  // by depth, not by the first </section>
+  const cut = (open, label, expect) => {
     const n = index.split(open).length - 1;
-    if (n !== 1) { console.error(`${label}: found ${n} times (need 1)`); process.exit(1); }
-    const a = index.indexOf(open);
-    const b = index.indexOf('</section>', a);
-    if (b < 0) { console.error(`${label}: no closing section`); process.exit(1); }
-    index = index.slice(0, a) + index.slice(b + '</section>'.length);
-    console.log(`retired markup cut: ${label} (${b - a} chars)`);
+    if (n !== expect) { console.error(`${label}: found ${n} times (need ${expect})`); process.exit(1); }
+    for (let k = 0; k < expect; k++) {
+      const a = index.indexOf(open);
+      const re = /<section\b|<\/section>/g; re.lastIndex = a;
+      let depth = 0, b = -1, m;
+      while ((m = re.exec(index))) { depth += m[0] === '</section>' ? -1 : 1; if (depth === 0) { b = m.index + m[0].length; break; } }
+      if (b < 0) { console.error(`${label}: no closing section`); process.exit(1); }
+      index = index.slice(0, a) + index.slice(b);
+      console.log(`retired markup cut: ${label} (${b - a} chars)`);
+    }
   };
-  cut('<section class="route" id="why"', '#why route');
-  while (index.includes('<section class="beat beat-retired"')) cut('<section class="beat beat-retired"', 'retired beat');
+  cut('<section class="route" id="why"', '#why route', 1);
+  cut('<section class="beat beat-retired"', 'retired beat', 2);
 }
 
 // ── 2d · dead CSS: a rule naming a class or id that appears nowhere in the

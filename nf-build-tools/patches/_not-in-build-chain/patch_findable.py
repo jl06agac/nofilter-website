@@ -107,11 +107,12 @@ PROOF = '''
          and nothing the site said anywhere: where the coffee has been served,
          who pours it daily, and what the traceability means for EUDR reporting.
          Facts as Alex stated them; no claim of certification. -->
-    <section class="beat" data-beat data-ground="paper" id="record">
+    <section class="beat" data-beat data-ground="paper" id="record" style="padding:96px 0;margin:0;width:auto;min-height:0">
+      <div class="wrap" style="padding:0 clamp(40px,6vw,110px)">
       <div class="beat-hd"><span class="sn">09</span><span class="st">On the record</span></div>
       <div class="two">
         <div class="two-a">
-          <h2 class="d2"><span class="rl"><span>Where it has</span></span><span class="rl"><span style="color:var(--signal)">been poured.</span></span></h2>
+          <h2 class="d2"><span class="rl"><span>Where it&rsquo;s</span></span><span class="rl"><span style="color:var(--signal)">poured.</span></span></h2>
           <p class="body-lg fade d1x" style="margin-top:20px">NoFilter coffee has been served at the World
             Economic Forum in Davos and at World of Coffee Indonesia, and was shown at Singapore
             International Agri-Food Week in October 2026 for EUDR-ready traceability.</p>
@@ -127,6 +128,7 @@ PROOF = '''
           <p class="body-sm" style="margin-top:8px">Singapore and the United Arab Emirates, with workplace supply in Dubai and
             Abu Dhabi. Now taking on clients in the United Kingdom.</p>
         </div>
+      </div>
       </div>
     </section>
 '''
