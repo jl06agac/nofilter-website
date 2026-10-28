@@ -159,6 +159,14 @@ CATEGORIES = [
         "alt": "A CaféMatic 8 bean-to-cup machine in NoFilter livery",
         "items": [
             {
+                "id": "office-coffee-supply",
+                "q": "What does office coffee supply from NoFilter include?",
+                "a": """
+<p>Whole-bean coffee by the kilo, bean-to-cup machines on rental or purchase, scheduled servicing, fresh milk and consumables, on one monthly invoice. Four single origins from NGO-led conservation projects in Sumatra and Myanmar, roasted to order, with a share of every kilo going back to the conservation partner at the origin.</p>
+<p>In Singapore we supply offices, hotels and caf&eacute;s islandwide, priced in SGD. In the UAE we supply workplaces in Dubai and Abu Dhabi, priced in AED. In the UK we are now taking on clients, priced in GBP.</p>
+""",
+            },
+            {
                 "id": "trade-pricing",
                 "q": "How do I get a price?",
                 "a": """
