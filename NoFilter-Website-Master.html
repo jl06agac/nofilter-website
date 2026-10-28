@@ -12680,6 +12680,35 @@ addEventListener('error', function(e){
      belongs, and everything after them is the answer to it.
      ══════════════════════════════════════════════════════════════════════════ -->
 <div class="wrap">
+    <!-- 131 · the buyer's words, first. Market phrases are swapped per tree by
+         build-ship.mjs (SCOPE); edit them there, not here, for /ae and /uk. -->
+    <style>#supply .ro .k{color:#6E6760}#supply .ro .v{color:#1A1815}#supply .ro .v.sig{color:var(--signal)}#supply .ro .v a{color:var(--signal)}</style>
+    <section class="beat" data-beat data-ground="paper" id="supply">
+      <div class="beat-hd"><span class="sn">01</span><span class="st">Office coffee supply &middot; Singapore</span></div>
+      <div class="two">
+        <div class="two-a">
+          <h2 class="d2"><span class="rl"><span>Office coffee</span></span><span class="rl"><span style="color:var(--signal)">in Singapore.</span></span></h2>
+          <p class="body-lg fade d1x" style="margin-top:22px">NoFilter is an office coffee supplier in Singapore.
+            Whole-bean coffee by the kilo, bean-to-cup machines on rental or purchase, scheduled servicing,
+            fresh milk and consumables, on one monthly invoice.</p>
+          <p class="body-sm fade d1x" style="margin-top:16px">Four single origins from NGO-led conservation projects in Sumatra
+            and Myanmar, roasted to order and delivered islandwide. A share of every kilo goes back to the
+            conservation partner at the origin, written into the invoice. Prices in SGD, ex GST, from the quote
+            builder in about two minutes.</p>
+        </div>
+        <div class="two-b fade d1x">
+          <div class="readout">
+            <div class="ro"><div class="k">For</div><div class="v">Offices &middot; hotels &middot; caf&eacute;s &middot; schools</div></div>
+            <div class="ro"><div class="k">Machines</div><div class="v">CaféMatic 2 &middot; 5 &middot; 6 &middot; 8, rental or purchase</div></div>
+            <div class="ro"><div class="k">Servicing</div><div class="v">Scheduled &middot; parts and labour on rental</div></div>
+            <div class="ro"><div class="k">Coffee</div><div class="v sig">Per kg, 5&ndash;10% to conservation</div></div>
+            <div class="ro"><div class="k">Delivery</div><div class="v">Islandwide, roasted to order</div></div>
+            <div class="ro"><div class="k">Quote</div><div class="v"><a href="#quote">Build it online &rarr;</a></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ══ EDITORIAL AUDIT, 21 Aug ═══════════════════════════════════════════
          Alex: "the work section is a total duplication/confused mess."
          It was. Read end to end the route argued the same three things twice each
@@ -16836,8 +16865,8 @@ var ROUTE_META = {
              desc:'Four single origins bought through NGO-led conservation projects: Batang Toru, Batang Gadis, Gayo Lues and the Arakan Mountains.' },
   shop:    { path:'/shop',             title:'Shop conservation coffee — 250 g and 1 kg | NoFilter',
              desc:'Retail bags of our four single origins, from NGO-led conservation projects in Indonesia and Myanmar. The shop opens shortly.' },
-  work:    { path:'/wholesale-coffee', title:'Wholesale coffee for offices, cafés and hotels | NoFilter',
-             desc:'Single-origin conservation coffee supplied by the kilo to offices, cafés, hotels and visitor attractions, with bean-to-cup machines on lease.' },
+  work:    { path:'/wholesale-coffee', title:'Office coffee supplier in Singapore | NoFilter',
+             desc:'Office coffee supply in Singapore: conservation coffee by the kilo for offices, hotels and cafés, with bean-to-cup machines on rental, servicing and milk on one invoice.' },
   quote:   { path:'/trade-pricing',    title:'Trade pricing and quote builder | NoFilter',
              desc:'Choose your coffees and machines, set your cups a year, and see the wholesale rate, monthly cost and forest contribution before you send it.' }
 };
@@ -16848,8 +16877,8 @@ var ROUTE_META_AE = {
              desc:'The four single origins we buy through NGO-led conservation projects, supplied across the UAE: Batang Toru, Batang Gadis, Gayo Lues, Arakan.' },
   shop:    { title:'Shop conservation coffee in the UAE — 250 g and 1 kg',
              desc:'Retail bags of our four single origins in 250 g and 1 kg, shipped within the UAE and priced in AED. The shop opens shortly.' },
-  work:    { title:'Wholesale coffee for UAE offices and cafés | NoFilter',
-             desc:'Single-origin conservation coffee supplied by the kilo to offices, cafés and hotels across the UAE, with bean-to-cup machines on lease.' },
+  work:    { title:'Office coffee supplier in Dubai and Abu Dhabi | NoFilter',
+             desc:'Office coffee supply for workplaces in Dubai and Abu Dhabi: conservation coffee by the kilo, bean-to-cup machines on rental or purchase, servicing and milk on one invoice.' },
   quote:   { title:'Trade pricing in AED and quote builder | NoFilter',
              desc:'Choose your coffees and machines, set your cups a year, and see the AED rate, monthly cost and forest contribution before you send it.' }
 };
@@ -16888,8 +16917,8 @@ var ROUTE_META_UK = {
              desc:'The four single origins we buy through NGO-led conservation projects, supplied across the UK: Batang Toru, Batang Gadis, Gayo Lues, Arakan.' },
   shop:    { title:'Shop conservation coffee in the UK — 250 g and 1 kg',
              desc:'Retail bags of our four single origins in 250 g and 1 kg, shipped within the UK and priced in GBP. The shop opens shortly.' },
-  work:    { title:'Wholesale coffee for UK offices and cafés | NoFilter',
-             desc:'Single-origin conservation coffee supplied by the kilo to offices, cafés and hotels across the UK, with bean-to-cup machines on lease.' },
+  work:    { title:'Office coffee supplier for the UK | NoFilter',
+             desc:'Now taking on office coffee clients in London and across the UK: conservation coffee by the kilo, bean-to-cup machines on rental or purchase, priced in GBP.' },
   quote:   { title:'Trade pricing in GBP and quote builder | NoFilter',
              desc:'Choose your coffees and machines, set your cups a year, and see the GBP rate, monthly cost and forest contribution before you send it.' }
 };var ORIGIN_META_UK = {
