@@ -187,9 +187,7 @@ CATEGORIES = [
             },
             {
                 "id": "sizing",
-                "img": "https://nofilter-shared.netlify.app/cafematic-8-v4-w1254.webp",
-                "alt": 'A CaféMatic 8 bean-to-cup machine in NoFilter livery',
-                "cap": 'CaféMatic 8 · NoFilter livery',
+                # 28 Oct, Alex: the machine render under this answer "is messy" — out.
                 "q": "How do you work out which machine and how much coffee we need?",
                 "a": """
 <p>Volume first: tell the builder roughly how many cups a year you expect and it converts them at 18 g a cup. If you already know your kilos, enter those instead.</p>
