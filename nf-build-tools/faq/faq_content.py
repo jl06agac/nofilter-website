@@ -233,6 +233,14 @@ CATEGORIES = [
 """,
             },
             {
+                "id": "clients",
+                "q": "Who already pours NoFilter?",
+                "a": """
+<p>Workplace clients include Microsoft, Accenture, Blackstone, Eastspring and Sprinklr, with supply through facilities partners ISS and EFS and, in Singapore, the reseller Lyreco.</p>
+<p>The coffee has been served at the World Economic Forum in Davos and at World of Coffee Indonesia, and was shown at Singapore International Agri-Food Week in October 2026 for EUDR-ready traceability.</p>
+""",
+            },
+            {
                 "id": "markets",
                 "q": "Where does NoFilter currently operate?",
                 "a": """

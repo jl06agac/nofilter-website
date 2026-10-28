@@ -44,7 +44,7 @@ with the market switch in the header, or with ?mkt=sg, ?mkt=ae or ?mkt=gb.
   offices, cafés, hotels and visitor attractions: coffee by the kilo and
   bean-to-cup machines on lease.
 - [Trade pricing](https://nofilter.sg/trade-pricing) — the quote builder.
-- [FAQs](https://nofilter.sg/faqs) — seventeen questions in four sections:
+- [FAQs](https://nofilter.sg/faqs) — eighteen questions in four sections:
   why NoFilter exists, how the conservation model works, buying, and what
   happens once you are a customer. Every answer stands on its own and has a
   stable anchor, e.g. https://nofilter.sg/faqs#conservation-contribution.
