@@ -68,7 +68,7 @@ def base_for(rel):
     """the market tree a page lives in: '/uk' for uk/**, '' otherwise (the .ae
     host rewrites bare paths, so ae/** links to /faqs like the root does)"""
     rel = rel.replace("\\", "/")
-    return "/uk" if rel == "uk" or rel.startswith("uk/") else ""
+    return "/uk" if rel == "uk" or rel.startswith("uk/") else "/ae" if rel == "ae" or rel.startswith("ae/") else ""
 
 
 def wire_site(bundle):

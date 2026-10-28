@@ -1,0 +1,6 @@
+PASS request handler generated a code; both outbound emails intercepted
+PASS invalid code denied with no rates
+PASS code bound to requesting email
+PASS valid code returns all three market payloads with no-store
+PASS expired code denied
+LIMIT: handler integration only. Browser gate and live email delivery untested.

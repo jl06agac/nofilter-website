@@ -134,6 +134,7 @@ CATEGORIES = [
                 "a": """
 <p>Every origin is mapped to GPS plot boundaries, cross-checked against government conservation boundaries and with the NGO partner on the ground, and monitored by satellite through Global Forest Watch.</p>
 <p>That is the plot-level geolocation an EU Deforestation Regulation due-diligence statement requires, and it is held per lot rather than reconstructed when a buyer asks. It was shown at Singapore International Agri-Food Week in October 2026 on exactly that basis.</p>
+<p>Plot mapping supports due diligence; it does not by itself establish full EUDR compliance. Buyers need to assess the evidence and due-diligence requirements for each supply arrangement.</p>
 <p>We are not a certification scheme, and we do not carry Fairtrade or Rainforest Alliance marks. <a href="#certification">How we compare with Rainforest Alliance and Fairtrade</a> says why.</p>
 """,
             },
@@ -163,7 +164,7 @@ CATEGORIES = [
                 "q": "What does office coffee supply from NoFilter include?",
                 "a": """
 <p>Whole-bean coffee by the kilo, bean-to-cup machines on rental or purchase, scheduled servicing, fresh milk and consumables, on one monthly invoice. Four single origins from NGO-led conservation projects in Sumatra and Myanmar, roasted to order, with a share of every kilo going back to the conservation partner at the origin.</p>
-<p>In Singapore we supply offices, hotels and caf&eacute;s islandwide, priced in SGD. In the UAE we supply workplaces in Dubai and Abu Dhabi, priced in AED. In the UK we are now taking on clients, priced in GBP.</p>
+<p>In Singapore we supply offices, hotels and caf&eacute;s islandwide, priced in SGD. We have workplace clients in Dubai and are ready to serve Abu Dhabi and the wider UAE, priced in AED. In London and across the UK we welcome enquiries and are taking on clients, priced in GBP.</p>
 """,
             },
             {
@@ -242,7 +243,7 @@ CATEGORIES = [
                 "id": "clients",
                 "q": "Who already pours NoFilter?",
                 "a": """
-<p>Workplace clients include Microsoft, Accenture, Blackstone, Eastspring and Sprinklr, with supply through facilities partners ISS and EFS and, in Singapore, the reseller Lyreco.</p>
+<p>Workplace clients include Microsoft, Accenture, Blackstone, Eastspring Investments and Sprinklr, with supply through facilities partners ISS and EFS and, in Singapore, the reseller Lyreco.</p>
 <p>The coffee has been served at the World Economic Forum in Davos and at World of Coffee Indonesia, and was shown at Singapore International Agri-Food Week in October 2026 for EUDR-ready traceability.</p>
 """,
             },
@@ -250,8 +251,8 @@ CATEGORIES = [
                 "id": "markets",
                 "q": "Where does NoFilter currently operate?",
                 "a": """
-<p>Singapore and the United Arab Emirates, through NoFilter Pte. Ltd. and NoFilter LLC. In Singapore we supply offices, hotels and caf&eacute;s; in the UAE, workplaces in Dubai and Abu Dhabi.</p>
-<p>We are now taking on clients in the UK, priced in GBP at <a href="/uk">nofilter.sg/uk</a> and supplied from Singapore once an order is placed. Enquiries from elsewhere are answered; if we cannot supply a market properly we will say so.</p>
+<p>Singapore and the United Arab Emirates, through NoFilter Pte. Ltd. and NoFilter LLC. In Singapore we supply offices, hotels and caf&eacute;s; we have workplace clients in Dubai and are ready to serve Abu Dhabi and the wider UAE. We can also supply visitor attractions such as zoos, with no zoo client yet.</p>
+<p>We welcome enquiries and are now taking on clients in London and across the UK, priced in GBP at <a href="/uk">nofilter.sg/uk</a> and supplied from Singapore once an order is placed. Enquiries from elsewhere are answered; if we cannot supply a market properly we will say so.</p>
 """,
             },
         ],
@@ -297,15 +298,15 @@ HERO_CAP_2 = "1°38′18″N · 99°15′56″E · on record"
 # first cut ran to 83 and 219, and the two markets shared both, which is the one
 # duplicate pair in the bundle. The house convention is followed: the UAE page
 # says so in its own title rather than repeating the Singapore one.
-TITLE = "FAQs — conservation coffee, certification, pricing | NoFilter"
+TITLE = "Office coffee and sustainability FAQs | NoFilter Singapore"
 DESC = ("How NoFilter buys coffee through NGO-led conservation projects, how that "
         "differs from Rainforest Alliance and Fairtrade, and how trade pricing works.")
-TITLE_AE = "FAQs — conservation coffee in the UAE | NoFilter"
+TITLE_AE = "Office coffee FAQs for Dubai and Abu Dhabi | NoFilter UAE"
 DESC_AE = ("How NoFilter buys coffee through NGO-led conservation projects, how that "
            "differs from certification schemes, and how UAE trade supply is priced.")
 # 6 Sep · the UK pair, for /uk/faqs. Same convention: the page says which market
 # it is in its own title, so no two pages in the bundle share a title or a
 # description. Mirrored from the UAE wording — copy is Alex's to change.
-TITLE_UK = "FAQs — conservation coffee in the UK | NoFilter"
+TITLE_UK = "Office coffee and sustainability FAQs | NoFilter UK"
 DESC_UK = ("How NoFilter buys coffee through NGO-led conservation projects, how that "
            "differs from certification schemes, and how UK trade supply is priced.")

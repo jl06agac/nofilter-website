@@ -18,7 +18,7 @@ Make NoFilter findable in Google and in AI assistants (ChatGPT, Perplexity, Gemi
 - Verification: plot polygons live, satellite live, drone rolling out 2026, ground evidence "coming soon".
 - Founder: Alex Clark. Q Arabica Grader and Level 2 Processor.
 - Phones: SG +65 8748 6814, UAE +971 56 966 7026. Entities: NoFilter Pte. Ltd (UEN 201839882N), NoFilter LLC (Sharjah, Shams).
-- OPEN QUESTION: founding year. The site's JSON-LD says 2019; the UEN suggests 2018 incorporation. Ask Alex which year (and month) before setting the Google Business Profile opening date.
+- RESOLVED by Alex, 28 Oct 2026: NoFilter launched as a brand in May 2024. The Singapore company was incorporated in 2018 as Saucy Bean and later renamed NoFilter Pte. Ltd, retaining UEN 201839882N. The old 2019 date is incorrect. Use 2024-05 for the brand organisation, 2018 for the Singapore legal entity; do not invent a day or infer a UAE incorporation date. Business Profile opening dates must describe the relevant brand/business location.
 
 ## Alex's working rules (non-negotiable)
 
@@ -89,18 +89,55 @@ Off-site:
 
 Baseline (Search Console, 3 months to 28 Oct): nofilter.sg 48 clicks, 7,690 impressions, average position 12.6; "arakan mountains" 5,587 impressions; "office coffee supplier" 70 impressions, 0 clicks. nofilter.ae: about 90 impressions.
 
-## Still to do, in priority order
+## Status after this session, 28 Oct 2026
 
-1. Search Console, nofilter.ae property: request indexing for `https://nofilter.ae/wholesale-coffee` and `https://nofilter.ae/faqs` (yesterday's quota is spent; Google allows about 10 a day).
-2. AI-assistant baseline. Ask ChatGPT (with search), Perplexity and Google AI Mode these questions and record whether NoFilter is named, how it's described, and who is named instead:
-   "office coffee supplier Singapore", "office coffee supplier Dubai", "office coffee Abu Dhabi", "office coffee supplier London", "EUDR compliant coffee supplier", "sustainable coffee for offices Singapore".
-   Save the results as a dated table. The monthly check repeats this and compares.
-3. Wikidata (Alex creates it in his own account; fields already given to him): label NoFilter; description "coffee company supplying offices, cafés and hotels in Singapore, the UAE and the UK, sourcing from conservation projects"; aliases NoFilter Coffee, NoFilter Pte. Ltd, NoFilter LLC; instance of business; industry coffee industry; country Singapore + United Arab Emirates; HQ Singapore; inception (confirm year); official website nofilter.sg + nofilter.ae; LinkedIn company ID nofiltercoffee; product coffee. When he sends the Q-number, add `https://www.wikidata.org/wiki/Q...` to the Organization `sameAs` in the template JSON-LD and rebuild.
-4. Business Profile finishing: the opening date (after the founding-year answer), plus the UAE profile once verified.
-5. Multi-page build (about a day of work; the biggest remaining gain). Today every URL serves the whole SPA, so crawlers that don't run JS (GPTBot, ClaudeBot, PerplexityBot) see the same blob at 30 addresses. Change the build pipeline, not the master, so each URL's HTML carries only its own route section plus shared chrome, with its own H1, title, description and canonical. The router must still work when people navigate within the site. Verify every route renders, check for JS errors with Playwright, and check that the access-verify function still serves rates.
-6. Known, harmless: Search Console reports "Product snippets: 4 invalid items" because the four coffees are typed as Product with no offers. Leave it until the shop opens and real prices exist; then add `offers`.
-7. Parked by Alex: roundup or directory pitches that need favours; event write-ups (Davos, World of Coffee Indonesia, Singapore International Agri-Food Week) pending his facts; 020.co.uk; Crunchbase; a comparison page (certification vs conservation sourcing).
+### Completed before website edits
 
-## Monthly check
+All 63 expanded baseline responses were captured through the actual interfaces, 21 each in ChatGPT Search, Perplexity and Google AI Mode. Canonical evidence: https://chatgpt.com/library?file_id=libfile_b47236caf214819198f9f58fc873c451&account_id=personal. Summary and repeat protocol: https://chatgpt.com/library?file_id=libfile_f5107abf817481919ee628cd2e3ac539&account_id=personal.
 
-The prompt is in the entity profiles doc, under "Monthly check: scheduled task prompt". It wasn't scheduled, because the scheduler refused it; Alex can set it up himself. It covers Search Console figures for both properties, the AI-assistant question set, Business Profile status, and drift in the facts-that-must-match table.
+NoFilter appeared in the conservation query in ChatGPT and Google, but none of the 54 location-specific answers. Perplexity cited NoFilter LinkedIn in the Singapore sustainable-office source list without naming it in the answer. Conditions differ across platforms; see the record. One run is a snapshot, not a stable ranking.
+
+### External updates completed
+
+- Search Console: indexing requests for https://nofilter.ae/wholesale-coffee and https://nofilter.ae/faqs were accepted on 28 Oct. Both were already indexed, with matching Google-selected canonicals. Last crawl shown: wholesale 7 Sep 2026 18:06:15; FAQ 13 Oct 2026 23:39:55, as displayed in the interface. Do not request again just to repeat this work.
+- Singapore Business Profile: submitted May 2024, with no day, as the brand opening date for the Singapore service-area business. Save succeeded; Google displayed pending review. LinkedIn is present in the profile.
+- UAE Business Profile: still verification required. No location-specific opening date has been inferred. Alex must complete verification before the remaining profile work.
+
+### Source work prepared, not deployed
+
+The original repository and the prior isolated copy still matched HEAD 68da69b and all 1,404 non-Git files at the initial comparison. The original had only its pre-existing .gitignore modification. A write probe in the original failed with Operation not permitted.
+
+Current working checkout: /Users/alexanderclark/Documents/Codex/2026-10-28/new-chat-2/website-work/NoFilter-Website. It contains the source edits, template, dependencies, existing SHIP directory and preserved .netlify link. The original repository has not been edited. The unrelated .gitignore change is preserved and excluded from the intended commit.
+
+See IMPLEMENTATION-GEO.md for the implementation and coverage review. The builder now projects each route from the master after the existing market/template transformations, rescues shared styles and retains guarded shared runtime code. Origin detail pages keep their own record. Native links and market navigation use document loads. FAQ pages retain their own metadata and content. The master retains standalone SPA behaviour.
+
+Brand structured data uses 2024-05; the Singapore legal entity uses 2018. UAE incorporation is left unspecified. Service copy distinguishes existing clients from market availability. Mapping alone is explicitly not full EUDR compliance. Quote placeholders are neutral in source; the existing server-side rates extraction remains. Public reference figures remain public by design. The static function-source path is explicitly denied in Netlify redirects, but this still requires a deployed HTTP check.
+
+The exact handoff build sequence ran in place in this checkout, using SHIP-2026-08-30f and SHIP-2026-10-28a. It produced 27 main/origin pages, three FAQs and the 404 page. No bundle was copied over the original.
+
+Validation evidence is in validation/static-results.json and validation/access-results.txt. All 30 content pages passed the current static assertions; 54 distinct inline scripts passed syntax parsing. The actual generated access-request and access-verify handlers passed valid, invalid, wrong-email and expired-code tests. Both outbound emails were intercepted, so no third party was contacted and no live email-delivery claim is made.
+
+### Required before preview or production
+
+Browser route loading, cross-route navigation, back/forward, all market controls, desktop/mobile comparison, console/resource checks and an actual JavaScript-disabled browser run remain untested. The browser pricing flow and safe screenshot evidence remain required. Handler tests do not replace them. Do not mark this change release-ready.
+
+This session blocked a local HTTP server (listen EPERM), and the browser security policy rejected file: URLs. Do not bypass those restrictions. Netlify status failed because the CLI could not write its settings temporary file under ~/Library/Preferences/netlify. No draft URL or production deployment exists. Original-source application and in-place original rebuild also remain blocked by read-only access.
+
+Continue in a session permitted to write the original repository, run the local preview server and use Netlify's existing configuration. Recheck the original diff before applying source edits, preserve .gitignore and .netlify, complete browser QA, then create a draft deployment on the linked NoFilter site. Never deploy to nofilter-shared. Alex must see the draft before production.
+
+## Wikidata review
+
+Do not combine the NoFilter brand, Singapore legal company and UAE LLC as aliases for one undifferentiated legal entity. A brand item would use May 2024, month precision; a Singapore company item would use its incorporation date and former name. May 2024 is Alex-confirmed, but a suitable public reference for that precise month still needs to accompany a Wikidata claim.
+
+Wikidata's policy permits a clearly identifiable entity described by serious public references; it is not the same as Wikipedia's article criteria. Review: https://www.wikidata.org/wiki/Wikidata:Notability. A public Companies.sg record supports the Singapore company name, UEN and former name Saucy Bean: https://www.companies.sg/business/201839882N/NOFILTER-PTE-LTD. It is a registry-derived secondary record, not an official ACRA extract. The company website and founder's launch announcement support brand identity and offering, but are self-published. The searches in this session did not establish strong independent coverage of the brand. Suitability is therefore plausible for the identifiable legal entity but not guaranteed; avoid presenting approval as certain.
+
+Alex creates any item in his account as agreed. No item was created and no Q-number was supplied. Add a real Q URL only to the sameAs of the entity it actually describes, then rebuild. Do not invent an ID or add a company ID indiscriminately to every organisation node.
+
+## Monthly comparison
+
+Repeat the three exact office queries for Singapore, Dubai, Abu Dhabi, UAE, London and UK, plus conservation coffee supplier, traceable office coffee, and EUDR compliant coffee supplier. Use fresh interface searches, preserve responses and source panels, and record settings. Compare by platform plus exact query. Count answer mentions separately from source-only appearances; keep unavailable queries separate from absence. Keep the October evidence intact and append a new period for each month. No monitoring automation has been created.
+
+## Parked work
+
+- Product snippets: retain the known missing-offers issue until real shop offers exist. Do not invent prices or offers. The Toru partner wording was corrected to PRCF Indonesia and OIC without adding offers.
+- Outreach/directory pitches, event write-ups awaiting Alex's facts, 020.co.uk, Crunchbase and the certification comparison page remain parked.

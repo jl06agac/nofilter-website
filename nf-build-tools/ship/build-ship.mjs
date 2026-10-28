@@ -17,6 +17,8 @@
 //     favicon, og-card, 404) is copied from the template untouched.
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, copyFileSync, existsSync } from 'node:fs';
 import { basename, join, relative, dirname } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { minify } from 'html-minifier-terser';
 import { purgeDocument } from './purge-css.mjs';
 
@@ -341,7 +343,7 @@ for (const rel of pages) {
         // 131 · the wholesale page's head, UAE
         ['Wholesale coffee for UAE offices and cafés | NoFilter', 'Office coffee supplier in Dubai and Abu Dhabi | NoFilter'],
         ['Single-origin conservation coffee supplied by the kilo to offices, cafés and hotels across the UAE, with bean-to-cup machines on lease.',
-         'Office coffee supply for workplaces in Dubai and Abu Dhabi: conservation coffee by the kilo, bean-to-cup machines on rental or purchase, servicing and milk on one invoice.'],
+         'Sustainable office coffee supply: serving Dubai workplaces and ready for Abu Dhabi and the wider UAE. Coffee, machines and servicing quoted in AED.'],
         ['an office, caf&eacute;, hotel, school or zoo looking for coffee worth',
          'a workplace in Dubai or Abu Dhabi looking for coffee worth'],
         ['Collected with every delivery, composted locally with community garden partners across Singapore. Nothing wasted.',
@@ -351,9 +353,9 @@ for (const rel of pages) {
       ],
       uk: [
         // 131 · the wholesale page's head, UK (runs before the generic UK swaps below)
-        ['Wholesale coffee for UK offices and cafés | NoFilter', 'Office coffee supplier for the UK | NoFilter'],
+        ['Wholesale coffee for UK offices and cafés | NoFilter', 'Office coffee supplier for London and the UK | NoFilter'],
         ['Single-origin conservation coffee supplied by the kilo to offices, cafés and hotels across the UK, with bean-to-cup machines on lease.',
-         'Now taking on office coffee clients in London and across the UK: conservation coffee by the kilo, bean-to-cup machines on rental or purchase, priced in GBP.'],
+         'Sustainable office coffee for London and the UK. Now taking on clients, with coffee and equipment quoted in GBP and servicing agreed for each workplace.'],
         ['Supplied across the UK, priced in GBP.', 'Now taking on clients in the UK, priced in GBP.'],
         ['supplied across the UK:', 'now offered in the UK:'],
         ['supplied by the kilo to offices, cafés and hotels across the UK', 'offered by the kilo to offices, cafés and hotels in the UK'],
@@ -362,7 +364,7 @@ for (const rel of pages) {
         // 131 · the wholesale page's head says the search phrase and the market
         ['Wholesale coffee for offices, cafés and hotels | NoFilter', 'Office coffee supplier in Singapore | NoFilter'],
         ['Single-origin conservation coffee supplied by the kilo to offices, cafés, hotels and visitor attractions, with bean-to-cup machines on lease.',
-         'Office coffee supply in Singapore: conservation coffee by the kilo for offices, hotels and cafés, with bean-to-cup machines on rental, servicing and milk on one invoice.'],
+         'Sustainable office coffee supply in Singapore for offices, hotels and cafés. Whole beans, bean-to-cup machines, servicing, milk and consumables.'],
       ],
     }[tree];
     for (const [a, b] of SCOPE) {
@@ -431,4 +433,5 @@ if (existsSync(sm)) {
   const today = new Date().toISOString().slice(0, 10);
   writeFileSync(sm, readFileSync(sm, 'utf8').replace(/<lastmod>[^<]+<\/lastmod>/g, `<lastmod>${today}</lastmod>`));
 }
+execFileSync('python3', [fileURLToPath(new URL('./split-bundle.py', import.meta.url)), OUT], { stdio: 'inherit' });
 console.log(`built ${built} pages into ${OUT}`);

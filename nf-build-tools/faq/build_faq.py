@@ -272,6 +272,9 @@ def build(src, out, market="sg"):
     end = start + off[p.end[0] - 1] + p.end[1] + len("</section>")
 
     s = s[:start] + section_html() + s[end:]
+    s = re.sub(r'data-nf-page="[^"]*"', 'data-nf-page="faq"', s, count=1)
+    prefix = {"ae": "/ae", "uk": "/uk"}.get(market, "")
+    s = re.sub(r'href="/(?!/|assets/|(?:ae|uk)(?=/|["?#]))([^"#]*)', lambda m: 'href="' + prefix + "/" + m[1], s)
 
     # 2 · head: title, description, canonical, og, and the schema
     # 6 Sep · three markets. The UK is a path tree on the Singapore domain
@@ -305,8 +308,7 @@ def build(src, out, market="sg"):
     s = s.replace("</body>", JS + "\n</body>", 1)
 
     # 3 · the router: register the route so the page knows what it is
-    s = s.replace('ROUTES=["home","why","origins","shop","work","quote"]',
-                  'ROUTES=["home","why","origins","shop","work","quote","faq"]', 1)
+    s = re.sub(r'ROUTES=\[([^]]+)\]', lambda m: 'ROUTES=[' + m[1] + ',"faq"]', s, count=1)
     s = s.replace('ROUTE_META={home:{path:"/"',
                   'ROUTE_META={faq:{path:"/faqs",title:%s,desc:%s},home:{path:"/"'
                   % (json.dumps(title), json.dumps(desc)), 1)
