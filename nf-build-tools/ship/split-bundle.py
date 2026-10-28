@@ -45,7 +45,8 @@ def project(s,rel):
     for a,i,j in Elements(s).spans:
         if 'data-nf-market-copy' in a and a['data-nf-market-copy']!=market:cuts.append((i,j))
     s=remove(s,cuts)
-    s=re.sub(r'(<div data-nf-market-copy="'+market+r'") hidden',r'\1',s)
+    s=re.sub(r'<span data-nf-market-copy="(?!'+market+r'")[A-Z]+"(?: hidden)?>[^<]*</span>','',s)
+    s=re.sub(r'(<[a-z]+ data-nf-market-copy="'+market+r'") hidden',r'\1',s)
     slug=tree.split('/')[1] if tree.startswith('origins/') and tree.count('/')==2 else None
     if slug:
         key,name=ORIGINS[slug]
