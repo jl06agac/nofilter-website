@@ -129,6 +129,15 @@ CATEGORIES = [
 """,
             },
             {
+                "id": "eudr",
+                "q": "Is NoFilter coffee EUDR compliant?",
+                "a": """
+<p>Every origin is mapped to GPS plot boundaries, cross-checked against government conservation boundaries and with the NGO partner on the ground, and monitored by satellite through Global Forest Watch.</p>
+<p>That is the plot-level geolocation an EU Deforestation Regulation due-diligence statement requires, and it is held per lot rather than reconstructed when a buyer asks. It was shown at Singapore International Agri-Food Week in October 2026 on exactly that basis.</p>
+<p>We are not a certification scheme, and we do not carry Fairtrade or Rainforest Alliance marks. <a href="#certification">How we compare with Rainforest Alliance and Fairtrade</a> says why.</p>
+""",
+            },
+            {
                 "id": "forest-verification",
                 "img": "https://nofilter-shared.netlify.app/verify-drone-poster.webp",
                 "alt": 'Drone survey over mapped coffee plots and the forest beyond',
@@ -227,8 +236,8 @@ CATEGORIES = [
                 "id": "markets",
                 "q": "Where does NoFilter currently operate?",
                 "a": """
-<p>Singapore and the United Arab Emirates, through NoFilter Pte. Ltd. and NoFilter LLC. Those are the markets where the operating setup and trade pricing sit behind the offer.</p>
-<p>We take enquiries from elsewhere, including the UK. If we can supply a market properly we will explain how, and if we are not ready there yet we will say so rather than pretend Singapore or UAE terms travel automatically.</p>
+<p>Singapore and the United Arab Emirates, through NoFilter Pte. Ltd. and NoFilter LLC. In Singapore we supply offices, hotels and caf&eacute;s; in the UAE, workplaces in Dubai and Abu Dhabi.</p>
+<p>We are now taking on clients in the UK, priced in GBP at <a href="/uk">nofilter.sg/uk</a> and supplied from Singapore once an order is placed. Enquiries from elsewhere are answered; if we cannot supply a market properly we will say so.</p>
 """,
             },
         ],
@@ -243,7 +252,7 @@ TECHLINE = "SINGAPORE · UAE · SUMATRA · MYANMAR"
 
 # the file strip, between hero and content. Counts are derived from the data
 # below rather than typed, so they cannot drift when a question is added.
-STRIP_DATE = "05 Sep 2026"
+STRIP_DATE = "28 Oct 2026"
 
 # a faint coordinate under each category: the real one for that origin, taken
 # from the site's own ORIGINS table

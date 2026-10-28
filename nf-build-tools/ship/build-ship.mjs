@@ -172,6 +172,29 @@ for (const tag of tplIndex.match(/<div class="fbh-drawer" id="[^"]+" data-o="[^"
 index = index.replace('<script src="keystroke-audio.js"></script>', '<script src="/assets/keystroke-audio.js"></script>');
 index = index.split("'keystroke-audio.js'").join("'/assets/keystroke-audio.js'").split('"keystroke-audio.js"').join('"/assets/keystroke-audio.js"');
 if (!index.includes('/assets/keystroke-audio.js')) { console.error('keystroke-audio.js reference not found'); process.exit(1); }
+// ── 2c · retired markup leaves the bundle (28 Oct) ────────────────────────
+// The master keeps the #why route (retired 23 Aug) and the two .beat-retired
+// beats (24 Aug) hidden, not deleted, so they can be wound back. Hidden is not
+// gone to a crawler: every page shipped "One argument, told three ways … pick
+// one; the other two come out" and a 1,642px spec table to Google and to the
+// AI index bots. They are cut here, before the CSS purge so their rules go too.
+// Nothing scripted reads them: the #why typewriter is scoped to #why, and the
+// three ids the retired beats carry are null-guarded (machGrid, machTable,
+// svcTable). Each block must be found exactly once or the build stops.
+{
+  const cut = (open, label) => {
+    const n = index.split(open).length - 1;
+    if (n !== 1) { console.error(`${label}: found ${n} times (need 1)`); process.exit(1); }
+    const a = index.indexOf(open);
+    const b = index.indexOf('</section>', a);
+    if (b < 0) { console.error(`${label}: no closing section`); process.exit(1); }
+    index = index.slice(0, a) + index.slice(b + '</section>'.length);
+    console.log(`retired markup cut: ${label} (${b - a} chars)`);
+  };
+  cut('<section class="route" id="why"', '#why route');
+  while (index.includes('<section class="beat beat-retired"')) cut('<section class="beat beat-retired"', 'retired beat');
+}
+
 // ── 2d · dead CSS: a rule naming a class or id that appears nowhere in the
 //         page outside its styles cannot match; see purge-css.mjs ──────────
 {
@@ -300,6 +323,36 @@ for (const rel of pages) {
       const tags = [...new Set(wanted)].filter(u => !page.includes(`as="image" href="${u}"`)).map(u => `<link rel="preload" as="image" href="${u}">`);
       if (tags.length) page = page.slice(0, at) + tags.join('\n') + '\n' + page.slice(at);
       if (posters.length || tags.length) console.log(`${rel}: ${posters.length} poster(s) promoted, ${tags.length} image preload(s)`);
+    }
+  }
+  // 3b3 · market scope, per tree (28 Oct). Bodies are one master in three
+  //       trees, but the UAE supplies workplaces only and composts nothing yet,
+  //       and the UK has no client live. Said once here, not forked in the master.
+  {
+    const tree = rel.startsWith('ae/') ? 'ae' : rel.startsWith('uk/') ? 'uk' : 'sg';
+    const SCOPE = {
+      ae: [
+        ['an office, caf&eacute;, hotel, school or zoo looking for coffee worth',
+         'a workplace in Dubai or Abu Dhabi looking for coffee worth'],
+        ['Collected with every delivery, composted locally with community garden partners across Singapore. Nothing wasted.',
+         'In Singapore we collect them with every delivery and compost them with community garden partners. In the UAE, grounds collection is arranged separately.'],
+        ['Closed-loop waste collection at no added cost. Spent coffee grounds are\n            hauled away and composted locally in community gardens &mdash; zero to landfill.',
+         'In Singapore, spent grounds are collected with every delivery and composted\n            locally in community gardens. In the UAE, grounds collection is arranged separately.'],
+      ],
+      uk: [
+        ['Supplied across the UK, priced in GBP.', 'Now taking on clients in the UK, priced in GBP.'],
+        ['supplied across the UK:', 'now offered in the UK:'],
+        ['supplied by the kilo to offices, cafés and hotels across the UK', 'offered by the kilo to offices, cafés and hotels in the UK'],
+      ],
+      sg: [],
+    }[tree];
+    for (const [a, b] of SCOPE) {
+      // the page is minified by now, so whitespace in the anchor is loose
+      const re = new RegExp(a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'), 'g');
+      const n = (page.match(re) || []).length;
+      if (n === 0) continue;                              // not every page carries every string
+      page = page.replace(re, b.replace(/\$/g, '$$$$'));
+      console.log(`${rel}: scope ${tree} · ${n} × "${a.slice(0, 40)}…"`);
     }
   }
   // 3c · the template's head (description, og, JSON-LD) still says PRCF where
