@@ -298,15 +298,15 @@ HERO_CAP_2 = "1°38′18″N · 99°15′56″E · on record"
 # first cut ran to 83 and 219, and the two markets shared both, which is the one
 # duplicate pair in the bundle. The house convention is followed: the UAE page
 # says so in its own title rather than repeating the Singapore one.
-TITLE = "Office coffee and sustainability FAQs | NoFilter Singapore"
+TITLE = "Office coffee and sustainability FAQs | NoFilter Coffee Singapore"
 DESC = ("How NoFilter buys coffee through NGO-led conservation projects, how that "
         "differs from Rainforest Alliance and Fairtrade, and how trade pricing works.")
-TITLE_AE = "Office coffee FAQs for Dubai and Abu Dhabi | NoFilter UAE"
+TITLE_AE = "Office coffee FAQs for Dubai and Abu Dhabi | NoFilter Coffee UAE"
 DESC_AE = ("How NoFilter buys coffee through NGO-led conservation projects, how that "
            "differs from certification schemes, and how UAE trade supply is priced.")
 # 6 Sep · the UK pair, for /uk/faqs. Same convention: the page says which market
 # it is in its own title, so no two pages in the bundle share a title or a
 # description. Mirrored from the UAE wording — copy is Alex's to change.
-TITLE_UK = "Office coffee and sustainability FAQs | NoFilter UK"
+TITLE_UK = "Office coffee and sustainability FAQs | NoFilter Coffee UK"
 DESC_UK = ("How NoFilter buys coffee through NGO-led conservation projects, how that "
            "differs from certification schemes, and how UK trade supply is priced.")

@@ -798,6 +798,48 @@
 # address for the UAE page carrying a canonical that points elsewhere. These are
 # bare paths, so they match on every domain and MUST stay below the rewrites
 # above — otherwise nofilter.ae/ae/... would be caught here first.
+# 28 Oct: the same rule from the UAE side. Built UAE pages now link to clean paths, and
+# any old /ae/ or /uk/ address on nofilter.ae goes to its one real address.
+[[redirects]]
+  from = "https://nofilter.ae/ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://nofilter.ae/uk/*"
+  to = "https://nofilter.sg/uk/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "https://www.nofilter.ae/uk/*"
+  to = "https://nofilter.sg/uk/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://nofilter.ae/uk/*"
+  to = "https://nofilter.sg/uk/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/uk/*"
+  to = "https://nofilter.sg/uk/:splat"
+  status = 301
+  force = true
 [[redirects]]
   from = "https://nofilter.sg/ae/*"
   to = "https://nofilter.ae/:splat"

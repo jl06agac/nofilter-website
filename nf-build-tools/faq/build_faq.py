@@ -273,7 +273,7 @@ def build(src, out, market="sg"):
 
     s = s[:start] + section_html() + s[end:]
     s = re.sub(r'data-nf-page="[^"]*"', 'data-nf-page="faq"', s, count=1)
-    prefix = {"ae": "/ae", "uk": "/uk"}.get(market, "")
+    prefix = {"uk": "/uk"}.get(market, "")  # 28 Oct: UAE links are bare; nofilter.ae rewrites them
     s = re.sub(r'href="/(?!/|assets/|(?:ae|uk)(?=/|["?#]))([^"#]*)', lambda m: 'href="' + prefix + "/" + m[1], s)
 
     # 2 · head: title, description, canonical, og, and the schema

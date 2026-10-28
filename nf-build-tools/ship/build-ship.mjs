@@ -341,7 +341,7 @@ for (const rel of pages) {
     const SCOPE = {
       ae: [
         // 131 · the wholesale page's head, UAE
-        ['Wholesale coffee for UAE offices and cafés | NoFilter', 'Office coffee supplier in Dubai and Abu Dhabi | NoFilter'],
+        ['Wholesale coffee for UAE offices and cafés | NoFilter Coffee', 'Office coffee supplier in Dubai and Abu Dhabi | NoFilter Coffee'],
         ['Single-origin conservation coffee supplied by the kilo to offices, cafés and hotels across the UAE, with bean-to-cup machines on lease.',
          'Sustainable office coffee supply: serving Dubai workplaces and ready for Abu Dhabi and the wider UAE. Coffee, machines and servicing quoted in AED.'],
         ['an office, caf&eacute;, hotel, school or zoo looking for coffee worth',
@@ -353,7 +353,7 @@ for (const rel of pages) {
       ],
       uk: [
         // 131 · the wholesale page's head, UK (runs before the generic UK swaps below)
-        ['Wholesale coffee for UK offices and cafés | NoFilter', 'Office coffee supplier for London and the UK | NoFilter'],
+        ['Wholesale coffee for UK offices and cafés | NoFilter Coffee', 'Office coffee supplier for London and the UK | NoFilter Coffee'],
         ['Single-origin conservation coffee supplied by the kilo to offices, cafés and hotels across the UK, with bean-to-cup machines on lease.',
          'Sustainable office coffee for London and the UK. Now taking on clients, with coffee and equipment quoted in GBP and servicing agreed for each workplace.'],
         ['Supplied across the UK, priced in GBP.', 'Now taking on clients in the UK, priced in GBP.'],
@@ -362,7 +362,7 @@ for (const rel of pages) {
       ],
       sg: [
         // 131 · the wholesale page's head says the search phrase and the market
-        ['Wholesale coffee for offices, cafés and hotels | NoFilter', 'Office coffee supplier in Singapore | NoFilter'],
+        ['Wholesale coffee for offices, cafés and hotels | NoFilter Coffee', 'Office coffee supplier in Singapore | NoFilter Coffee'],
         ['Single-origin conservation coffee supplied by the kilo to offices, cafés, hotels and visitor attractions, with bean-to-cup machines on lease.',
          'Sustainable office coffee supply in Singapore for offices, hotels and cafés. Whole beans, bean-to-cup machines, servicing, milk and consumables.'],
       ],

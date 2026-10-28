@@ -66,7 +66,8 @@ def project(s,rel):
     if route!='quote':
         s=remove(s,[(i,j) for a,i,j in Elements(s).spans if a.get('id')=='qLetterSrc'])
     # Real anchors avoid SPA interception and work without JavaScript.
-    base='/uk' if market=='UK' else '/ae' if market=='AE' else ''
+    # 28 Oct: UAE pages link to bare paths; the nofilter.ae host rewrites them (and 301s any /ae/ address).
+    base='/uk' if market=='UK' else ''
     def anchor(m):
         tag=m[0];h=re.search(r'\bhref="([^"]*)"',tag);dr=re.search(r'\bdata-r="([^"]*)"',tag)
         target=PATHS.get(dr[1]) if dr else None
