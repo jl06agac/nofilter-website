@@ -29,3 +29,6 @@ __pycache__/
 # ── Media lives on the CDN (_CDN-UPLOAD-SAFE -> nofilter-shared), not in git
 *.mp4
 *.mp3
+
+# Local Netlify folder
+.netlify

@@ -1,277 +1,277 @@
 {
   "pages": 30,
-  "uniqueInlineScriptsChecked": 54,
+  "uniqueInlineScriptsChecked": 53,
   "errors": [],
   "routes": [
     {
       "route": "ae/faqs/index.html",
       "market": "AE",
-      "bytes": 742400,
+      "bytes": 742306,
       "canonical": [
         "https://nofilter.ae/faqs"
       ],
-      "title": "Office coffee FAQs for Dubai and Abu Dhabi | NoFilter UAE"
+      "title": "Office coffee FAQs for Dubai and Abu Dhabi | NoFilter Coffee UAE"
     },
     {
       "route": "ae/index.html",
       "market": "AE",
-      "bytes": 694720,
+      "bytes": 694622,
       "canonical": [
         "https://nofilter.ae/"
       ],
-      "title": "NoFilter \u2014 Conservation coffee in the UAE"
+      "title": "Conservation coffee in the UAE | NoFilter Coffee"
     },
     {
       "route": "ae/origins/arakan-mountains/index.html",
       "market": "AE",
-      "bytes": 692811,
+      "bytes": 692731,
       "canonical": [
         "https://nofilter.ae/origins/arakan-mountains"
       ],
-      "title": "Arakan Mountains coffee, Myanmar | NoFilter UAE"
+      "title": "Arakan Mountains coffee, Myanmar | NoFilter Coffee UAE"
     },
     {
       "route": "ae/origins/batang-gadis/index.html",
       "market": "AE",
-      "bytes": 692579,
+      "bytes": 692499,
       "canonical": [
         "https://nofilter.ae/origins/batang-gadis"
       ],
-      "title": "Batang Gadis coffee, North Sumatra | NoFilter UAE"
+      "title": "Batang Gadis coffee, North Sumatra | NoFilter Coffee UAE"
     },
     {
       "route": "ae/origins/batang-toru/index.html",
       "market": "AE",
-      "bytes": 692674,
+      "bytes": 692594,
       "canonical": [
         "https://nofilter.ae/origins/batang-toru"
       ],
-      "title": "Batang Toru coffee, Tapanuli | NoFilter UAE"
+      "title": "Batang Toru coffee, Tapanuli | NoFilter Coffee UAE"
     },
     {
       "route": "ae/origins/gayo-lues/index.html",
       "market": "AE",
-      "bytes": 692298,
+      "bytes": 692218,
       "canonical": [
         "https://nofilter.ae/origins/gayo-lues"
       ],
-      "title": "Gayo Lues coffee, Aceh | NoFilter UAE"
+      "title": "Gayo Lues coffee, Aceh | NoFilter Coffee UAE"
     },
     {
       "route": "ae/origins/index.html",
       "market": "AE",
-      "bytes": 699501,
+      "bytes": 699403,
       "canonical": [
         "https://nofilter.ae/origins"
       ],
-      "title": "Coffee origins \u2014 Sumatra, Aceh and Myanmar | NoFilter UAE"
+      "title": "Coffee origins: Sumatra, Aceh and Myanmar | NoFilter Coffee UAE"
     },
     {
       "route": "ae/shop/index.html",
       "market": "AE",
-      "bytes": 679696,
+      "bytes": 679577,
       "canonical": [
         "https://nofilter.ae/shop"
       ],
-      "title": "Shop conservation coffee in the UAE \u2014 250 g and 1 kg"
+      "title": "Shop conservation coffee in the UAE: 250 g and 1 kg"
     },
     {
       "route": "ae/trade-pricing/index.html",
       "market": "AE",
-      "bytes": 700038,
+      "bytes": 699961,
       "canonical": [
         "https://nofilter.ae/trade-pricing"
       ],
-      "title": "Trade pricing in AED and quote builder | NoFilter"
+      "title": "Trade pricing in AED and quote builder | NoFilter Coffee"
     },
     {
       "route": "ae/wholesale-coffee/index.html",
       "market": "AE",
-      "bytes": 730146,
+      "bytes": 729278,
       "canonical": [
         "https://nofilter.ae/wholesale-coffee"
       ],
-      "title": "Office coffee supplier in Dubai and Abu Dhabi | NoFilter"
+      "title": "Office coffee supplier in Dubai and Abu Dhabi | NoFilter Coffee"
     },
     {
       "route": "faqs/index.html",
       "market": "SG",
-      "bytes": 742376,
+      "bytes": 742330,
       "canonical": [
         "https://nofilter.sg/faqs"
       ],
-      "title": "Office coffee and sustainability FAQs | NoFilter Singapore"
+      "title": "Office coffee and sustainability FAQs | NoFilter Coffee Singapore"
     },
     {
       "route": "index.html",
       "market": "SG",
-      "bytes": 694794,
+      "bytes": 694705,
       "canonical": [
         "https://nofilter.sg/"
       ],
-      "title": "NoFilter \u2014 Conservation coffee \u00b7 Singapore & UAE"
+      "title": "Conservation coffee in Singapore | NoFilter Coffee"
     },
     {
       "route": "origins/arakan-mountains/index.html",
       "market": "SG",
-      "bytes": 692780,
+      "bytes": 692718,
       "canonical": [
         "https://nofilter.sg/origins/arakan-mountains"
       ],
-      "title": "Arakan Mountains coffee \u2014 Magway, Myanmar | NoFilter"
+      "title": "Arakan Mountains coffee: Magway, Myanmar | NoFilter Coffee"
     },
     {
       "route": "origins/batang-gadis/index.html",
       "market": "SG",
-      "bytes": 692620,
+      "bytes": 692558,
       "canonical": [
         "https://nofilter.sg/origins/batang-gadis"
       ],
-      "title": "Batang Gadis coffee \u2014 Mandailing, North Sumatra | NoFilter"
+      "title": "Batang Gadis coffee: Mandailing, North Sumatra | NoFilter Coffee"
     },
     {
       "route": "origins/batang-toru/index.html",
       "market": "SG",
-      "bytes": 692767,
+      "bytes": 692705,
       "canonical": [
         "https://nofilter.sg/origins/batang-toru"
       ],
-      "title": "Batang Toru coffee \u2014 Tapanuli, North Sumatra | NoFilter"
+      "title": "Batang Toru coffee: Tapanuli, North Sumatra | NoFilter Coffee"
     },
     {
       "route": "origins/gayo-lues/index.html",
       "market": "SG",
-      "bytes": 692343,
+      "bytes": 692281,
       "canonical": [
         "https://nofilter.sg/origins/gayo-lues"
       ],
-      "title": "Gayo Lues coffee \u2014 Aceh, Sumatra | NoFilter"
+      "title": "Gayo Lues coffee: Aceh, Sumatra | NoFilter Coffee"
     },
     {
       "route": "origins/index.html",
       "market": "SG",
-      "bytes": 699417,
+      "bytes": 699355,
       "canonical": [
         "https://nofilter.sg/origins"
       ],
-      "title": "Coffee origins \u2014 Sumatra, Aceh and Myanmar | NoFilter"
+      "title": "Coffee origins: Sumatra, Aceh and Myanmar | NoFilter Coffee"
     },
     {
       "route": "shop/index.html",
       "market": "SG",
-      "bytes": 679663,
+      "bytes": 679601,
       "canonical": [
         "https://nofilter.sg/shop"
       ],
-      "title": "Shop conservation coffee \u2014 250 g and 1 kg | NoFilter"
+      "title": "Shop conservation coffee: 250 g and 1 kg | NoFilter Coffee"
     },
     {
       "route": "trade-pricing/index.html",
       "market": "SG",
-      "bytes": 700011,
+      "bytes": 699958,
       "canonical": [
         "https://nofilter.sg/trade-pricing"
       ],
-      "title": "Trade pricing and quote builder | NoFilter"
+      "title": "Trade pricing and quote builder | NoFilter Coffee"
     },
     {
       "route": "uk/faqs/index.html",
       "market": "UK",
-      "bytes": 742444,
+      "bytes": 742398,
       "canonical": [
         "https://nofilter.sg/uk/faqs"
       ],
-      "title": "Office coffee and sustainability FAQs | NoFilter UK"
+      "title": "Office coffee and sustainability FAQs | NoFilter Coffee UK"
     },
     {
       "route": "uk/index.html",
       "market": "UK",
-      "bytes": 694765,
+      "bytes": 694706,
       "canonical": [
         "https://nofilter.sg/uk"
       ],
-      "title": "NoFilter \u2014 Conservation coffee in the UK"
+      "title": "Conservation coffee in the UK | NoFilter Coffee"
     },
     {
       "route": "uk/origins/arakan-mountains/index.html",
       "market": "UK",
-      "bytes": 692839,
+      "bytes": 692786,
       "canonical": [
         "https://nofilter.sg/uk/origins/arakan-mountains"
       ],
-      "title": "Arakan Mountains coffee, Myanmar | NoFilter UK"
+      "title": "Arakan Mountains coffee, Myanmar | NoFilter Coffee UK"
     },
     {
       "route": "uk/origins/batang-gadis/index.html",
       "market": "UK",
-      "bytes": 692618,
+      "bytes": 692565,
       "canonical": [
         "https://nofilter.sg/uk/origins/batang-gadis"
       ],
-      "title": "Batang Gadis coffee, North Sumatra | NoFilter UK"
+      "title": "Batang Gadis coffee, North Sumatra | NoFilter Coffee UK"
     },
     {
       "route": "uk/origins/batang-toru/index.html",
       "market": "UK",
-      "bytes": 692716,
+      "bytes": 692663,
       "canonical": [
         "https://nofilter.sg/uk/origins/batang-toru"
       ],
-      "title": "Batang Toru coffee, Tapanuli | NoFilter UK"
+      "title": "Batang Toru coffee, Tapanuli | NoFilter Coffee UK"
     },
     {
       "route": "uk/origins/gayo-lues/index.html",
       "market": "UK",
-      "bytes": 692334,
+      "bytes": 692281,
       "canonical": [
         "https://nofilter.sg/uk/origins/gayo-lues"
       ],
-      "title": "Gayo Lues coffee, Aceh | NoFilter UK"
+      "title": "Gayo Lues coffee, Aceh | NoFilter Coffee UK"
     },
     {
       "route": "uk/origins/index.html",
       "market": "UK",
-      "bytes": 699507,
+      "bytes": 699445,
       "canonical": [
         "https://nofilter.sg/uk/origins"
       ],
-      "title": "Coffee origins \u2014 Sumatra, Aceh and Myanmar | NoFilter UK"
+      "title": "Coffee origins: Sumatra, Aceh and Myanmar | NoFilter Coffee UK"
     },
     {
       "route": "uk/shop/index.html",
       "market": "UK",
-      "bytes": 679705,
+      "bytes": 679622,
       "canonical": [
         "https://nofilter.sg/uk/shop"
       ],
-      "title": "Shop conservation coffee in the UK \u2014 250 g and 1 kg"
+      "title": "Shop conservation coffee in the UK: 250 g and 1 kg"
     },
     {
       "route": "uk/trade-pricing/index.html",
       "market": "UK",
-      "bytes": 700053,
+      "bytes": 700000,
       "canonical": [
         "https://nofilter.sg/uk/trade-pricing"
       ],
-      "title": "Trade pricing in GBP and quote builder | NoFilter"
+      "title": "Trade pricing in GBP and quote builder | NoFilter Coffee"
     },
     {
       "route": "uk/wholesale-coffee/index.html",
       "market": "UK",
-      "bytes": 730073,
+      "bytes": 729233,
       "canonical": [
         "https://nofilter.sg/uk/wholesale-coffee"
       ],
-      "title": "Office coffee supplier for London and the UK | NoFilter"
+      "title": "Office coffee supplier for London and the UK | NoFilter Coffee"
     },
     {
       "route": "wholesale-coffee/index.html",
       "market": "SG",
-      "bytes": 729920,
+      "bytes": 729134,
       "canonical": [
         "https://nofilter.sg/wholesale-coffee"
       ],
-      "title": "Office coffee supplier in Singapore | NoFilter"
+      "title": "Office coffee supplier in Singapore | NoFilter Coffee"
     }
   ],
   "limitations": [
