@@ -19,7 +19,7 @@
    paid shop orders and subscription deliveries have sent to conservation. Never returned: phone, full card
    details, billing address. */
 const { ensureCatalogue, ensurePortal, lookupKey, deliveryKey } = require('./_lib/catalogue.js');
-const { ORIGINS, SUB_OFF } = require('./checkout.js')._test;
+const { ORIGINS, SUB_OFF, BAG } = require('./checkout.js')._test;
 const reply = (statusCode, body, extra) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...(extra || {}) }, body: JSON.stringify(body) });
 
 async function call(path, key, form) {
@@ -86,7 +86,7 @@ exports.handler = async function (event) {
         return reply(200, { skipped: body.action === 'skip' });
       }
       const DEL = parseInt(process.env.DELIVERY_CENTS || '400', 10), FREE_FROM = parseInt(process.env.FREE_FROM_CENTS || '5000', 10);
-      const P = { '250g': parseInt(process.env.PRICE_BAG_250G || '2400', 10), '1kg': parseInt(process.env.PRICE_BAG_1KG || '7500', 10), delivery: DEL };
+      const P = { '250g': BAG['250g'], '1kg': BAG['1kg'], delivery: DEL };
       const off = Math.max(SUB_OFF, (+((sub.metadata || {}).off_pct) || Math.round(SUB_OFF * 100)) / 100);
       const cat = await ensureCatalogue(KEY, ORIGINS, P, off);
       const all = (sub.items && sub.items.data) || [];

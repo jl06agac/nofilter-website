@@ -2,7 +2,7 @@
    One Product per coffee and size (carrying its origin and partner, as the NGO report reads them) and four
    weekly Prices on each (every 1, 2, 3 or 4 weeks) at the subscription discount. Real products, rather than
    one-off price data, are what let a customer swap coffee, size or frequency in Stripe's customer portal.
-   If the bag price changes (PRICE_BAG_* in Netlify), the next call creates the new Price and moves the
+   If the bag price changes (BAG in checkout.js), the next call creates the new Price and moves the
    lookup key to it; existing subscriptions keep their price until changed. Also sets up the portal
    configuration for card, address, invoices and cancelling.
    Not a function: Netlify only deploys .js files at the top of netlify/functions. */

@@ -6,8 +6,8 @@
    Netlify -> Site settings -> Environment:
      STRIPE_SECRET_KEY        sk_test_... to rehearse, sk_live_... to go live (without it: 503)
      (STRIPE_PUBLISHABLE_KEY is no longer needed: the hosted page needs no key on our side)
-     PRICE_BAG_250G      unit amount in cents (default 2400 = SGD 24.00, MARKETS.SG.bag250)
-     PRICE_BAG_1KG       unit amount in cents (default 7500 = SGD 75.00, MARKETS.SG.bag1kg)
+     (bag prices are BAG below, not Netlify settings: 168, after a leftover PRICE_BAG_1KG=8000 in Netlify
+      charged SGD 80 while the page showed 75. A test keeps BAG equal to MARKETS.SG in the master.)
      DELIVERY_CENTS      delivery charge per order in cents (default 0: retail prices include delivery)
    Payment methods (cards, Apple Pay, Google Pay, PayNow) are switched on in the Stripe
    dashboard; this function does not name them, so the dashboard decides.
@@ -49,6 +49,9 @@ async function stripe(path, key, form, method = 'POST') {
 // one frequency per subscription, so the basket's subscription lines share one (the page enforces it;
 // here the first one wins). One-off lines in the same basket are charged once, on the first payment.
 const SUB_OFF = 0.05;
+// Retail bag prices in cents: the one place the server takes them from. Must equal MARKETS.SG.bag250 / bag1kg
+// in NoFilter-Website-Master.html (a unit test checks).
+const BAG = { '250g': 2400, '1kg': 7500 };
 // Delivery: DELIVERY_CENTS (default SGD 4) on orders under FREE_FROM_CENTS (default SGD 50); free from there.
 // For a subscription the test is each delivery's coffee; it is never part of the conservation share.
 // One line per coffee, size and plan; quantities merged. At most MAX_BAGS bags in the whole order.
@@ -135,8 +138,7 @@ exports.handler = async function (event) {
   if (!lines) return reply(400, { error: 'bad cart' });
   const code = String(body.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 24);
 
-  const P250 = parseInt(process.env.PRICE_BAG_250G || '2400', 10);
-  const P1KG = parseInt(process.env.PRICE_BAG_1KG || '7500', 10);
+  const P250 = BAG['250g'], P1KG = BAG['1kg'];
   const DELIVERY = parseInt(process.env.DELIVERY_CENTS || '400', 10);
   const FREE_FROM = parseInt(process.env.FREE_FROM_CENTS || '5000', 10);
   const host = event.headers && event.headers.host;
@@ -224,4 +226,4 @@ exports.handler = async function (event) {
   return reply(200, { url: data.url, session: data.id, code: applied ? code : null });
 };
 
-exports._test = { cleanLines, subscriptionCodeOk, COFFEES, ORIGINS, CHOICES, SUB_OFF, MAX_BAGS };
+exports._test = { cleanLines, subscriptionCodeOk, COFFEES, ORIGINS, CHOICES, SUB_OFF, MAX_BAGS, BAG };

@@ -379,3 +379,10 @@ test('code check for the basket: percentage and whether it applies to subscripti
  r=await run({id:'co_1',amount_off:500,valid:true});assert.equal(r.s,404,'a fixed-amount code is left to Stripe');
  r=await run(null,'');assert.equal(r.s,400);
 });
+
+test('the server charges the prices the shop page shows (BAG equals MARKETS.SG in the master)',()=>{
+ const html=require('fs').readFileSync(path.join(__dirname,'..','..','..','NoFilter-Website-Master.html'),'utf8');
+ const m=html.match(/bag250:\s*([\d.]+),\s*bag1kg:\s*([\d.]+)/);assert.ok(m,'MARKETS.SG bag prices found');
+ assert.deepEqual(checkout._test.BAG,{'250g':Math.round(+m[1]*100),'1kg':Math.round(+m[2]*100)});
+ process.env.PRICE_BAG_1KG='8000';assert.equal(checkout._test.BAG['1kg'],7500,'a Netlify setting no longer overrides it');delete process.env.PRICE_BAG_1KG;
+});
