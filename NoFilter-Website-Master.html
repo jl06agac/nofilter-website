@@ -9501,14 +9501,14 @@ video[data-noauto]{outline:none}
   <div class="cart-ft">
     <div class="readout">
       <div class="ro"><div class="k">Subtotal</div><div class="v" id="cartSub">SGD 0.00</div></div>
-      <div class="ro"><div class="k">To forest · 10%</div><div class="v sig" id="cartGive">SGD 0.00</div></div>
+      <div class="ro"><div class="k">To conservation</div><div class="v sig" id="cartGive">SGD 0.00</div><div class="cart-by" id="cartGiveBy"></div></div>
     </div>
-    <!-- 139 · Nov 2026: the 10% split by landscape, so a basket says which partner each bag's share goes to -->
-    <div class="cart-by" id="cartGiveBy"></div>
-    <div class="lab cart-code" id="cartCode" hidden></div>
-    <div class="lab" style="line-height:1.6">10% of every bag goes to the forest. Passed to the partner NGO that holds the polygon.</div>
+    <!-- 140 · Nov 2026, after Alex's "rather ugly no?": the 10% is said once. The split by partner sits
+         inside its own box, the caption that repeated it is gone, and the checkout message is a quiet
+         sentence rather than orange capitals. -->
+    <div class="cart-code" id="cartCode" hidden></div>
     <button class="btn pri" id="checkoutBtn" style="justify-content:center">CHECKOUT <span class="ar">→</span></button>
-    <div class="lab" id="checkoutNote" style="display:none;color:var(--signal)"></div>
+    <div class="cart-note" id="checkoutNote" style="display:none"></div>
   </div>
 </aside>
 
@@ -17505,10 +17505,15 @@ function renderCart(){
     var row = document.createElement('div');
     row.className = 'ci';
     row.innerHTML = '<div><div class="cn">' + li.name + '</div><div class="cs">' + li.size.toUpperCase() +
-      ' · ' + CUR() + money(li.price) + ' × ' + li.qty + '</div></div>' +
+      ' · ' + CUR() + money(li.price) + '</div>' +
+      '<div class="cq"><button type="button" data-d="-1" aria-label="One fewer">−</button><span>' + li.qty + '</span><button type="button" data-d="1" aria-label="One more">+</button></div></div>' +
       '<div class="cn">' + CUR() + money(li.price * li.qty) + '</div>' +
       '<button class="cx" aria-label="Remove">✕</button>';
     $('.cx', row).addEventListener('click', function(){ cart.splice(i,1); renderCart(); });
+    $$('.cq button', row).forEach(function(b){ b.addEventListener('click', function(){
+      li.qty = Math.min(20, li.qty + parseInt(b.getAttribute('data-d'), 10));
+      if(li.qty < 1) cart.splice(i,1);
+      renderCart(); }); });
     body.appendChild(row);
   });
   $('#cartSub').textContent = CUR() + money(sub);
@@ -17522,8 +17527,9 @@ function renderCart(){
   });
   if(byEl){ byEl.textContent = ''; Object.keys(by).forEach(function(k){
     var r = document.createElement('div'); r.className = 'cb';
-    r.innerHTML = '<span>' + by[k].name + (by[k].ngo ? ' · ' + by[k].ngo : '') + '</span><span>' + CUR() + money(by[k].v) + '</span>';
+    r.innerHTML = '<span>' + by[k].name + (by[k].ngo ? ' · ' + by[k].ngo : '') + '</span><span>' + money(by[k].v) + '</span>';
     byEl.appendChild(r); }); }
+  var cn = $('#checkoutNote'); if(cn && !$('#checkoutBtn').disabled){ cn.style.display = 'none'; }
   var cc = $('#cartCode'); if(cc){ cc.hidden = !SHOP_CODE; cc.textContent = SHOP_CODE ? 'Code ' + SHOP_CODE + ' is applied at checkout.' : ''; }
   $('#cartCount').textContent = String(n);
   $('#cartBtn').classList.toggle('hot', n > 0);
@@ -26890,9 +26896,16 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
   align-items:center;justify-content:center;padding:20px}
 .nf-soon[data-open]{display:flex}
 /* 139 · the cart's per-landscape split and the thank-you figures */
-.cart-by{display:grid;gap:4px;margin:2px 0 0}
+.cart-by{display:grid;gap:3px;margin:8px 0 0}
+.cart-by:empty{display:none}
+.cart-by .cb{font-size:9.5px!important;letter-spacing:.03em!important;color:rgba(244,242,238,.55)!important}
+.cart .cq{display:inline-flex;align-items:center;gap:0;margin:8px 0 0;border:1px solid rgba(244,242,238,.16);border-radius:2px}
+.cart .cq button{width:26px;height:24px;background:none;border:0;color:rgba(244,242,238,.8);font:inherit;font-size:14px;cursor:pointer}
+.cart .cq button:hover{background:rgba(244,242,238,.07)}
+.cart .cq span{min-width:22px;text-align:center;font-family:var(--mono);font-size:11px;color:#F4F2EE}
+.cart-note{font-family:var(--body,sans-serif);font-size:13px;line-height:1.5;color:rgba(244,242,238,.66);text-align:center}
+.cart-code{font-family:var(--body,sans-serif);font-size:13px;color:rgba(244,242,238,.8)}
 .cart-by .cb,.nf-paid-by .cb{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:rgba(244,242,238,.62)}
-.cart-code{color:var(--signal,#EE4D17)}
 .nf-paid-give{margin:20px 0 0;padding:16px 0 0;border-top:1px solid rgba(244,242,238,.12)}
 .nf-paid-v{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(34px,4vw,46px);line-height:1;color:var(--signal,#EE4D17)}
 .nf-paid-cur{font-size:.42em;letter-spacing:.06em;vertical-align:.5em}
