@@ -17,7 +17,11 @@ async function call(path, key, form) {
 }
 const SIZES = { '250g': '250 g', '1kg': '1 kg' };
 const EVERY = [1, 2, 3, 4];
-const lookupKey = (origin, size, every) => `nf-sub-${origin}-${size}-w${every}`;
+// Each discount level has its own set of prices (p5 = the standard 5%; a bigger client code gets its own),
+// so a subscription keeps its rate when coffees are swapped.
+const pct = off => Math.round(off * 100);
+const lookupKey = (origin, size, every, off) => `nf-sub-${origin}-${size}-w${every}-p${pct(off)}`;
+const deliveryKey = every => `nf-del-w${every}`;
 
 let cache = null; // per warm instance
 
@@ -25,7 +29,9 @@ let cache = null; // per warm instance
 async function ensureCatalogue(key, origins, prices, off) {
   const want = {};
   for (const [name, o] of Object.entries(origins)) for (const size of Object.keys(SIZES)) for (const every of EVERY)
-    want[lookupKey(o.origin, size, every)] = { name, size, every, origin: o.origin, partner: o.partner, amount: Math.round(prices[size] * (1 - off)) };
+    want[lookupKey(o.origin, size, every, off)] = { name, size, every, origin: o.origin, partner: o.partner, amount: Math.round(prices[size] * (1 - off)) };
+  // delivery as a recurring line, for subscription deliveries under the free-delivery threshold
+  for (const every of EVERY) want[deliveryKey(every)] = { delivery: true, every, origin: 'delivery', size: 'delivery', amount: prices.delivery };
   const sig = JSON.stringify(want);
   if (cache && cache.sig === sig) return cache.map;
   const keys = Object.keys(want), found = {};
@@ -43,8 +49,8 @@ async function ensureCatalogue(key, origins, prices, off) {
       const pk = w.origin + '|' + w.size;
       if (!products[pk]) {
         const f = new URLSearchParams();
-        f.set('name', `${w.name} coffee, ${SIZES[w.size]}`);
-        f.set('metadata[origin]', w.origin); f.set('metadata[partner]', w.partner); f.set('metadata[nf_key]', `${w.origin}-${w.size}`);
+        if (w.delivery) { f.set('name', 'Delivery'); f.set('metadata[kind]', 'delivery'); f.set('metadata[nf_key]', 'delivery'); }
+        else { f.set('name', `${w.name} coffee, ${SIZES[w.size]}`); f.set('metadata[origin]', w.origin); f.set('metadata[partner]', w.partner); f.set('metadata[nf_key]', `${w.origin}-${w.size}`); }
         products[pk] = (await call('products', key, f)).id;
       }
       const f = new URLSearchParams();
@@ -81,4 +87,4 @@ async function ensurePortal(key) {
 }
 function hash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
 
-module.exports = { ensureCatalogue, ensurePortal, lookupKey, call };
+module.exports = { ensureCatalogue, ensurePortal, lookupKey, deliveryKey, call };

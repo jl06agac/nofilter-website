@@ -33,6 +33,7 @@ function contributions(lines, rate) {
   const out = {};
   for (const l of lines) {
     const meta = (l.price && l.price.product && l.price.product.metadata) || {};
+    if (meta.kind === 'delivery' || /^delivery$/i.test((l.price && l.price.product && l.price.product.name) || '') || /delivery/i.test(l.description || '')) continue; // delivery is not coffee
     const origin = meta.origin || 'unknown', partner = meta.partner || 'unknown';
     const k = origin + '|' + partner;
     if (!out[k]) out[k] = { origin, partner, sales: 0, contribution: 0, bags: 0 };
@@ -94,7 +95,7 @@ exports.handler = async function (event) {
         for (const l of (inv.lines && inv.lines.data) || []) {
           const pid = (l.price && (typeof l.price.product === 'string' ? l.price.product : l.price.product && l.price.product.id)) || (l.pricing && l.pricing.price_details && l.pricing.price_details.product);
           const m = await product(pid);
-          const v = contributions([{ amount_total: l.amount || 0, quantity: l.quantity || 0, price: { product: { metadata: m } } }], rate);
+          const v = contributions([{ amount_total: l.amount || 0, quantity: l.quantity || 0, description: l.description, price: { product: { metadata: m } } }], rate);
           for (const [k, x] of Object.entries(v)) {
             if (!totals[k]) totals[k] = { origin: x.origin, partner: x.partner, sales: 0, contribution: 0, bags: 0 };
             totals[k].sales += x.sales; totals[k].contribution += x.contribution; totals[k].bags += x.bags;

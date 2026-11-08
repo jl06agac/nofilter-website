@@ -81,6 +81,13 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
    (`metadata.nf = shop-v1`). The portal can't swap: it only updates single-item subscriptions.
    Worth checking: `trial_end` shows the subscription as trialing until then; skip on a past_due subscription.
 
+12. **5% and delivery** (155): subscriptions 5% off (`SUB_OFF`), a client code still the better of the two; each
+   discount level has its own price set (`-p5`, `-p10`, …, stored as `off_pct` on the subscription) so swaps
+   keep the rate. Delivery SGD 4 (`DELIVERY_CENTS`) under SGD 50 (`FREE_FROM_CENTS`): one-off orders via the
+   shipping rate on the full-price subtotal; subscriptions via a recurring Delivery line when a delivery's coffee
+   is under SGD 50, added or dropped by the order page's changes. Delivery is never in the 10% (report, order
+   summary, running total).
+
 ## Known gaps (not bugs)
 
 - Retail ships within Singapore only; other markets get a message instead of checkout.

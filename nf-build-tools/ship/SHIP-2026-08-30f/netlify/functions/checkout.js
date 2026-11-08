@@ -32,7 +32,7 @@ const CDN = 'https://nofilter-shared.netlify.app/';
 const CHOICES = { 'protect-forests': 'Protect wild forests', 'orangutans-in-danger': 'Help orangutans in danger', 'coffee-with-forest': 'Grow coffee with the forest' };
 // A short order number the customer can quote (NF-7K2Q9M): on the order, its payment, and the confirmation page.
 const crypto = require('crypto');
-const { ensureCatalogue } = require('./_lib/catalogue.js');
+const { ensureCatalogue, lookupKey, deliveryKey } = require('./_lib/catalogue.js');
 const orderRef = () => 'NF-' + Array.from(crypto.randomBytes(6), b => '23456789ABCDEFGHJKMNPQRSTUVWXYZ'[b % 31]).join('');
 const reply = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(body) });
 
@@ -48,7 +48,9 @@ async function stripe(path, key, form, method = 'POST') {
 // Subscriptions: a line with `every` 1-4 is delivered every that many weeks at SUB_OFF off. Stripe allows
 // one frequency per subscription, so the basket's subscription lines share one (the page enforces it;
 // here the first one wins). One-off lines in the same basket are charged once, on the first payment.
-const SUB_OFF = 0.10;
+const SUB_OFF = 0.05;
+// Delivery: DELIVERY_CENTS (default SGD 4) on orders under FREE_FROM_CENTS (default SGD 50); free from there.
+// For a subscription the test is each delivery's coffee; it is never part of the conservation share.
 // One line per coffee, size and plan; quantities merged, capped at 20 bags a line.
 function cleanLines(lines) {
   if (!Array.isArray(lines) || !lines.length || lines.length > 20) return null;
@@ -90,7 +92,8 @@ exports.handler = async function (event) {
 
   const P250 = parseInt(process.env.PRICE_BAG_250G || '2400', 10);
   const P1KG = parseInt(process.env.PRICE_BAG_1KG || '8000', 10);
-  const DELIVERY = parseInt(process.env.DELIVERY_CENTS || '0', 10);
+  const DELIVERY = parseInt(process.env.DELIVERY_CENTS || '400', 10);
+  const FREE_FROM = parseInt(process.env.FREE_FROM_CENTS || '5000', 10);
   const host = event.headers && event.headers.host;
   const origin = (event.headers && event.headers.origin) || (host ? 'https://' + host : '');
   if (!/^https?:\/\//.test(origin)) return reply(400, { error: 'bad origin' });
@@ -107,8 +110,10 @@ exports.handler = async function (event) {
   form.set('customer_creation', 'always'); // so a customer's orders can be totalled on the confirmation page
   form.set('shipping_options[0][shipping_rate_data][type]', 'fixed_amount');
   // The roast-day promise, shown on the delivery line before they pay (as on the confirmation page).
-  form.set('shipping_options[0][shipping_rate_data][display_name]', (DELIVERY ? 'Delivery' : 'Free delivery') + ' within Singapore \u00b7 roasted Wednesday, dispatched shortly after');
-  form.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', String(Math.max(0, DELIVERY)));
+  const oneOffSub = lines.reduce((n, l) => n + (l.size === '250g' ? P250 : P1KG) * l.qty, 0);
+  const charge = oneOffSub < FREE_FROM ? Math.max(0, DELIVERY) : 0;
+  form.set('shipping_options[0][shipping_rate_data][display_name]', (charge ? 'Delivery' : 'Free delivery') + ' within Singapore \u00b7 roasted Wednesday, dispatched shortly after');
+  form.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', String(charge));
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'sgd');
   }
   const ref = orderRef();
@@ -142,10 +147,11 @@ exports.handler = async function (event) {
   // Subscription lines use the range's real Stripe prices (so they can be swapped later), unless a client
   // code beats the subscription discount, in which case that line is priced here as before.
   let cat = null;
-  if (every && codePct <= SUB_OFF) cat = await ensureCatalogue(KEY, ORIGINS, { '250g': P250, '1kg': P1KG }, SUB_OFF);
+  const subOff = Math.max(SUB_OFF, codePct);
+  if (every) cat = await ensureCatalogue(KEY, ORIGINS, { '250g': P250, '1kg': P1KG, delivery: Math.max(0, DELIVERY) }, subOff);
   lines.forEach((l, i) => {
     form.set(`line_items[${i}][quantity]`, String(l.qty));
-    if (l.every && cat) { form.set(`line_items[${i}][price]`, cat[`nf-sub-${ORIGINS[l.name].origin}-${l.size}-w${l.every}`].price); return; }
+    if (l.every && cat) { form.set(`line_items[${i}][price]`, cat[lookupKey(ORIGINS[l.name].origin, l.size, l.every, subOff)].price); return; }
     form.set(`line_items[${i}][price_data][currency]`, 'sgd');
     form.set(`line_items[${i}][price_data][unit_amount]`, String(unit(l)));
     if (l.every) { form.set(`line_items[${i}][price_data][recurring][interval]`, 'week'); form.set(`line_items[${i}][price_data][recurring][interval_count]`, String(l.every)); }
@@ -155,6 +161,12 @@ exports.handler = async function (event) {
     form.set(`line_items[${i}][price_data][product_data][images][0]`, CDN + BAGS[l.name]);
   });
 
+  // Subscription delivery: a recurring delivery line when each delivery's coffee comes to less than the threshold
+  if (every) {
+    const perDelivery = lines.filter(l => l.every).reduce((n, l) => n + unit(l) * l.qty, 0);
+    form.set('subscription_data[metadata][off_pct]', String(Math.round(subOff * 100)));
+    if (perDelivery < FREE_FROM && DELIVERY > 0) { const i = lines.length; form.set(`line_items[${i}][price]`, cat[deliveryKey(every)].price); form.set(`line_items[${i}][quantity]`, '1'); form.set('metadata[delivery_cents]', String(DELIVERY)); }
+  }
   // One-off order: a known client code is applied by Stripe; otherwise they can type one in.
   // Subscription order: the code is already in the prices above, so no code box (it would stack).
   let applied = false;

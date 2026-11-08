@@ -122,17 +122,22 @@ test('every order gets a quotable number, on the order and its payment',async()=
  assert.equal(f.get('payment_intent_data[metadata][order_ref]'),ref);assert.equal(f.get('payment_intent_data[description]'),'NoFilter order '+ref);
 });
 
-test('subscriptions: weekly-based recurring prices at 10% off; one frequency; one-offs ride along',async()=>{
+test('subscriptions: the range at 5% off; one frequency; one-offs ride along; delivery under SGD 50',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';delete process.env.PRICE_BAG_1KG;delete process.env.PRICE_BAG_250G;
  const calls=mockStripe(stripeWithCatalogue(()=>({body:{client_secret:'x',id:'cs_test_9'}})));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:2,every:2},{name:'Batang Gadis',size:'1kg',qty:1,every:4},{name:'Batang Toru',size:'1kg',qty:1}]}));
  const f=sessionCall(calls);
  assert.equal(f.get('mode'),'subscription');
- assert.equal(f.get('line_items[0][price]'),'price_nf-sub-gayo-250g-w2','a real price from the range, so it can be swapped later');
- assert.equal(f.get('line_items[1][price]'),'price_nf-sub-gadis-1kg-w2','the basket shares one frequency');
+ assert.equal(f.get('line_items[0][price]'),'price_nf-sub-gayo-250g-w2-p5','a real price from the range, so it can be swapped later');
+ assert.equal(f.get('line_items[1][price]'),'price_nf-sub-gadis-1kg-w2-p5','the basket shares one frequency');
+ assert.equal(f.get('line_items[3][price]'),null,'2 x 22.80 + 76 per delivery is over SGD 50: no delivery line');
  const made=calls.filter(c=>c.url.endsWith('/v1/prices')).map(c=>new URLSearchParams(c.opt.body));
- assert.equal(made.length,32,'4 coffees x 2 sizes x 4 frequencies');assert.equal(made.find(m=>m.get('lookup_key')==='nf-sub-gayo-250g-w2').get('unit_amount'),'2160');
- assert.equal(calls.filter(c=>c.url.endsWith('/v1/products')).length,8);
+ assert.equal(made.length,36,'4 coffees x 2 sizes x 4 frequencies, plus delivery x 4');assert.equal(made.find(m=>m.get('lookup_key')==='nf-sub-gayo-250g-w2-p5').get('unit_amount'),'2280');
+ assert.equal(made.find(m=>m.get('lookup_key')==='nf-del-w2').get('unit_amount'),'400');
+ assert.equal(calls.filter(c=>c.url.endsWith('/v1/products')).length,9);
+ const small=mockStripe(stripeWithCatalogue(()=>({body:{client_secret:'x',id:'cs_test_9'}})));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:2}]}));
+ const sf=sessionCall(small);assert.equal(sf.get('line_items[1][price]'),'price_nf-del-w2','one 250 g bag a delivery pays SGD 4 delivery');assert.equal(sf.get('metadata[delivery_cents]'),'400');
  assert.equal(f.get('line_items[2][price_data][unit_amount]'),'8000');assert.equal(f.get('line_items[2][price_data][recurring][interval]'),null,'one-off rides along');
  assert.equal(f.get('subscription_data[metadata][source]'),'website-shop');assert.equal(f.get('subscription_data[metadata][every_weeks]'),'2');
  assert.equal(f.get('shipping_options[0][shipping_rate_data][type]'),null);assert.equal(f.get('allow_promotion_codes'),null,'no code box on subscriptions');
@@ -140,6 +145,10 @@ test('subscriptions: weekly-based recurring prices at 10% off; one frequency; on
  const one=mockStripe(()=>({body:{client_secret:'x',id:'cs_test_9'}}));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}));
  const g=sessionCall(one);assert.equal(g.get('mode'),'payment');assert.equal(g.get('customer_creation'),'always');
+ assert.equal(g.get('shipping_options[0][shipping_rate_data][fixed_amount][amount]'),'400','one-off under SGD 50: SGD 4');
+ const big=mockStripe(()=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'1kg',qty:1}]}));
+ assert.equal(sessionCall(big).get('shipping_options[0][shipping_rate_data][fixed_amount][amount]'),'0','SGD 50 and over: free');
 });
 
 test('subscriptions with a client code: the better of the two, never both',async()=>{
@@ -148,12 +157,12 @@ test('subscriptions with a client code: the better of the two, never both',async
  let calls=mockStripe(promo(10));
  let r=JSON.parse((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1},{name:'Batang Toru',size:'250g',qty:1}],code:'SPRINKLR10'}))).body);
  let f=sessionCall(calls);
- assert.equal(f.get('line_items[0][price]'),'price_nf-sub-gayo-250g-w1','10% sub vs 10% code: the range price (10% off)');
- assert.equal(f.get('line_items[1][price_data][unit_amount]'),'2160','one-off gets the code');
+ assert.equal(f.get('line_items[0][price]'),'price_nf-sub-gayo-250g-w1-p10','5% sub vs 10% code: the 10% price set, still swappable');
+ assert.equal(f.get('line_items[1][price_data][unit_amount]'),'2160','one-off gets the code');assert.equal(f.get('subscription_data[metadata][off_pct]'),'10');
  assert.equal(f.get('discounts[0][promotion_code]'),null,'not stacked by Stripe');assert.equal(r.code,'SPRINKLR10');
  calls=mockStripe(promo(15));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1}],code:'BIG15'}));
- assert.equal(sessionCall(calls).get('line_items[0][price_data][unit_amount]'),'2040','a bigger code wins (priced here)');
+ assert.equal(sessionCall(calls).get('line_items[0][price]'),'price_nf-sub-gayo-250g-w1-p15','a bigger code wins');
  calls=mockStripe(promo(10));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],code:'SPRINKLR10'}));
  assert.equal(sessionCall(calls).get('discounts[0][promotion_code]'),'promo_1','one-off orders: Stripe applies the code');
@@ -204,17 +213,21 @@ test('subscription changes: swap coffee or size, change frequency without a char
  const sum=require(path.join(F,'order-summary.js'));process.env.STRIPE_SECRET_KEY='sk_test_x';
  const item=(id,origin,name,every)=>({id,quantity:1,current_period_end:1795000000,price:{unit_amount:2160,recurring:{interval:'week',interval_count:every},product:{name,metadata:{origin}}}});
  const session={payment_status:'paid',mode:'subscription',customer:'cus_1',metadata:{source:'website-shop'},
-  subscription:{id:'sub_1',status:'active',metadata:{every_weeks:'2'},items:{data:[item('si_1','gayo','Gayo Lues coffee, 250 g',2),item('si_2','toru','Batang Toru coffee, 1 kg',2)]}}};
+  subscription:{id:'sub_1',status:'active',metadata:{every_weeks:'2',off_pct:'5'},items:{data:[item('si_1','gayo','Gayo Lues coffee, 250 g',2),item('si_2','toru','Batang Toru coffee, 1 kg',2)]}}};
  let calls=mockStripe(stripeWithCatalogue(u=>({body:u.includes('/v1/subscriptions/')?{}:session})));
  const post=b=>sum.handler({httpMethod:'POST',body:JSON.stringify({order:'cs_test_abcdefghijklmnop',...b})});
  let r=await post({action:'swap',items:[{id:'si_1',name:'Batang Gadis',size:'1 kg',qty:2},{id:'si_2',name:'Batang Toru',size:'1kg',qty:0}]});
  assert.equal(r.statusCode,200);let f=new URLSearchParams(calls.filter(c=>c.url.includes('/v1/subscriptions/sub_1')).pop().opt.body);
- assert.equal(f.get('items[0][price]'),'price_nf-sub-gadis-1kg-w2');assert.equal(f.get('items[0][quantity]'),'2');assert.equal(f.get('items[1][deleted]'),'true');assert.equal(f.get('proration_behavior'),'none');
+ assert.equal(f.get('items[0][price]'),'price_nf-sub-gadis-1kg-w2-p5');assert.equal(f.get('items[0][quantity]'),'2');assert.equal(f.get('items[1][deleted]'),'true');assert.equal(f.get('proration_behavior'),'none');
+ assert.equal(f.get('items[2][price]'),null,'2 x 1 kg is over SGD 50: no delivery');
+ r=await post({action:'swap',items:[{id:'si_1',name:'Gayo Lues',size:'250g',qty:1},{id:'si_2',qty:0}]});
+ f=new URLSearchParams(calls.filter(c=>c.url.includes('/v1/subscriptions/sub_1')).pop().opt.body);
+ assert.equal(f.get('items[2][price]'),'price_nf-del-w2','down to one 250 g bag: delivery added');
  assert.equal((await post({action:'swap',items:[{id:'si_1',qty:0},{id:'si_2',qty:0}]})).statusCode,400,'one coffee must remain');
  assert.equal((await post({action:'swap',items:[{id:'si_1',name:'Free coffee',size:'1kg',qty:1}]})).statusCode,400);
  r=await post({action:'every',every:4});assert.equal(r.statusCode,200);
  f=new URLSearchParams(calls.filter(c=>c.url.includes('/v1/subscriptions/sub_1')).pop().opt.body);
- assert.equal(f.get('items[0][price]'),'price_nf-sub-gayo-250g-w4');assert.equal(f.get('items[1][price]'),'price_nf-sub-toru-1kg-w4');
+ assert.equal(f.get('items[0][price]'),'price_nf-sub-gayo-250g-w4-p5');assert.equal(f.get('items[1][price]'),'price_nf-sub-toru-1kg-w4-p5');
  assert.equal(f.get('trial_end'),'1795000000','no charge until the paid period ends');assert.equal(f.get('metadata[every_weeks]'),'4');
  r=await post({action:'skip'});f=new URLSearchParams(calls.filter(c=>c.url.includes('/v1/subscriptions/sub_1')).pop().opt.body);
  assert.equal(f.get('pause_collection[behavior]'),'void');assert.equal(f.get('pause_collection[resumes_at]'),String(1795000000+3600));

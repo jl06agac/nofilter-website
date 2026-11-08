@@ -18,7 +18,7 @@
    (frequency, next charge), the contribution by origin and partner, and the running total this customer's
    paid shop orders and subscription deliveries have sent to conservation. Never returned: phone, full card
    details, billing address. */
-const { ensureCatalogue, ensurePortal } = require('./_lib/catalogue.js');
+const { ensureCatalogue, ensurePortal, lookupKey, deliveryKey } = require('./_lib/catalogue.js');
 const { ORIGINS, SUB_OFF } = require('./checkout.js')._test;
 const reply = (statusCode, body, extra) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...(extra || {}) }, body: JSON.stringify(body) });
 
@@ -33,6 +33,8 @@ async function call(path, key, form) {
   return data;
 }
 const subPeriodEnd = sub => { const it = sub.items && sub.items.data && sub.items.data[0]; return (it && it.current_period_end) || sub.current_period_end || sub.trial_end || 0; };
+const isDelivery = it => { const pr = it.price || {}, prod = pr.product && typeof pr.product === 'object' ? pr.product : {};
+  return (prod.metadata || {}).kind === 'delivery' || /^delivery$/i.test(prod.name || '') || /delivery/i.test(it.description || ''); };
 const shipOf = s => (s.total_details || {}).amount_shipping || 0;
 
 // Everything this customer's paid shop orders and subscription renewals have sent to conservation.
@@ -42,14 +44,15 @@ async function givenSoFar(customer, key) {
   const sessions = await call(`checkout/sessions?customer=${customer}&limit=100`, key);
   for (const s of sessions.data || []) {
     if (s.payment_status !== 'paid' || (s.metadata || {}).source !== 'website-shop') continue;
-    total += Math.round(((s.amount_total || 0) - shipOf(s)) * parseFloat((s.metadata || {}).contribution_rate || '0.10')); orders++;
+    total += Math.round(Math.max(0, (s.amount_total || 0) - shipOf(s) - (+(s.metadata || {}).delivery_cents || 0)) * parseFloat((s.metadata || {}).contribution_rate || '0.10')); orders++;
   }
   const inv = await call(`invoices?customer=${customer}&status=paid&limit=100`, key);
   for (const i of inv.data || []) {
     if (i.billing_reason !== 'subscription_cycle') continue;
     const meta = (i.parent && i.parent.subscription_details && i.parent.subscription_details.metadata) || (i.subscription_details && i.subscription_details.metadata) || {};
     if (meta.source !== 'website-shop') continue;
-    total += Math.round((i.amount_paid || 0) * parseFloat(meta.contribution_rate || '0.10')); orders++;
+    const del = ((i.lines && i.lines.data) || []).filter(l => /delivery/i.test(l.description || '')).reduce((n, l) => n + (l.amount || 0), 0);
+    total += Math.round(Math.max(0, (i.amount_paid || 0) - del) * parseFloat(meta.contribution_rate || '0.10')); orders++;
   }
   return { total, orders };
 }
@@ -80,11 +83,15 @@ exports.handler = async function (event) {
         await call('subscriptions/' + sub.id, KEY, f);
         return reply(200, { skipped: body.action === 'skip' });
       }
-      const P = { '250g': parseInt(process.env.PRICE_BAG_250G || '2400', 10), '1kg': parseInt(process.env.PRICE_BAG_1KG || '8000', 10) };
-      const cat = await ensureCatalogue(KEY, ORIGINS, P, SUB_OFF);
-      const items = (sub.items && sub.items.data) || [];
+      const DEL = parseInt(process.env.DELIVERY_CENTS || '400', 10), FREE_FROM = parseInt(process.env.FREE_FROM_CENTS || '5000', 10);
+      const P = { '250g': parseInt(process.env.PRICE_BAG_250G || '2400', 10), '1kg': parseInt(process.env.PRICE_BAG_1KG || '8000', 10), delivery: DEL };
+      const off = Math.max(SUB_OFF, (+((sub.metadata || {}).off_pct) || Math.round(SUB_OFF * 100)) / 100);
+      const cat = await ensureCatalogue(KEY, ORIGINS, P, off);
+      const all = (sub.items && sub.items.data) || [];
+      const items = all.filter(it => !isDelivery(it)), delItem = all.find(isDelivery);
       const curEvery = +((sub.metadata || {}).every_weeks) || (items[0] && items[0].price.recurring.interval_count) || 2;
-      const priceFor = (name, size, every) => { const o = ORIGINS[name]; const c = o && cat[`nf-sub-${o.origin}-${size}-w${every}`]; return c && c.price; };
+      const priceFor = (name, size, every) => { const o = ORIGINS[name]; const c = o && cat[lookupKey(o.origin, size, every, off)]; return c && c.price; };
+      const unitOf = size => Math.round(P[size] * (1 - off));
       const sizeOf = it => (/1\s*kg/i.test((it.price.product && it.price.product.name) || it.price.nickname || '') ? '1kg' : '250g');
       const nameOf = it => Object.keys(ORIGINS).find(n => ((it.price.product && it.price.product.metadata) || {}).origin === ORIGINS[n].origin);
       const f = new URLSearchParams();
@@ -102,16 +109,22 @@ exports.handler = async function (event) {
           f.set(`items[${i}][price]`, pr); f.set(`items[${i}][quantity]`, String(qty)); kept++;
         });
         if (!kept) return reply(400, { error: 'keep at least one coffee, or cancel instead' });
+        var perDelivery = want.reduce((n, w) => { const q = Math.max(0, Math.min(20, parseInt(w.qty, 10) || 0)); return n + (q && items.find(it => it.id === w.id) ? unitOf(String(w.size).toLowerCase().replace(/\s+/g, '')) * q : 0); }, 0), nextI = want.length, newEvery = curEvery;
       } else if (body.action === 'every') {
         const n = parseInt(body.every, 10);
         if (![1, 2, 3, 4].includes(n)) return reply(400, { error: 'every 1-4 weeks' });
         items.forEach((it, i) => { const pr = priceFor(nameOf(it), sizeOf(it), n); if (!pr) throw Object.assign(Error('bad item'), { bad: true });
           f.set(`items[${i}][id]`, it.id); f.set(`items[${i}][price]`, pr); f.set(`items[${i}][quantity]`, String(it.quantity)); });
+        var perDelivery = items.reduce((m, it) => m + unitOf(sizeOf(it)) * (it.quantity || 1), 0), nextI = items.length, newEvery = n;
         // a new interval would otherwise restart the billing period (and charge) today: hold it to the end of
         // the period already paid for
         f.set('trial_end', String(periodEnd));
         f.set('metadata[every_weeks]', String(n));
       } else return reply(400, { error: 'unknown action' });
+      // delivery: charged per delivery under the threshold, dropped above it
+      const needDel = perDelivery < FREE_FROM && DEL > 0;
+      if (needDel) { const dp = cat[deliveryKey(newEvery)].price; if (delItem) { f.set(`items[${nextI}][id]`, delItem.id); } f.set(`items[${nextI}][price]`, dp); f.set(`items[${nextI}][quantity]`, '1'); }
+      else if (delItem) { f.set(`items[${nextI}][id]`, delItem.id); f.set(`items[${nextI}][deleted]`, 'true'); }
       await call('subscriptions/' + sub.id + '?expand[]=items.data.price.product', KEY, f);
       return reply(200, { ok: true });
     }
@@ -140,14 +153,16 @@ exports.handler = async function (event) {
     const rate = parseFloat((s.metadata || {}).contribution_rate || '0.10');
     const lines = await call(`checkout/sessions/${id}/line_items?limit=100&expand[]=data.price.product`, KEY);
     const by = {};
+    const delLines = lines.data.filter(l => ((l.price && l.price.product && l.price.product.metadata) || {}).kind === 'delivery');
     for (const l of lines.data) {
       const m = (l.price && l.price.product && l.price.product.metadata) || {};
+      if (m.kind === 'delivery' || !m.origin) continue;
       const k = (m.origin || 'unknown') + '|' + (m.partner || '');
       if (!by[k]) by[k] = { origin: m.origin || 'unknown', name: String(l.description || '').split(' coffee')[0], partner: m.partner || '', bags: 0, sales: 0 };
       by[k].bags += l.quantity || 0; by[k].sales += l.amount_total || 0;
     }
     const byPartner = Object.values(by).map(v => ({ origin: v.origin, name: v.name, partner: v.partner, bags: v.bags, contribution: Math.round(v.sales * rate) }));
-    const items = lines.data.map(l => { const [name, size] = String(l.description || '').split(' coffee, ');
+    const items = lines.data.filter(l => !delLines.includes(l)).map(l => { const [name, size] = String(l.description || '').split(' coffee, ');
       const r = l.price && l.price.recurring;
       return { name, size: size || '', qty: l.quantity || 0, amount: l.amount_total || 0, every: r && r.interval === 'week' ? r.interval_count : 0 }; });
     const ship = (s.collected_information && s.collected_information.shipping_details) || s.shipping_details || null;
@@ -162,7 +177,7 @@ exports.handler = async function (event) {
       firstName: String((ship && ship.name) || cd.name || '').trim().split(/\s+/)[0] || null,
       address: ship ? [ship.name, a.line1, a.line2, [a.city || 'Singapore', a.postal_code].filter(Boolean).join(' ')].filter(Boolean) : [],
       items, subtotal: s.amount_subtotal || 0, discount: (s.total_details || {}).amount_discount || 0,
-      delivery: shipOf(s), total: s.amount_total || 0,
+      delivery: shipOf(s) + delLines.reduce((n, l) => n + (l.amount_total || 0), 0), total: s.amount_total || 0,
       paidWith: card ? { brand: card.brand || '', last4: card.last4 || '', wallet: wallet || null } : ptype ? { brand: ptype } : null,
       placed: s.created || null };
 
@@ -173,7 +188,9 @@ exports.handler = async function (event) {
       const pc = sub.pause_collection && sub.pause_collection.behavior === 'void' ? sub.pause_collection : null;
       subscription = { every, nextCharge: subPeriodEnd(sub) || null, status: sub.status, managed: !!customer,
         skipping: pc ? { until: pc.resumes_at || null } : null, cancelling: !!sub.cancel_at_period_end,
-        items: ((sub.items && sub.items.data) || []).map(it => { const pr = it.price || {}, prod = pr.product && typeof pr.product === 'object' ? pr.product : {};
+        off: +((sub.metadata || {}).off_pct) || Math.round(SUB_OFF * 100),
+        delivery: ((sub.items && sub.items.data) || []).filter(isDelivery).reduce((n, it) => n + ((it.price || {}).unit_amount || 0), 0),
+        items: ((sub.items && sub.items.data) || []).filter(it => !isDelivery(it)).map(it => { const pr = it.price || {}, prod = pr.product && typeof pr.product === 'object' ? pr.product : {};
           const [name, size] = String(prod.name || '').split(' coffee, ');
           return { id: it.id, name: name || null, size: size || '', qty: it.quantity || 1, amount: (pr.unit_amount || 0) * (it.quantity || 1) }; }) };
       // the project chosen while paying carries on to every delivery (read by the NGO report)

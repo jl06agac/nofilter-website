@@ -17216,9 +17216,9 @@ $$('.org .org-hd').forEach(function(btn){
    kept for this visit, shown in the cart, applied by Stripe if it knows it */
 var SHOP_CODE = (function(){ try { return (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,24); } catch(e){ return ''; } })();
 var cart = [];   /* in-memory only — no localStorage / sessionStorage */
-/* 152 · subscriptions: a line with every = 1-4 is delivered every that many weeks at 10% off; 0 is one-off.
+/* 152 · subscriptions: a line with every = 1-4 is delivered every that many weeks at SUB_OFF (5%) off; 0 is one-off.
    Stripe allows one frequency per subscription, so all subscription lines in the basket share it. */
-var SUB_OFF = 0.10, EVERY_LAB = { 1:'every week', 2:'every 2 weeks', 3:'every 3 weeks', 4:'every 4 weeks' };
+var SUB_OFF = window.__nfSubOff = 0.05, DELIVERY = 4, FREE_FROM = 50, EVERY_LAB = { 1:'every week', 2:'every 2 weeks', 3:'every 3 weeks', 4:'every 4 weeks' };
 window.__nfPlan = window.__nfPlan || { every:0, last:2 };
 function unitPrice(l){ return l.every ? Math.round(l.price * (1 - SUB_OFF) * 100) / 100 : l.price; }
 function lineTotal(l){ return unitPrice(l) * l.qty; }
@@ -17520,7 +17520,7 @@ function renderCart(){
     var oo = ORIGINS.filter(function(x){ return x.name === li.name; })[0];
     row.innerHTML = '<img class="cimg" src="' + (oo ? oo.bag : '') + '" alt="">' + '<div><div class="cn">' + li.name + '</div><div class="cs">' + li.size.toUpperCase() +
       ' · ' + CUR() + money(unitPrice(li)) + (li.every ? ' <s>' + money(li.price) + '</s>' : '') + '</div>' +
-      '<span class="csub" role="radiogroup" aria-label="How to buy"><button type="button" data-s="0" aria-checked="' + !li.every + '">One-time</button><button type="button" data-s="1" aria-checked="' + !!li.every + '">Subscribe \u221210%</button></span>' +
+      '<span class="csub" role="radiogroup" aria-label="How to buy"><button type="button" data-s="0" aria-checked="' + !li.every + '">One-time</button><button type="button" data-s="1" aria-checked="' + !!li.every + '">Subscribe \u22125%</button></span>' +
       '<div class="cq"><button type="button" data-d="-1" aria-label="One fewer">−</button><span>' + li.qty + '</span><button type="button" data-d="1" aria-label="One more">+</button></div></div>' +
       '<div class="cn">' + CUR() + money(lineTotal(li)) + '</div>' +
       '<button class="cx" aria-label="Remove">✕</button>';
@@ -17556,6 +17556,16 @@ function renderCart(){
       renderCart.film.querySelector('figcaption').innerHTML = '<span>Where it grows</span>' + lo.name + ' · with ' + lo.ngo;
       body.insertBefore(renderCart.film, body.firstChild);
     }
+  }
+  /* 155 · delivery: SGD 4 under SGD 50, free from SGD 50 (for a subscription, each delivery's coffee) */
+  var dl = $('#cartDel');
+  if(!dl){ dl = document.createElement('div'); dl.id = 'cartDel'; dl.className = 'cart-del'; var ro = $('.cart-ft .readout'); if(ro) ro.parentNode.insertBefore(dl, ro.nextSibling); }
+  if(dl){
+    var perDel = 0; cart.forEach(function(l){ if(l.every) perDel += lineTotal(l); });
+    var test = be ? perDel : sub, full = 0; cart.forEach(function(l){ full += l.price * l.qty; }); if(!be) test = full;
+    dl.hidden = !cart.length;
+    dl.innerHTML = test >= FREE_FROM ? '<span>Delivery</span><b>Free</b>' :
+      '<span>Delivery' + (be ? ', each delivery' : '') + '</span><b>' + CUR() + money(DELIVERY) + '</b><small>Free from ' + CUR() + FREE_FROM + (be ? ' a delivery' : '') + '. Add ' + CUR() + money(FREE_FROM - test) + ' more.</small>';
   }
   $('#cartSub').textContent = CUR() + money(sub);
   $('#cartGive').textContent = CUR() + money(sub * 0.10);
@@ -17735,7 +17745,7 @@ function paidPanel(panelOrder){
     var when = sb.nextCharge ? ' The next one is charged on <b>' + sgDate(sb.nextCharge) + '</b> and roasted on ' + roastOnOrAfter(sb.nextCharge) + '.' : '';
     if(sb.skipping) when = ' <b>Your next delivery is skipped.</b> After that it carries on ' + lab + '.';
     if(sb.cancelling) when = ' <b>It ends after the delivery already paid for.</b>';
-    el.querySelector('.nf-ty-sub-p').innerHTML = 'Your coffee comes <b>' + lab + '</b>, at 10% off.' + when + ' Each delivery sends 10% of what you pay to conservation.';
+    el.querySelector('.nf-ty-sub-p').innerHTML = 'Your coffee comes <b>' + lab + '</b>, at ' + (sb.off || 5) + '% off.' + when + (sb.delivery ? ' Delivery is SGD ' + money(sb.delivery / 100) + ' a delivery, free when a delivery comes to SGD ' + FREE_FROM + ' or more.' : ' Delivery is free.') + ' Each delivery sends 10% of what you pay for the coffee to conservation.';
     var x = el.querySelector('.nf-ty-subx'), live = panelOrder && sb.managed && !sb.cancelling;
     if(!live){ x.innerHTML = note ? '<p class="nf-ty-note">' + esc(note) + '</p>' : ''; box.hidden = false; return; }
     x.innerHTML = '<div class="nf-ty-items2">' + (sb.items || []).map(function(it){
@@ -27250,6 +27260,9 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .cart-plan .cp-f button{height:32px;border-radius:999px;border:1.5px solid rgba(26,24,21,.15);background:#fff;font:600 12px var(--body,sans-serif);color:#1A1815;cursor:pointer}
 .cart-plan .cp-f [aria-checked="true"]{background:#1A1815;border-color:#1A1815;color:#F4F2EE}
 .cart-plan small{display:block;margin-top:9px;font-size:12px;color:rgba(26,24,21,.6)}
+.cart-del{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px;margin:-4px 2px 0;font:13px var(--body,sans-serif);color:rgba(26,24,21,.75)}
+.cart-del b{font-weight:600;color:#1A1815}
+.cart-del small{flex-basis:100%;font-size:12px;color:#1F6F5C;font-weight:600}
 /* 147 · the shop's panels are cream, not black (Alex: "it's ominous"). The basket re-points the site's
    colour tokens; the thank-you card is restyled in its own scope; the checkout panel's rules were recoloured. */
 .cart{--panel:#F4F2EE;--cream:#1A1815;--dim:rgba(26,24,21,.58);--dimmer:rgba(26,24,21,.42);--line:rgba(26,24,21,.12);--line2:rgba(26,24,21,.14);color:#1A1815}
@@ -27590,7 +27603,7 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
     var total = parseFloat(pn.textContent) || 0, cur = (box.querySelector('.cx-price') || {}).textContent || '';
     cur = (cur.match(/[A-Z]{3}/) || ['SGD'])[0];
     w.querySelector('[data-p="0"] em').textContent = cur + ' ' + money(total);
-    w.querySelector('[data-p="1"] em').textContent = cur + ' ' + money(total * 0.9);
+    w.querySelector('[data-p="1"] em').textContent = cur + ' ' + money(total * (1 - (window.__nfSubOff || 0.05)));
     w.querySelector('[data-p="1"] s').textContent = money(total);
     w.querySelectorAll('[data-p]').forEach(function(b){ b.setAttribute('aria-checked', String((b.getAttribute('data-p') === '1') === !!plan.every)); });
     w.querySelector('.nf-sub').hidden = !plan.every;
@@ -27598,7 +27611,7 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
     w.querySelectorAll('[data-f]').forEach(function(b){ b.setAttribute('aria-checked', String(+b.getAttribute('data-f') === on)); });
     var amt = box.querySelector('.cx-imp-amt'), sub = box.querySelector('.nf-imp-sub');
     if(amt && !sub){ sub = document.createElement('span'); sub.className = 'nf-imp-sub'; amt.parentNode.insertBefore(sub, amt.nextSibling); }
-    if(sub){ sub.textContent = money(total * 0.9 * 0.10); box.classList.toggle('nf-sub-on', !!plan.every); }
+    if(sub){ sub.textContent = money(total * (1 - (window.__nfSubOff || 0.05)) * 0.10); box.classList.toggle('nf-sub-on', !!plan.every); }
   }
   function paintAll(){ shop.querySelectorAll('.cx-db-buy').forEach(paint); }
   function mount(box){
@@ -27607,10 +27620,10 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
     var w = document.createElement('div'); w.className = 'nf-plan'; w.setAttribute('role','radiogroup'); w.setAttribute('aria-label','How to buy');
     w.innerHTML = '<div class="nf-seg">' +
         '<button type="button" role="radio" data-p="0"><span class="t">One-time</span><em></em></button>' +
-        '<button type="button" role="radio" data-p="1"><span class="t">Subscribe <b class="nf-save">Save 10%</b></span><span><em></em> <s></s></span></button></div>' +
+        '<button type="button" role="radio" data-p="1"><span class="t">Subscribe <b class="nf-save">Save 5%</b></span><span><em></em> <s></s></span></button></div>' +
       '<div class="nf-sub" hidden><span class="nf-sub-k">Delivered</span><div class="nf-freq" role="radiogroup" aria-label="How often">' +
         [1,2,3,4].map(function(n){ return '<button type="button" role="radio" data-f="' + n + '">' + SHORT[n] + '</button>'; }).join('') + '</div>' +
-        '<ul class="nf-perks"><li>Swap coffees any time</li><li>Skip or cancel any time</li><li>Free delivery, roasted Wednesdays</li></ul></div>';
+        '<ul class="nf-perks"><li>Swap coffees any time</li><li>Skip or cancel any time</li><li>Free delivery from SGD 50</li></ul></div>';
     row.parentNode.insertBefore(w, row.nextSibling);
     w.addEventListener('click', function(e){ e.stopPropagation();
       var b = e.target.closest('[data-p]'), f = e.target.closest('[data-f]');
