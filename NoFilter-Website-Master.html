@@ -17592,7 +17592,7 @@ var PAY_CHOICES = [
   { id:'coffee-with-forest', title:'Grow coffee with the forest', img:'/assets/shop/coffee-with-forest.webp' } ];
 window.__nfPayChoices = PAY_CHOICES;
 function loadStripeJs(){ return window.Stripe ? Promise.resolve(window.Stripe) : new Promise(function(ok, no){
-  var sc = document.createElement('script'); sc.src = 'https://js.stripe.com/v3/'; sc.onload = function(){ ok(window.Stripe); }; sc.onerror = no; document.head.appendChild(sc); }); }
+  var sc = document.createElement('script'); sc.src = 'https://js.stripe.com/endive/stripe.js'; /* 151 · Stripe's current release for embedded_page checkout */ sc.onload = function(){ ok(window.Stripe); }; sc.onerror = no; document.head.appendChild(sc); }); }
 function openPay(d){
   var give = 0, top = null, by = {};
   cart.forEach(function(l){ var v = l.price * l.qty * 0.10; give += v; by[l.name] = (by[l.name] || 0) + v; });
@@ -17642,7 +17642,7 @@ function openPay(d){
     });
     return;
   }
-  loadStripeJs().then(function(Stripe){ return Stripe(d.publishableKey).initEmbeddedCheckout({ fetchClientSecret: function(){ return Promise.resolve(d.clientSecret); } }); })
+  loadStripeJs().then(function(Stripe){ var st = Stripe(d.publishableKey), o = { fetchClientSecret: function(){ return Promise.resolve(d.clientSecret); } }; return st.createEmbeddedCheckoutPage ? st.createEmbeddedCheckoutPage(o) : st.initEmbeddedCheckout(o); })
     .then(function(c){ checkout = c; el.querySelector('#nfPayForm').textContent = ''; c.mount('#nfPayForm'); })
     .catch(function(){ el.querySelector('#nfPayForm').innerHTML = '<p class="nf-pay-wait">Secure checkout could not load. Please check your connection and try again.</p>'; });
 }

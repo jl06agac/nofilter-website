@@ -90,7 +90,7 @@ exports.handler = async function (event) {
   const form = new URLSearchParams();
   form.set('mode', 'payment');
   form.set('locale', 'en-GB');
-  form.set('ui_mode', 'embedded');
+  form.set('ui_mode', 'embedded_page'); // Stripe's current name for the embedded form (was 'embedded')
   form.set('return_url', origin + '/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
   form.set('shipping_address_collection[allowed_countries][0]', 'SG');
   form.set('phone_number_collection[enabled]', 'true');

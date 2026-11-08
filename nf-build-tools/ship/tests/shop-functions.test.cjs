@@ -29,7 +29,7 @@ test('prices are set here, every line carries its origin and partner, delivery i
  assert.equal(f.get('metadata[contribution_rate]'),'0.10');assert.equal(f.get('metadata[source]'),'website-shop');
  assert.equal(f.get('shipping_address_collection[allowed_countries][0]'),'SG');
  assert.equal(f.get('allow_promotion_codes'),'true','customers can enter a code');
- assert.equal(f.get('ui_mode'),'embedded');assert.equal(f.get('return_url'),'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
+ assert.equal(f.get('ui_mode'),'embedded_page');assert.equal(f.get('return_url'),'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
  assert.equal(f.get('line_items[0][price_data][product_data][images][0]'),'https://nofilter-shared.netlify.app/bag-batang-gadis-640.webp');
  assert.equal(f.get('metadata[choice]'),'','no choice yet means where it is needed most');
 });

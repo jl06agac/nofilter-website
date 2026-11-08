@@ -56,6 +56,12 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
    "PRCF Indonesia, OIC" (matches the site's own fact box and Alex). Only the shop reads that field.
 7. **Accessibility**: dialog roles, focus on open, Escape to close, reduced motion on the count-up
 
+8. **Site headers** (`netlify.toml`, 151): `payment=()` became `payment=(self js.stripe.com checkout.stripe.com
+   pay.google.com)` so wallets work in Stripe's frame, and the opener policy became `same-origin-allow-popups` for
+   payment methods that confirm in a pop-up. Site-wide; check nothing else relied on the stricter values.
+9. **Stripe API change**: embedded checkout is now `ui_mode: embedded_page`, mounted with
+   `createEmbeddedCheckoutPage` from `js.stripe.com/endive/stripe.js` (falls back to `initEmbeddedCheckout`).
+
 ## Known gaps (not bugs)
 
 - Retail ships within Singapore only; other markets get a message instead of checkout.

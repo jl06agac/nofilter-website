@@ -1035,5 +1035,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
     Content-Security-Policy = "frame-ancestors 'self'"
-    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
-    Cross-Origin-Opener-Policy = "same-origin"
+    # 151 · the shop: Stripe's embedded checkout needs the payment feature (Apple Pay, Google Pay) in its frame,
+    # and some payment methods open a pop-up to confirm, so the opener policy allows pop-ups.
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(self \"https://js.stripe.com\" \"https://checkout.stripe.com\" \"https://pay.google.com\"), usb=(), interest-cohort=()"
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
