@@ -181,7 +181,7 @@ exports.handler = async function (event) {
     const ptype = (ch && ch.payment_method_details && ch.payment_method_details.type) || (pm && pm.type) || null;
     const cd = s.customer_details || {};
     const order = { ref: (s.metadata || {}).order_ref || null, email: cd.email || null,
-      firstName: String((ship && ship.name) || cd.name || '').trim().split(/\s+/)[0] || null,
+      firstName: (n => n ? n.charAt(0).toUpperCase() + n.slice(1) : null)(String((ship && ship.name) || cd.name || '').trim().split(/\s+/)[0]),   /* "alex" typed at Stripe reads "Alex" */
       address: ship ? [ship.name, a.line1, a.line2, [a.city || 'Singapore', a.postal_code].filter(Boolean).join(' ')].filter(Boolean) : [],
       items, subtotal: s.amount_subtotal || 0, discount: (s.total_details || {}).amount_discount || 0,
       delivery: shipOf(s) + delLines.reduce((n, l) => n + (l.amount_total || 0), 0), total: s.amount_total || 0,
