@@ -17504,7 +17504,8 @@ function renderCart(){
     sub += li.price * li.qty; n += li.qty;
     var row = document.createElement('div');
     row.className = 'ci';
-    row.innerHTML = '<div><div class="cn">' + li.name + '</div><div class="cs">' + li.size.toUpperCase() +
+    var oo = ORIGINS.filter(function(x){ return x.name === li.name; })[0];
+    row.innerHTML = '<img class="cimg" src="' + (oo ? oo.bag : '') + '" alt="">' + '<div><div class="cn">' + li.name + '</div><div class="cs">' + li.size.toUpperCase() +
       ' · ' + CUR() + money(li.price) + '</div>' +
       '<div class="cq"><button type="button" data-d="-1" aria-label="One fewer">−</button><span>' + li.qty + '</span><button type="button" data-d="1" aria-label="One more">+</button></div></div>' +
       '<div class="cn">' + CUR() + money(li.price * li.qty) + '</div>' +
@@ -17516,6 +17517,20 @@ function renderCart(){
       renderCart(); }); });
     body.appendChild(row);
   });
+  /* 142 · the empty space under the lines plays the landscape most of the basket comes from */
+  if(cart.length){
+    var tally = {}, lead = null; cart.forEach(function(l){ tally[l.name] = (tally[l.name] || 0) + l.price * l.qty; });
+    Object.keys(tally).forEach(function(n){ if(!lead || tally[n] > tally[lead]) lead = n; });
+    var lo = ORIGINS.filter(function(x){ return x.name === lead; })[0];
+    if(lo && typeof PAY_FILMS !== 'undefined'){
+      if(!renderCart.film){ renderCart.film = document.createElement('figure'); renderCart.film.className = 'cart-film';
+        renderCart.film.innerHTML = '<video autoplay muted loop playsinline preload="metadata"></video><figcaption></figcaption>'; }
+      var v = renderCart.film.querySelector('video');
+      if(v.getAttribute('src') !== PAY_FILMS[lo.k]){ v.setAttribute('src', PAY_FILMS[lo.k]); try { var pp = v.play(); if(pp && pp.catch) pp.catch(function(){}); } catch(e){} }
+      renderCart.film.querySelector('figcaption').innerHTML = '<span>Where it grows</span>' + lo.name + ' · with ' + lo.ngo;
+      body.appendChild(renderCart.film);
+    }
+  }
   $('#cartSub').textContent = CUR() + money(sub);
   $('#cartGive').textContent = CUR() + money(sub * 0.10);
   /* 139 · each landscape's share, named with the partner the site lists for it */
@@ -17527,7 +17542,7 @@ function renderCart(){
   });
   if(byEl){ byEl.textContent = ''; Object.keys(by).forEach(function(k){
     var r = document.createElement('div'); r.className = 'cb';
-    r.innerHTML = '<span>' + by[k].name + (by[k].ngo ? ' · ' + by[k].ngo : '') + '</span><span>' + money(by[k].v) + '</span>';
+    r.innerHTML = '<span>' + by[k].name + (by[k].ngo ? '<small>' + by[k].ngo + '</small>' : '') + '</span><span>' + money(by[k].v) + '</span>';
     byEl.appendChild(r); }); }
   var cn = $('#checkoutNote'); if(cn && !$('#checkoutBtn').disabled){ cn.style.display = 'none'; }
   var cc = $('#cartCode'); if(cc){ cc.hidden = !SHOP_CODE; cc.textContent = SHOP_CODE ? 'Code ' + SHOP_CODE + ' is applied at checkout.' : ''; }
@@ -17555,6 +17570,10 @@ $('#checkoutBtn').addEventListener('click', function(){
     .then(function(x){
       if(x.ok && x.d.clientSecret){ btn.disabled = false; note.style.display = 'none'; openPay(x.d); return; }
       btn.disabled = false;
+      /* 142 · draft links only (…--nofilter-site.netlify.app, localhost): with no Stripe key the full
+         panel still opens, with a stand-in for Stripe's form, so the journey can be seen end to end.
+         nofilter.sg never gets this. */
+      if(x.status === 503 && /--[a-z0-9-]+\.netlify\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)){ note.style.display = 'none'; openPay({ preview: true }); return; }
       say(x.status === 503 ? 'Checkout is not open yet. Your bags are still in the cart.' : 'Checkout could not open. Please try again.');
     })
     .catch(function(){ btn.disabled = false; say('Checkout could not open. Please check your connection and try again.'); });
@@ -17597,52 +17616,74 @@ function openPay(d){
   el.querySelectorAll('[data-ch]').forEach(function(b){ b.addEventListener('click', function(){
     choice = choice === b.getAttribute('data-ch') ? '' : b.getAttribute('data-ch');
     el.querySelectorAll('[data-ch]').forEach(function(x){ x.setAttribute('aria-pressed', x.getAttribute('data-ch') === choice ? 'true' : 'false'); });
-    fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'choose', session:d.session, choice:choice }) }).catch(function(){});
+    if(!d.preview) fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'choose', session:d.session, choice:choice }) }).catch(function(){});
   }); });
+  if(d.preview){
+    var sub = 0; cart.forEach(function(l){ sub += l.price * l.qty; });
+    var f = el.querySelector('#nfPayForm');
+    f.innerHTML = '<div class="nf-pv"><span class="nf-pv-k">Draft preview · no payment is taken</span>' +
+      '<p>On nofilter.sg, Stripe’s payment form sits here: Apple Pay, Google Pay, PayNow and cards, then a delivery address.</p>' +
+      cart.map(function(l){ return '<div class="nf-pv-l"><span>' + l.name + ' · ' + l.size + ' × ' + l.qty + '</span><span>' + CUR() + money(l.price * l.qty) + '</span></div>'; }).join('') +
+      '<div class="nf-pv-l nf-pv-t"><span>Total</span><span>' + CUR() + money(sub) + '</span></div>' +
+      '<button type="button" class="nf-pv-pay">Pay ' + CUR() + money(sub) + ' (preview)</button></div>';
+    f.querySelector('.nf-pv-pay').addEventListener('click', function(){
+      var parts = {}; cart.forEach(function(l){ var o = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
+        if(!parts[l.name]) parts[l.name] = { name:l.name, partner: o ? o.ngo : '', contribution:0 }; parts[l.name].contribution += Math.round(l.price * l.qty * 10); });
+      var list = Object.keys(parts).map(function(k){ return parts[k]; });
+      var d2 = { currency: MKT.cur, contribution: list.reduce(function(n, p){ return n + p.contribution; }, 0), byPartner: list, choice: choice };
+      close(); cart.length = 0; renderCart(); openCart(false); paidPanel().fill(d2);
+    });
+    return;
+  }
   loadStripeJs().then(function(Stripe){ return Stripe(d.publishableKey).initEmbeddedCheckout({ fetchClientSecret: function(){ return Promise.resolve(d.clientSecret); } }); })
     .then(function(c){ checkout = c; el.querySelector('#nfPayForm').textContent = ''; c.mount('#nfPayForm'); })
     .catch(function(){ el.querySelector('#nfPayForm').innerHTML = '<p class="nf-pay-wait">Secure checkout could not load. Please check your connection and try again.</p>'; });
 }
 
-/* 139 · back from Stripe (?paid=1&order=cs_…): a thank-you that shows what this order put towards
-   conservation and which partner it goes to. Built on the dispatch card's styles. The space under
-   the figures is where a "choose what it funds" list goes when the shop offers one. */
-(function(){
-  var q; try { q = new URLSearchParams(location.search); } catch(e){ return; }
-  if(q.get('paid') !== '1') return;
-  var order = q.get('order') || '';
-  try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
+/* 139 · the thank-you after paying: what this order put towards conservation, which partner it goes
+   to, and the project chosen. Built on the dispatch card's styles. paidPanel() opens it; fill(d) puts
+   in the order's figures. Opened on the return from Stripe (?paid=1&order=cs_…), or by the preview
+   checkout on draft links. */
+function paidPanel(){
   var el = document.createElement('div');
   el.className = 'nf-soon nf-paid'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Order received');
   el.innerHTML = '<div class="nf-soon-scrim" data-close></div><div class="nf-soon-card">' +
-    '<button class="nf-soon-x" type="button" data-close aria-label="Close">CLOSE \u2715</button>' +
+    '<button class="nf-soon-x" type="button" data-close aria-label="Close">CLOSE ✕</button>' +
     '<span class="nf-soon-k">[ Order received ]</span>' +
     '<h2 class="nf-soon-h">Thank you.</h2>' +
     '<p class="nf-soon-p">Your coffee is on its way. The receipt is in your inbox.</p>' +
     '<div class="nf-paid-give" hidden><div class="nf-paid-v"><span class="nf-paid-cur">SGD</span> <span class="nf-paid-n">0.00</span></div>' +
       '<div class="nf-paid-l">from this order to conservation, where your coffee grows</div><div class="nf-paid-by"></div></div>' +
     '<div class="nf-paid-next" hidden></div>' +
-    '<div class="nf-soon-a"><button class="nf-soon-b pri" type="button" data-close>Back to the coffee \u2192</button></div></div>';
+    '<div class="nf-soon-a"><button class="nf-soon-b pri" type="button" data-close>Back to the coffee →</button></div></div>';
   document.body.appendChild(el);
   function close(){ el.removeAttribute('data-in'); setTimeout(function(){ el.remove(); }, 280); document.removeEventListener('keydown', key); }
   function key(e){ if(e.key === 'Escape') close(); }
   el.addEventListener('click', function(e){ if(e.target.closest('[data-close]')) close(); });
   document.addEventListener('keydown', key);
   el.setAttribute('data-open',''); requestAnimationFrame(function(){ el.setAttribute('data-in',''); el.querySelector('.nf-soon-x').focus(); });
-  if(!/^cs_(test|live)_/.test(order)) return;
-  fetch('/.netlify/functions/order-summary?order=' + encodeURIComponent(order)).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+  return { el: el, fill: function(d){
     if(!d || !d.contribution) return;
-    var box = el.querySelector('.nf-paid-give'), n = el.querySelector('.nf-paid-n'), to = d.contribution / 100;
-    el.querySelector('.nf-paid-cur').textContent = String(d.currency || 'sgd').toUpperCase();
+    var cur = String(d.currency || 'sgd').toUpperCase(), box = el.querySelector('.nf-paid-give'), n = el.querySelector('.nf-paid-n'), to = d.contribution / 100;
+    el.querySelector('.nf-paid-cur').textContent = cur;
     el.querySelector('.nf-paid-by').innerHTML = d.byPartner.map(function(p){
-      return '<div class="cb"><span>' + p.name + (p.partner ? ' · ' + p.partner : '') + '</span><span>' + String(d.currency || 'sgd').toUpperCase() + ' ' + money(p.contribution / 100) + '</span></div>'; }).join('');
+      return '<div class="cb"><span>' + p.name + (p.partner ? ' · ' + p.partner : '') + '</span><span>' + cur + ' ' + money(p.contribution / 100) + '</span></div>'; }).join('');
     box.hidden = false;
     var ch = (window.__nfPayChoices || []).filter(function(c){ return c.id === d.choice; })[0], nx = el.querySelector('.nf-paid-next');
     nx.innerHTML = ch ? '<img src="' + ch.img + '" alt=""><span>You chose <b>' + ch.title + '</b>.</span>' : '<span>Your partners will put it where it’s needed most.</span>';
     nx.hidden = false;
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, t0 = performance.now();
     (function tick(t){ var k = reduce ? 1 : Math.min(1, ((t || performance.now()) - t0) / 1100); n.textContent = money(to * (1 - Math.pow(1 - k, 3))); if(k < 1) requestAnimationFrame(tick); })();
-  }).catch(function(){});
+  } };
+}
+(function(){
+  var q; try { q = new URLSearchParams(location.search); } catch(e){ return; }
+  if(q.get('paid') !== '1') return;
+  var order = q.get('order') || '';
+  try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
+  var panel = paidPanel();
+  if(!/^cs_(test|live)_/.test(order)) return;
+  fetch('/.netlify/functions/order-summary?order=' + encodeURIComponent(order)).then(function(r){ return r.ok ? r.json() : null; }).then(panel.fill).catch(function(){});
 })();
 renderCart();
 
@@ -26946,6 +26987,21 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 /* 139 · the cart's per-landscape split and the thank-you figures */
 .cart-by{display:grid;gap:3px;margin:8px 0 0}
 .cart-by:empty{display:none}
+.cart-by .cb small{display:block;font-size:9px;opacity:.75;margin-top:1px}
+/* 142 · bag photos on the lines; the landscape film in the space beneath */
+.cart .ci{grid-template-columns:48px 1fr auto auto}
+.cart .ci .cimg{width:48px;height:48px;object-fit:cover;border-radius:2px;background:rgba(244,242,238,.06)}
+.cart-film{margin:16px 0 8px;position:relative;border-radius:3px;overflow:hidden;background:#111}
+.cart-film video{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.cart-film figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 14px 12px;background:linear-gradient(transparent,rgba(8,9,10,.85));font-family:var(--body,sans-serif);font-size:13px;color:#F4F2EE}
+.cart-film figcaption span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,242,238,.65);margin-bottom:3px}
+/* 142 · the preview checkout (draft links only) */
+.nf-pv{font-family:var(--body,sans-serif);color:#222;max-width:420px;margin:0 auto;padding:8px}
+.nf-pv-k{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#a33a0d;border:1px solid #e9b49a;background:#fdf0e9;border-radius:3px;padding:5px 8px}
+.nf-pv p{font-size:13.5px;line-height:1.55;color:#555;margin:12px 0 16px}
+.nf-pv-l{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee;font-size:14px}
+.nf-pv-t{font-weight:700;border-bottom:0}
+.nf-pv-pay{width:100%;margin-top:14px;padding:14px;border:0;border-radius:6px;background:#EE4D17;color:#fff;font:600 15px var(--body,sans-serif);cursor:pointer}
 .cart-by .cb{font-size:9.5px!important;letter-spacing:.03em!important;color:rgba(244,242,238,.55)!important}
 .cart .cq{display:inline-flex;align-items:center;gap:0;margin:8px 0 0;border:1px solid rgba(244,242,238,.16);border-radius:2px}
 .cart .cq button{width:26px;height:24px;background:none;border:0;color:rgba(244,242,238,.8);font:inherit;font-size:14px;cursor:pointer}
