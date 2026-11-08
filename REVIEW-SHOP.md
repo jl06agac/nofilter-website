@@ -67,7 +67,8 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
 1. Create the Stripe account (NoFilter Pte. Ltd.), then in Netlify, site `nofilter-site`, Environment
    variables: `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` (test keys first, `sk_test_` / `pk_test_`),
    and `REPORT_KEY` (any long random phrase; it unlocks the NGO report).
-2. In Stripe: switch on Apple Pay, Google Pay and PayNow (Settings, Payment methods); verify the Apple Pay
+2. In Stripe: switch on Apple Pay, Google Pay, PayNow and Link (Settings, Payment methods); switch on
+   receipts (Settings, Emails, Successful payments); verify the Apple Pay
    domain `nofilter.sg`; Branding: background `#F4F2EE` (the shop's cream), accent `#EE4D17`, corners rounded, logo.
 3. Create the client promotion codes (10% off, e.g. `SPRINKLR10`, `EASTSPRING10`).
 4. Rehearse with test card 4242 4242 4242 4242 on a draft; then swap to live keys.

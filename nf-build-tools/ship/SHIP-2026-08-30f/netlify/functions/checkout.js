@@ -95,7 +95,8 @@ exports.handler = async function (event) {
   form.set('shipping_address_collection[allowed_countries][0]', 'SG');
   form.set('phone_number_collection[enabled]', 'true');
   form.set('shipping_options[0][shipping_rate_data][type]', 'fixed_amount');
-  form.set('shipping_options[0][shipping_rate_data][display_name]', DELIVERY ? 'Delivery within Singapore' : 'Free delivery within Singapore');
+  // The roast-day promise, shown on the delivery line before they pay (as on the confirmation page).
+  form.set('shipping_options[0][shipping_rate_data][display_name]', (DELIVERY ? 'Delivery' : 'Free delivery') + ' within Singapore \u00b7 roasted Wednesday, dispatched shortly after');
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', String(Math.max(0, DELIVERY)));
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'sgd');
   const ref = orderRef();
