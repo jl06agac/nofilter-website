@@ -3,6 +3,13 @@
      GET  /.netlify/functions/order-summary?order=cs_...&manage=1   opens Stripe's self-service page for
                                                                     this customer's subscription (redirect)
      POST /.netlify/functions/order-summary  {order, reportBack, news}  records the customer's choices
+     POST ... {order, action:'swap', items:[{id, name, size, qty}]}   change coffee, size or quantity (qty 0
+                                                                       removes a coffee; one must remain)
+     POST ... {order, action:'every', every:1-4}                       change how often; takes effect after
+                                                                       the delivery already paid for
+     POST ... {order, action:'skip'} / {action:'unskip'}               skip the next delivery, or undo it
+   Changes never charge on the spot: swaps apply from the next delivery, a new frequency starts when the
+   current period ends.
    The order id (Stripe's {CHECKOUT_SESSION_ID}) is long, random and only in the payer's browser; holding it
    is what lets the page show the order, as Stripe's own return-page guidance does. Only paid orders the shop
    created are answered.
@@ -11,6 +18,8 @@
    (frequency, next charge), the contribution by origin and partner, and the running total this customer's
    paid shop orders and subscription deliveries have sent to conservation. Never returned: phone, full card
    details, billing address. */
+const { ensureCatalogue, ensurePortal } = require('./_lib/catalogue.js');
+const { ORIGINS, SUB_OFF } = require('./checkout.js')._test;
 const reply = (statusCode, body, extra) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...(extra || {}) }, body: JSON.stringify(body) });
 
 async function call(path, key, form) {
@@ -23,6 +32,7 @@ async function call(path, key, form) {
   if (!res.ok) { const e = Error('stripe error'); e.stripe = data && data.error && data.error.message; throw e; }
   return data;
 }
+const subPeriodEnd = sub => { const it = sub.items && sub.items.data && sub.items.data[0]; return (it && it.current_period_end) || sub.current_period_end || sub.trial_end || 0; };
 const shipOf = s => (s.total_details || {}).amount_shipping || 0;
 
 // Everything this customer's paid shop orders and subscription renewals have sent to conservation.
@@ -54,10 +64,57 @@ exports.handler = async function (event) {
   const id = String((post ? body.order : q.order) || '');
   if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(id)) return reply(400, { error: 'bad order' });
   try {
-    const s = await call('checkout/sessions/' + id + '?expand[]=payment_intent.latest_charge&expand[]=subscription.default_payment_method', KEY);
+    const s = await call('checkout/sessions/' + id + '?expand[]=payment_intent.latest_charge&expand[]=subscription.default_payment_method&expand[]=subscription.items.data.price.product', KEY);
     if (s.payment_status !== 'paid' || (s.metadata || {}).source !== 'website-shop') return reply(404, { error: 'no such order' });
     const customer = typeof s.customer === 'string' ? s.customer : (s.customer && s.customer.id) || null;
     const sub = s.subscription && typeof s.subscription === 'object' ? s.subscription : null;
+
+    // Subscription changes
+    if (post && body.action) {
+      if (!sub || !['active', 'trialing', 'past_due'].includes(sub.status)) return reply(409, { error: 'no active subscription' });
+      const periodEnd = subPeriodEnd(sub);
+      if (body.action === 'skip' || body.action === 'unskip') {
+        const f = new URLSearchParams();
+        if (body.action === 'skip') { f.set('pause_collection[behavior]', 'void'); f.set('pause_collection[resumes_at]', String(periodEnd + 3600)); }
+        else f.set('pause_collection', '');
+        await call('subscriptions/' + sub.id, KEY, f);
+        return reply(200, { skipped: body.action === 'skip' });
+      }
+      const P = { '250g': parseInt(process.env.PRICE_BAG_250G || '2400', 10), '1kg': parseInt(process.env.PRICE_BAG_1KG || '8000', 10) };
+      const cat = await ensureCatalogue(KEY, ORIGINS, P, SUB_OFF);
+      const items = (sub.items && sub.items.data) || [];
+      const curEvery = +((sub.metadata || {}).every_weeks) || (items[0] && items[0].price.recurring.interval_count) || 2;
+      const priceFor = (name, size, every) => { const o = ORIGINS[name]; const c = o && cat[`nf-sub-${o.origin}-${size}-w${every}`]; return c && c.price; };
+      const sizeOf = it => (/1\s*kg/i.test((it.price.product && it.price.product.name) || it.price.nickname || '') ? '1kg' : '250g');
+      const nameOf = it => Object.keys(ORIGINS).find(n => ((it.price.product && it.price.product.metadata) || {}).origin === ORIGINS[n].origin);
+      const f = new URLSearchParams();
+      f.set('proration_behavior', 'none');
+      if (body.action === 'swap') {
+        const want = Array.isArray(body.items) ? body.items : [];
+        let kept = 0;
+        want.forEach((w, i) => {
+          if (!items.find(it => it.id === w.id)) return;
+          const qty = Math.max(0, Math.min(20, parseInt(w.qty, 10) || 0));
+          f.set(`items[${i}][id]`, w.id);
+          if (!qty) { f.set(`items[${i}][deleted]`, 'true'); return; }
+          const pr = priceFor(w.name, String(w.size).toLowerCase().replace(/\s+/g, ''), curEvery);
+          if (!pr) throw Object.assign(Error('bad item'), { bad: true });
+          f.set(`items[${i}][price]`, pr); f.set(`items[${i}][quantity]`, String(qty)); kept++;
+        });
+        if (!kept) return reply(400, { error: 'keep at least one coffee, or cancel instead' });
+      } else if (body.action === 'every') {
+        const n = parseInt(body.every, 10);
+        if (![1, 2, 3, 4].includes(n)) return reply(400, { error: 'every 1-4 weeks' });
+        items.forEach((it, i) => { const pr = priceFor(nameOf(it), sizeOf(it), n); if (!pr) throw Object.assign(Error('bad item'), { bad: true });
+          f.set(`items[${i}][id]`, it.id); f.set(`items[${i}][price]`, pr); f.set(`items[${i}][quantity]`, String(it.quantity)); });
+        // a new interval would otherwise restart the billing period (and charge) today: hold it to the end of
+        // the period already paid for
+        f.set('trial_end', String(periodEnd));
+        f.set('metadata[every_weeks]', String(n));
+      } else return reply(400, { error: 'unknown action' });
+      await call('subscriptions/' + sub.id + '?expand[]=items.data.price.product', KEY, f);
+      return reply(200, { ok: true });
+    }
 
     // The customer's choices: email when the partners report back, and news and offers.
     if (post) {
@@ -75,6 +132,7 @@ exports.handler = async function (event) {
       if (!customer) return reply(409, { error: 'no customer' });
       const host = event.headers && event.headers.host;
       const f = new URLSearchParams(); f.set('customer', customer); f.set('return_url', 'https://' + host + '/shop/');
+      try { f.set('configuration', await ensurePortal(KEY)); } catch (e) { /* the account's default portal */ }
       const p = await call('billing_portal/sessions', KEY, f);
       return { statusCode: 303, headers: { Location: p.url, 'Cache-Control': 'no-store' }, body: '' };
     }
@@ -112,7 +170,12 @@ exports.handler = async function (event) {
     if (sub) {
       const item = sub.items && sub.items.data && sub.items.data[0];
       const every = +((sub.metadata || {}).every_weeks) || (item && item.price && item.price.recurring && item.price.recurring.interval_count) || 0;
-      subscription = { every, nextCharge: (item && item.current_period_end) || sub.current_period_end || null, status: sub.status, managed: !!customer };
+      const pc = sub.pause_collection && sub.pause_collection.behavior === 'void' ? sub.pause_collection : null;
+      subscription = { every, nextCharge: subPeriodEnd(sub) || null, status: sub.status, managed: !!customer,
+        skipping: pc ? { until: pc.resumes_at || null } : null, cancelling: !!sub.cancel_at_period_end,
+        items: ((sub.items && sub.items.data) || []).map(it => { const pr = it.price || {}, prod = pr.product && typeof pr.product === 'object' ? pr.product : {};
+          const [name, size] = String(prod.name || '').split(' coffee, ');
+          return { id: it.id, name: name || null, size: size || '', qty: it.quantity || 1, amount: (pr.unit_amount || 0) * (it.quantity || 1) }; }) };
       // the project chosen while paying carries on to every delivery (read by the NGO report)
       const choice = (s.metadata || {}).choice || '';
       if (choice && (sub.metadata || {}).choice !== choice) { const f = new URLSearchParams(); f.set('metadata[choice]', choice); call('subscriptions/' + sub.id, KEY, f).catch(() => {}); }
@@ -124,5 +187,5 @@ exports.handler = async function (event) {
     return reply(200, { order, subscription, given, currency: s.currency || 'sgd', bags: byPartner.reduce((n, v) => n + v.bags, 0),
       contribution: byPartner.reduce((n, v) => n + v.contribution, 0), byPartner, code: (s.metadata || {}).code || null,
       choice: (s.metadata || {}).choice || null });
-  } catch (e) { return reply(502, { error: 'stripe error', detail: e.stripe ? String(e.stripe).replace(/\b(sk|pk|rk)_(test|live)_\S+/g, '$1_$2_…') : null }); }
+  } catch (e) { if (e.bad) return reply(400, { error: 'that coffee or size is not in the range' }); return reply(502, { error: 'stripe error', detail: e.stripe ? String(e.stripe).replace(/\b(sk|pk|rk)_(test|live)_\S+/g, '$1_$2_…') : null }); }
 };

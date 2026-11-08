@@ -17537,7 +17537,7 @@ function renderCart(){
   if(be){
     var pl = document.createElement('div'); pl.className = 'cart-plan';
     pl.innerHTML = '<span>Subscription bags arrive</span><select aria-label="How often">' + [1,2,3,4].map(function(n){ return '<option value="' + n + '"' + (n === be ? ' selected' : '') + '>' + EVERY_LAB[n] + '</option>'; }).join('') +
-      '</select><small>from each Wednesday roast. Skip, pause or cancel any time.</small>';
+      '</select><small>from each Wednesday roast. Swap coffees, skip a delivery or cancel any time.</small>';
     pl.querySelector('select').addEventListener('change', function(e){ setBasketEvery(parseInt(e.target.value, 10)); renderCart(); });
     body.appendChild(pl);
   }
@@ -17695,7 +17695,7 @@ function paidPanel(panelOrder){
         '<li class="on"><b>Ordered</b><span>Today</span></li>' +
         '<li><b>Roasted</b><span>' + nextRoast() + '</span></li>' +
         '<li><b>Dispatched</b><span>Shortly after</span></li></ol>' +
-      '<section class="nf-ty-card nf-ty-sub" hidden><h3>Your subscription</h3><p class="nf-ty-sub-p"></p><a class="nf-ty-manage" href="#">Skip, pause or change it</a></section>' +
+      '<section class="nf-ty-card nf-ty-sub" hidden><h3>Your subscription</h3><p class="nf-ty-sub-p"></p><div class="nf-ty-subx"></div></section>' +
       '<section class="nf-ty-card nf-ty-order" hidden><h3>Your order</h3><div class="nf-ty-items"></div><div class="nf-ty-sums"></div><div class="nf-ty-meta"></div></section>' +
       '<section class="nf-ty-card nf-ty-give" hidden><h3>Your 10% to conservation</h3>' +
         '<div class="nf-ty-v"><span class="nf-ty-cur">SGD</span> <span class="nf-ty-n">0.00</span></div>' +
@@ -17715,6 +17715,54 @@ function paidPanel(panelOrder){
   document.addEventListener('keydown', key);
   requestAnimationFrame(function(){ el.setAttribute('data-in',''); el.querySelector('.nf-ty-in').focus({ preventScroll:true }); });
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); }
+  /* 153 · the subscription, and the customer's controls over it: swap coffee, size or quantity; change how
+     often; skip the next delivery. Card, address and cancelling are Stripe's page. Changes never charge on
+     the spot; the page refreshes from Stripe after each one. */
+  var COFFEE_NAMES = ORIGINS.map(function(o){ return o.name; });
+  function subPost(body, done){
+    fetch('/.netlify/functions/order-summary', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.assign({ order: panelOrder }, body)) })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw j; return j; }); })
+      .then(function(){ return fetch('/.netlify/functions/order-summary?order=' + encodeURIComponent(panelOrder)).then(function(r){ return r.json(); }); })
+      .then(function(d){ if(d && d.subscription) paintSub(d.subscription, 'Saved.'); if(done) done(); })
+      .catch(function(e){ paintSub(null, (e && e.error) ? 'Not saved: ' + e.error + '.' : 'Not saved. Please try again.'); if(done) done(); });
+  }
+  var lastSub = null;
+  function paintSub(sb, note){
+    if(sb) lastSub = sb; sb = lastSub; if(!sb) return;
+    var lab = EVERY_LAB[sb.every], cur = 'SGD', box = el.querySelector('.nf-ty-sub');
+    var when = sb.nextCharge ? ' The next one is charged on <b>' + sgDate(sb.nextCharge) + '</b> and roasted on ' + roastOnOrAfter(sb.nextCharge) + '.' : '';
+    if(sb.skipping) when = ' <b>Your next delivery is skipped.</b> After that it carries on ' + lab + '.';
+    if(sb.cancelling) when = ' <b>It ends after the delivery already paid for.</b>';
+    el.querySelector('.nf-ty-sub-p').innerHTML = 'Your coffee comes <b>' + lab + '</b>, at 10% off.' + when + ' Each delivery sends 10% of what you pay to conservation.';
+    var x = el.querySelector('.nf-ty-subx'), live = panelOrder && sb.managed && !sb.cancelling;
+    if(!live){ x.innerHTML = note ? '<p class="nf-ty-note">' + esc(note) + '</p>' : ''; box.hidden = false; return; }
+    x.innerHTML = '<div class="nf-ty-items2">' + (sb.items || []).map(function(it){
+        var sz = /1\s*kg/i.test(it.size) ? '1kg' : '250g';
+        return '<div class="nf-ty-row" data-id="' + esc(it.id) + '"><select class="c" aria-label="Coffee">' + COFFEE_NAMES.map(function(n){ return '<option' + (n === it.name ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' +
+          '<select class="z" aria-label="Bag size"><option value="250g"' + (sz === '250g' ? ' selected' : '') + '>250 g</option><option value="1kg"' + (sz === '1kg' ? ' selected' : '') + '>1 kg</option></select>' +
+          '<span class="q"><button type="button" data-d="-1" aria-label="One fewer">\u2212</button><b>' + it.qty + '</b><button type="button" data-d="1" aria-label="One more">+</button></span></div>'; }).join('') + '</div>' +
+      '<div class="nf-ty-acts"><button type="button" class="nf-ty-b pri" data-a="swap" disabled>Save coffee changes</button></div>' +
+      '<div class="nf-ty-freq"><label>How often <select aria-label="How often">' + [1,2,3,4].map(function(n){ return '<option value="' + n + '"' + (n === sb.every ? ' selected' : '') + '>' + EVERY_LAB[n] + '</option>'; }).join('') + '</select></label>' +
+        '<button type="button" class="nf-ty-b" data-a="every" disabled>Change</button><small>Starts after the delivery already paid for.</small></div>' +
+      '<div class="nf-ty-acts">' + (sb.skipping ? '<button type="button" class="nf-ty-b" data-a="unskip">Undo skip</button>' : '<button type="button" class="nf-ty-b" data-a="skip">Skip the next delivery</button>') +
+        '<a class="nf-ty-b ghost" href="/.netlify/functions/order-summary?order=' + encodeURIComponent(panelOrder) + '&manage=1">Card, address or cancel</a></div>' +
+      (note ? '<p class="nf-ty-note">' + esc(note) + '</p>' : '');
+    var dirty = function(){ x.querySelector('[data-a="swap"]').disabled = false; };
+    x.querySelectorAll('.nf-ty-row select').forEach(function(sel){ sel.addEventListener('change', dirty); });
+    x.querySelectorAll('.nf-ty-row .q button').forEach(function(b){ b.addEventListener('click', function(){
+      var n = b.parentNode.querySelector('b'), v = Math.max(0, Math.min(20, (parseInt(n.textContent, 10) || 0) + parseInt(b.getAttribute('data-d'), 10)));
+      n.textContent = v; b.closest('.nf-ty-row').classList.toggle('gone', !v); dirty(); }); });
+    x.querySelector('.nf-ty-freq select').addEventListener('change', function(e){ x.querySelector('[data-a="every"]').disabled = parseInt(e.target.value, 10) === sb.every; });
+    x.querySelectorAll('button[data-a]').forEach(function(b){ b.addEventListener('click', function(){
+      var a = b.getAttribute('data-a'), body = { action: a };
+      if(a === 'swap') body.items = Array.prototype.map.call(x.querySelectorAll('.nf-ty-row'), function(r){
+        return { id: r.getAttribute('data-id'), name: r.querySelector('.c').value, size: r.querySelector('.z').value, qty: parseInt(r.querySelector('.q b').textContent, 10) || 0 }; });
+      if(a === 'every') body.every = parseInt(x.querySelector('.nf-ty-freq select').value, 10);
+      x.querySelectorAll('button').forEach(function(z){ z.disabled = true; }); b.textContent = 'Saving\u2026';
+      subPost(body);
+    }); });
+    box.hidden = false;
+  }
   return { el: el, fill: function(d){
     if(!d) return;
     var cur = String(d.currency || 'sgd').toUpperCase(), o = d.order || {}, m = function(c){ return cur + ' ' + money(c / 100); };
@@ -17738,15 +17786,8 @@ function paidPanel(panelOrder){
       el.querySelector('.nf-ty-meta').innerHTML = meta;
       el.querySelector('.nf-ty-order').hidden = false;
     }
-    var sb = d.subscription;
-    if(sb && sb.every){
-      var lab = EVERY_LAB[sb.every];
-      el.querySelector('.nf-ty-sub-p').innerHTML = 'Your coffee comes <b>' + lab + '</b>, at 10% off.' + (sb.nextCharge ? ' The next one is charged on <b>' + sgDate(sb.nextCharge) + '</b> and roasted on ' + roastOnOrAfter(sb.nextCharge) + '.' : '') + ' Each delivery sends 10% of what you pay to conservation.';
-      var mg = el.querySelector('.nf-ty-manage');
-      if(sb.managed && panelOrder) mg.href = '/.netlify/functions/order-summary?order=' + encodeURIComponent(panelOrder) + '&manage=1'; else mg.hidden = true;
-      el.querySelector('.nf-ty-sub').hidden = false;
-      var st = el.querySelectorAll('.nf-ty-steps li span'); if(st[2]) st[2].textContent = 'Shortly after, then ' + lab;
-    }
+    if(d.subscription && d.subscription.every){ paintSub(d.subscription);
+      var st = el.querySelectorAll('.nf-ty-steps li span'); if(st[2]) st[2].textContent = 'Shortly after, then ' + EVERY_LAB[d.subscription.every]; }
     var gv = d.given, gp = el.querySelector('.nf-ty-given');
     if(gv && gv.orders > 1){ gp.innerHTML = 'Your orders with us have now sent <b>' + m(gv.total) + '</b> to conservation.'; gp.hidden = false; }
     else if(gv){ gp.textContent = 'Your first order with us. We\u2019ll keep count.'; gp.hidden = false; }
@@ -27140,8 +27181,6 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 @media(max-width:520px){.nf-ty-steps b{font-size:13px}.nf-ty-steps span{font-size:12px}}
 .nf-ty-sub-p{margin:0;font-size:15px;line-height:1.6;color:rgba(26,24,21,.8)}
 .nf-ty-sub-p b{color:#1A1815;font-weight:600}
-.nf-ty-manage{display:inline-block;margin-top:14px;padding:9px 16px;border-radius:999px;border:1px solid rgba(26,24,21,.2);color:#1A1815;font-size:14px;font-weight:500;text-decoration:none}
-.nf-ty-manage:hover{border-color:#1A1815}
 .nf-ty-given{margin:16px 0 0;padding-top:14px;border-top:1px solid rgba(26,24,21,.08);font-size:14px;color:rgba(26,24,21,.75)}
 .nf-ty-given b{color:#C2410C;font-weight:700}
 .nf-ty-keep label{display:flex;gap:12px;align-items:flex-start;padding:8px 0;font-size:14px;line-height:1.5;color:rgba(26,24,21,.75);cursor:pointer}
@@ -27150,6 +27189,22 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty-save{margin-top:10px;height:42px;padding:0 22px;border-radius:10px;border:1px solid #1A1815;background:#1A1815;color:#F4F2EE;font:600 14px var(--body,sans-serif);cursor:pointer}
 .nf-ty-saved{display:inline-block;margin-top:12px;font-size:14px;color:#1F6F5C;font-weight:600}
 .nf-ty [hidden]{display:none!important}
+.nf-ty-items2{display:grid;gap:8px;margin:16px 0 0}
+.nf-ty-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
+.nf-ty-row.gone select{opacity:.4;text-decoration:line-through}
+.nf-ty-row select,.nf-ty-freq select{height:40px;border-radius:10px;border:1px solid rgba(26,24,21,.2);background:#fff;padding:0 10px;font:500 14px var(--body,sans-serif);color:#1A1815;min-width:0}
+.nf-ty-row .q{display:inline-flex;align-items:center;height:40px;border:1px solid rgba(26,24,21,.2);border-radius:999px;overflow:hidden;background:#fff}
+.nf-ty-row .q button{width:34px;height:100%;border:0;background:none;font-size:16px;cursor:pointer;color:#1A1815}
+.nf-ty-row .q b{min-width:22px;text-align:center;font-size:14px}
+.nf-ty-freq{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0;padding-top:16px;border-top:1px solid rgba(26,24,21,.08);font-size:14px}
+.nf-ty-freq label{display:flex;align-items:center;gap:10px}
+.nf-ty-freq small{flex-basis:100%;color:rgba(26,24,21,.6);font-size:12.5px}
+.nf-ty-acts{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.nf-ty-b{display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;border:1px solid rgba(26,24,21,.2);background:#fff;color:#1A1815;font:500 14px var(--body,sans-serif);text-decoration:none;cursor:pointer}
+.nf-ty-b.pri{background:#1A1815;border-color:#1A1815;color:#F4F2EE}
+.nf-ty-b.ghost{background:none}
+.nf-ty-b[disabled]{opacity:.45;cursor:default}
+.nf-ty-note{margin:12px 0 0;font-size:14px;font-weight:600;color:#1F6F5C}
 /* 152 · subscribe & save on the coffee page, and in the basket */
 #shop .nf-plan{display:grid;gap:8px;margin:14px 0 4px}
 #shop .nf-plan [data-p]{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(26,24,21,.16);background:rgba(255,255,255,.55);font:500 15px var(--font-b,sans-serif);color:#1A1815;text-align:left;cursor:pointer}
@@ -27524,7 +27579,7 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
     w.innerHTML = '<button type="button" role="radio" data-p="0"><i></i><span>One-time purchase</span><em></em></button>' +
       '<button type="button" role="radio" data-p="1"><i></i><span>Subscribe &amp; save 10%</span><em></em></button>' +
       '<label class="nf-plan-f" hidden><span>How often would you like it?</span><select>' + [1,2,3,4].map(function(n){ return '<option value="' + n + '">' + LAB[n] + '</option>'; }).join('') + '</select></label>' +
-      '<p class="nf-plan-note">Roasted every Wednesday. Skip, pause or cancel any time.</p>';
+      '<p class="nf-plan-note">Roasted every Wednesday. Swap coffees, skip a delivery or cancel any time.</p>';
     row.parentNode.insertBefore(w, row.nextSibling);
     w.addEventListener('click', function(e){ var b = e.target.closest('[data-p]'); if(!b) return; e.stopPropagation();
       plan.every = b.getAttribute('data-p') === '1' ? (plan.last || 2) : 0; paintAll(); });

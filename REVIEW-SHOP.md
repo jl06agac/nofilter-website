@@ -72,6 +72,15 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
    report-back / news consent on the Stripe customer (POST). The NGO report counts renewal invoices
    (`billing_reason: subscription_cycle`). Terms page: `/subscription-terms/` (draft for Alex to approve).
 
+11. **Swap, skip, change** (153): the range lives in Stripe as real Products (one per coffee and size, with
+   origin and partner) and weekly Prices (every 1-4 weeks, 10% off, by lookup key), created on first use by
+   `_lib/catalogue.js`. Subscription lines use them, so the order page can swap coffee, size or quantity
+   (`proration_behavior: none`, from the next delivery), change frequency (`trial_end` = end of the paid
+   period, so no charge today) and skip the next delivery (`pause_collection: void` until just after it).
+   Card, address, invoices and cancel (at period end) are Stripe's portal, with its own configuration
+   (`metadata.nf = shop-v1`). The portal can't swap: it only updates single-item subscriptions.
+   Worth checking: `trial_end` shows the subscription as trialing until then; skip on a past_due subscription.
+
 ## Known gaps (not bugs)
 
 - Retail ships within Singapore only; other markets get a message instead of checkout.

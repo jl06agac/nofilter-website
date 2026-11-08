@@ -32,6 +32,7 @@ const CDN = 'https://nofilter-shared.netlify.app/';
 const CHOICES = { 'protect-forests': 'Protect wild forests', 'orangutans-in-danger': 'Help orangutans in danger', 'coffee-with-forest': 'Grow coffee with the forest' };
 // A short order number the customer can quote (NF-7K2Q9M): on the order, its payment, and the confirmation page.
 const crypto = require('crypto');
+const { ensureCatalogue } = require('./_lib/catalogue.js');
 const orderRef = () => 'NF-' + Array.from(crypto.randomBytes(6), b => '23456789ABCDEFGHJKMNPQRSTUVWXYZ'[b % 31]).join('');
 const reply = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(body) });
 
@@ -119,7 +120,7 @@ exports.handler = async function (event) {
     form.set('subscription_data[metadata][contribution_rate]', CONTRIBUTION_RATE);
     form.set('subscription_data[metadata][order_ref]', ref);
     form.set('subscription_data[metadata][every_weeks]', String(every));
-    form.set('custom_text[submit][message]', 'Delivered every ' + (every === 1 ? 'week' : every + ' weeks') + ' from that Wednesday\u2019s roast, charged each time until you cancel. Skip, pause or cancel any time from the link in your confirmation. Terms: ' + origin + '/subscription-terms/');
+    form.set('custom_text[submit][message]', 'Delivered every ' + (every === 1 ? 'week' : every + ' weeks') + ' from that Wednesday\u2019s roast, charged each time until you cancel. Swap coffees, skip a delivery or cancel any time from your order page. [Subscription terms](' + origin + '/subscription-terms/)');
   } else {
     form.set('payment_intent_data[description]', 'NoFilter order ' + ref);
     form.set('payment_intent_data[metadata][order_ref]', ref);
@@ -138,8 +139,13 @@ exports.handler = async function (event) {
   }
   const unit = l => { const base = l.size === '250g' ? P250 : P1KG;
     const off = every ? (l.every ? Math.max(SUB_OFF, codePct) : codePct) : 0; return Math.round(base * (1 - off)); };
+  // Subscription lines use the range's real Stripe prices (so they can be swapped later), unless a client
+  // code beats the subscription discount, in which case that line is priced here as before.
+  let cat = null;
+  if (every && codePct <= SUB_OFF) cat = await ensureCatalogue(KEY, ORIGINS, { '250g': P250, '1kg': P1KG }, SUB_OFF);
   lines.forEach((l, i) => {
     form.set(`line_items[${i}][quantity]`, String(l.qty));
+    if (l.every && cat) { form.set(`line_items[${i}][price]`, cat[`nf-sub-${ORIGINS[l.name].origin}-${l.size}-w${l.every}`].price); return; }
     form.set(`line_items[${i}][price_data][currency]`, 'sgd');
     form.set(`line_items[${i}][price_data][unit_amount]`, String(unit(l)));
     if (l.every) { form.set(`line_items[${i}][price_data][recurring][interval]`, 'week'); form.set(`line_items[${i}][price_data][recurring][interval_count]`, String(l.every)); }
