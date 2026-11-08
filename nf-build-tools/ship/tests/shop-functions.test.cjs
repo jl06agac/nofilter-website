@@ -16,12 +16,14 @@ const sessionCall=calls=>new URLSearchParams(calls.find(c=>c.url.endsWith('/v1/c
 
 test('no key: 503, nothing sent',async()=>{delete process.env.STRIPE_SECRET_KEY;assert.equal((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}))).statusCode,503);});
 
-test('only the four coffees in 250 g or 1 kg; quantities merged and capped',()=>{
+test('only the four coffees in 250 g or 1 kg; quantities merged; 20 bags an order',()=>{
  const c=checkout._test.cleanLines;
  assert.equal(c([{name:'Free coffee',size:'1kg',qty:1}]),null);
  assert.equal(c([{name:'Gayo Lues',size:'5kg',qty:1}]),null);
  assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:0}]),null);
- assert.deepEqual(c([{name:'Gayo Lues',size:'1 KG',qty:15},{name:'Gayo Lues',size:'1kg',qty:9}]),[{name:'Gayo Lues',size:'1kg',qty:20,every:0}]);
+ assert.deepEqual(c([{name:'Gayo Lues',size:'1 KG',qty:12},{name:'Gayo Lues',size:'1kg',qty:8}]),[{name:'Gayo Lues',size:'1kg',qty:20,every:0}]);
+ assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:15},{name:'Gayo Lues',size:'1kg',qty:9}]),null,'merged past 20');
+ assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:20},{name:'Batang Toru',size:'250g',qty:1}]),null,'20 across the whole order, not per line');
  assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:1,every:5}]),null,'every 1-4 weeks only');
 });
 
@@ -153,7 +155,7 @@ test('subscriptions: the range at 5% off; one frequency; one-offs ride along; de
 
 test('subscriptions with a client code: the better of the two, never both',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';
- const promo=pct=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[{id:'promo_1',coupon:{percent_off:pct}}]}}:{body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}});
+ const promo=pct=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[{id:'promo_1',active:true,coupon:{percent_off:pct,duration:'forever',valid:true}}]}}:{body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}});
  let calls=mockStripe(promo(10));
  let r=JSON.parse((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1},{name:'Batang Toru',size:'250g',qty:1}],code:'SPRINKLR10'}))).body);
  let f=sessionCall(calls);
@@ -224,7 +226,9 @@ test('subscription changes: swap coffee or size, change frequency without a char
  f=new URLSearchParams(calls.filter(c=>c.url.includes('/v1/subscriptions/sub_1')).pop().opt.body);
  assert.equal(f.get('items[2][price]'),'price_nf-del-w2','down to one 250 g bag: delivery added');
  assert.equal((await post({action:'swap',items:[{id:'si_1',qty:0},{id:'si_2',qty:0}]})).statusCode,400,'one coffee must remain');
- assert.equal((await post({action:'swap',items:[{id:'si_1',name:'Free coffee',size:'1kg',qty:1}]})).statusCode,400);
+ assert.equal((await post({action:'swap',items:[{id:'si_1',name:'Free coffee',size:'1kg',qty:1},{id:'si_2',name:'Batang Toru',size:'1kg',qty:1}]})).statusCode,400);
+ assert.equal((await post({action:'swap',items:[{id:'si_1',name:'Gayo Lues',size:'250g',qty:1}]})).statusCode,409,'part of the subscription only: refused, so delivery is never judged on half a basket');
+ assert.equal((await post({action:'swap',items:[{id:'si_1',name:'Gayo Lues',size:'250g',qty:1},{id:'si_1',name:'Gayo Lues',size:'250g',qty:1}]})).statusCode,409,'the same coffee twice: refused');
  r=await post({action:'every',every:4});assert.equal(r.statusCode,200);
  f=new URLSearchParams(calls.filter(c=>c.url.includes('/v1/subscriptions/sub_1')).pop().opt.body);
  assert.equal(f.get('items[0][price]'),'price_nf-sub-gayo-250g-w4-p5');assert.equal(f.get('items[1][price]'),'price_nf-sub-toru-1kg-w4-p5');
@@ -233,4 +237,53 @@ test('subscription changes: swap coffee or size, change frequency without a char
  assert.equal(f.get('pause_collection[behavior]'),'void');assert.equal(f.get('pause_collection[resumes_at]'),String(1795000000+3600));
  r=await post({action:'unskip'});f=new URLSearchParams(calls.filter(c=>c.url.includes('/v1/subscriptions/sub_1')).pop().opt.body);
  assert.equal(f.get('pause_collection'),'');
+});
+
+test('subscriptions: only a code made to last is built into the prices; once-only or limited codes are not',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';
+ const ok=checkout._test.subscriptionCodeOk, base={id:'promo_1',active:true,coupon:{percent_off:10,duration:'forever',valid:true}};
+ assert.equal(ok(base),true);
+ assert.equal(ok({...base,coupon:{...base.coupon,duration:'once'}}),false,'once');
+ assert.equal(ok({...base,coupon:{...base.coupon,duration:'repeating',duration_in_months:3}}),false,'repeating');
+ assert.equal(ok({...base,restrictions:{first_time_transaction:true}}),false,'first order only');
+ assert.equal(ok({...base,restrictions:{minimum_amount:5000,minimum_amount_currency:'sgd'}}),false,'minimum spend');
+ assert.equal(ok({...base,customer:'cus_9'}),false,'one customer');
+ assert.equal(ok({...base,max_redemptions:5,times_redeemed:5}),false,'used up');
+ assert.equal(ok({...base,expires_at:1}),false,'expired');
+ assert.equal(ok({...base,coupon:{...base.coupon,valid:false}}),false,'coupon no longer valid');
+ const promo=p=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[p]}}:{body:{url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}});
+ let calls=mockStripe(promo({...base,coupon:{...base.coupon,duration:'once'}}));
+ let r=JSON.parse((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1}],code:'WELCOME10'}))).body);
+ assert.equal(sessionCall(calls).get('line_items[0][price]'),'price_nf-sub-gayo-250g-w1-p5','a once-only code leaves the subscription at 5%');
+ assert.equal(r.code,null);
+ calls=mockStripe(promo({...base,coupon:{...base.coupon,duration:'once'}}));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],code:'WELCOME10'}));
+ assert.equal(sessionCall(calls).get('discounts[0][promotion_code]'),'promo_1','a one-off order still gets it, with Stripe enforcing its rules');
+});
+
+test('checkout refuses more than 20 bags in one order',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';mockStripe(()=>({body:{}}));
+ const r=await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'1kg',qty:20},{name:'Batang Toru',size:'1kg',qty:20},{name:'Batang Gadis',size:'250g',qty:5,every:2}]}));
+ assert.equal(r.statusCode,400);
+});
+
+test('report: renewals counted after discounts, and every line of a long invoice',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.REPORT_KEY='secret';
+ const meta={parent:{subscription_details:{metadata:{source:'website-shop',contribution_rate:'0.10'}}}};
+ const ln=(amt,prod,disc)=>({id:'il_'+prod+amt,amount:amt,quantity:1,discount_amounts:disc?[{amount:disc}]:[],pricing:{price_details:{product:prod}}});
+ const seen=[];
+ mockStripe(u=>{
+  if(u.startsWith('https://api.stripe.com/v1/checkout/sessions?'))return {body:{has_more:false,data:[]}};
+  if(u.includes('products/prod_gayo'))return {body:{metadata:{origin:'gayo',partner:'OIC'}}};
+  if(u.includes('products/prod_toru'))return {body:{metadata:{origin:'toru',partner:'PRCF Indonesia, OIC'}}};
+  if(u.includes('/invoices/in_long/lines')){seen.push(u);return u.includes('starting_after')?{body:{has_more:false,data:[ln(7000,'prod_toru')]}}:{body:{has_more:true,data:[ln(2000,'prod_gayo')]}};}
+  if(u.includes('invoices?'))return {body:{has_more:false,data:[
+   {id:'in_disc',billing_reason:'subscription_cycle',...meta,lines:{has_more:false,data:[ln(8000,'prod_gayo',2000)]}},
+   {id:'in_long',billing_reason:'subscription_cycle',...meta,lines:{has_more:true,data:[ln(2000,'prod_gayo')]}}]}};
+  return {body:{}};});
+ const r=JSON.parse((await report.handler({headers:{'x-report-key':'secret'},queryStringParameters:{from:'2026-11-01',to:'2026-11-30'}})).body);
+ const by=Object.fromEntries(r.byPartner.map(x=>[x.origin,x.contribution]));
+ assert.equal(by.gayo,600+200,'8000 less a 2000 discount = 6000, 10% = 600; plus 200 from the long invoice');
+ assert.equal(by.toru,700,'the line past the first page is counted');
+ assert.equal(seen.length,2,'invoice lines paged through');
 });

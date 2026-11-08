@@ -8,6 +8,31 @@ held as "coming soon".
 This file replaces the earlier version, which described the embedded Stripe form and the project picker. Both
 are gone.
 
+## Codex review of `59ee89f`: fixes in 161
+
+1. **Codes on subscriptions** (`checkout.js`, `subscriptionCodeOk`): a code is built into subscription prices only
+   if it is meant to last: percentage, duration `forever`, valid, active, no customer, no first-order or
+   minimum-spend rule, not expired, redemptions not used up. Otherwise the subscription stays at 5% and the code
+   is not reported as applied. One-off orders still pass the code to Stripe, which enforces its own rules.
+   Known limit: a code built into prices is not counted in Stripe's `times_redeemed`, so redemption caps only
+   bite on one-off orders. Workplace codes for subscribers must be created as `forever` codes.
+2. **Renewal contributions after discounts** (`shop-ngo-report.js`): each invoice line's `discount_amounts` are
+   subtracted before the 10%.
+3. **Partial swaps** (`order-summary.js`): a swap must list every coffee in the subscription exactly once; a
+   partial or duplicated list gets 409 ("subscription changed; reload the page"). The page always sends every row.
+4. **Long invoices** (`shop-ngo-report.js`): when the embedded `lines` list has more, all lines are paged through
+   `invoices/{id}/lines`.
+5. **20 bags an order** (`checkout.js` `MAX_BAGS`, basket stepper, checkout button): across the whole order, not
+   per line. The basket's + stops at 20 in total; checkout says "Up to 20 bags an order. For more, write to
+   hello@nofilter.sg."
+6. **Checkout focus**: focus moves to the panel's Close on open, Tab and Shift+Tab stay inside, Escape or Close
+   returns focus to the basket button.
+
+Tests: 17 pass (new: code eligibility and its effect on the session, the 20-bag order cap, discounted and
+multi-page renewal invoices, partial and duplicate swaps). Browser: focus trap and the basket cap at 1440 px and
+iPhone 13. Still not exercised against live Stripe test mode: a discounted renewal invoice and a swap; to do
+before launch.
+
 ## What it does now
 
 1. **Shop and coffee pages**: 250 g SGD 24, 1 kg SGD 75 (`MARKETS.SG.bag250/bag1kg`; the functions' defaults

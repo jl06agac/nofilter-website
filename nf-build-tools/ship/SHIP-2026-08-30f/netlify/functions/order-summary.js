@@ -98,6 +98,11 @@ exports.handler = async function (event) {
       f.set('proration_behavior', 'none');
       if (body.action === 'swap') {
         const want = Array.isArray(body.items) ? body.items : [];
+        // The request must describe the whole subscription: every coffee once, nothing else. Otherwise Stripe
+        // keeps the items left out and the delivery threshold would be judged on part of the basket.
+        const ids = want.map(w => w && w.id);
+        if (ids.length !== items.length || new Set(ids).size !== ids.length || !items.every(it => ids.includes(it.id)))
+          return reply(409, { error: 'subscription changed; reload the page' });
         let kept = 0;
         want.forEach((w, i) => {
           if (!items.find(it => it.id === w.id)) return;

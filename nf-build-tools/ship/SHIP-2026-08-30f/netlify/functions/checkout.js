@@ -51,7 +51,8 @@ async function stripe(path, key, form, method = 'POST') {
 const SUB_OFF = 0.05;
 // Delivery: DELIVERY_CENTS (default SGD 4) on orders under FREE_FROM_CENTS (default SGD 50); free from there.
 // For a subscription the test is each delivery's coffee; it is never part of the conservation share.
-// One line per coffee, size and plan; quantities merged, capped at 20 bags a line.
+// One line per coffee, size and plan; quantities merged. At most MAX_BAGS bags in the whole order.
+const MAX_BAGS = 20;
 function cleanLines(lines) {
   if (!Array.isArray(lines) || !lines.length || lines.length > 20) return null;
   const merged = new Map();
@@ -62,11 +63,30 @@ function cleanLines(lines) {
     const every = parseInt(l && l.every, 10) || 0;
     if (!name || !['250g', '1kg'].includes(size) || !Number.isInteger(qty) || qty < 1 || every < 0 || every > 4) return null;
     const k = name + '|' + size + '|' + every;
-    merged.set(k, Math.min(20, (merged.get(k) || 0) + qty));
+    merged.set(k, (merged.get(k) || 0) + qty);
   }
+  let total = 0; for (const q of merged.values()) total += q;
+  if (total > MAX_BAGS) return null;
   const out = [...merged].map(([k, qty]) => { const [name, size, every] = k.split('|'); return { name, size, qty, every: +every }; });
   const first = (out.find(l => l.every) || {}).every || 0;
   return out.map(l => (l.every ? { ...l, every: first } : l));
+}
+
+// A code is built into a subscription's prices, so it lasts for every delivery. Only a code made for that
+// is honoured there: a percentage, duration 'forever', valid, not tied to one customer, no first-order or
+// minimum-spend rule, not expired, redemptions not used up. Anything else (a once-only or limited code) is
+// left out of a subscription order; in a one-off order Stripe applies the code and enforces its rules itself.
+function subscriptionCodeOk(promo, lines, p250, p1kg) {
+  const c = promo.coupon || (promo.promotion && promo.promotion.coupon) || {};
+  const r = promo.restrictions || {};
+  const now = Math.floor(Date.now() / 1000);
+  if (!promo.active || c.valid === false || !c.percent_off || c.duration !== 'forever') return false;
+  if (promo.customer || r.first_time_transaction || r.minimum_amount) return false;
+  if (promo.expires_at && promo.expires_at <= now) return false;
+  if (c.redeem_by && c.redeem_by <= now) return false;
+  if (promo.max_redemptions && promo.times_redeemed >= promo.max_redemptions) return false;
+  if (c.max_redemptions && c.times_redeemed >= c.max_redemptions) return false;
+  return true;
 }
 
 exports.handler = async function (event) {
@@ -140,7 +160,7 @@ exports.handler = async function (event) {
   if (code) {
     const found = await stripe('promotion_codes?active=true&limit=1&expand[]=data.coupon&code=' + encodeURIComponent(code), KEY, null, 'GET');
     const promo = found.ok && found.data && Array.isArray(found.data.data) ? found.data.data[0] : null;
-    if (promo && promo.id) { promoId = promo.id; const c = promo.coupon || (promo.promotion && promo.promotion.coupon) || {}; codePct = (+c.percent_off || 0) / 100; }
+    if (promo && promo.id) { promoId = promo.id; if (!every || subscriptionCodeOk(promo, lines, P250, P1KG)) { const c = promo.coupon || (promo.promotion && promo.promotion.coupon) || {}; codePct = (+c.percent_off || 0) / 100; } }
     form.set('metadata[code]', code);
   }
   const unit = l => { const base = l.size === '250g' ? P250 : P1KG;
@@ -180,4 +200,4 @@ exports.handler = async function (event) {
   return reply(200, { url: data.url, session: data.id, code: applied ? code : null });
 };
 
-exports._test = { cleanLines, COFFEES, ORIGINS, CHOICES, SUB_OFF };
+exports._test = { cleanLines, subscriptionCodeOk, COFFEES, ORIGINS, CHOICES, SUB_OFF, MAX_BAGS };

@@ -17527,7 +17527,9 @@ function renderCart(){
     $('.cx', row).addEventListener('click', function(){ cart.splice(i,1); renderCart(); });
     $$('.csub button', row).forEach(function(b){ b.addEventListener('click', function(){ li.every = b.getAttribute('data-s') === '1' ? (basketEvery() || window.__nfPlan.last || 2) : 0; renderCart(); }); });
     $$('.cq button', row).forEach(function(b){ b.addEventListener('click', function(){
-      li.qty = Math.min(20, li.qty + parseInt(b.getAttribute('data-d'), 10));
+      var d = parseInt(b.getAttribute('data-d'), 10), bags = cart.reduce(function(n, x){ return n + x.qty; }, 0);
+      if(d > 0 && bags >= 20) return;   /* 20 bags an order, as checkout.js enforces */
+      li.qty = Math.min(20, li.qty + d);
       if(li.qty < 1) cart.splice(i,1);
       renderCart(); }); });
     body.appendChild(row);
@@ -17603,6 +17605,7 @@ $('#checkoutBtn').addEventListener('click', function(){
   function say(t){ note.textContent = t; note.style.display = 'block'; }
   if(!cart.length){ say('Add a bag first.'); return; }
   if(MKTK !== 'SG'){ say('Retail bags ship within Singapore for now.'); return; }
+  if(cart.reduce(function(n, x){ return n + x.qty; }, 0) > 20){ say('Up to 20 bags an order. For more, write to hello@nofilter.sg.'); return; }
   note.style.display = 'none'; openCart(false); openPay();
 });
 /* 141/156 · the checkout panel, step 1 of 2: the landscape the coffee comes from, the customer's choice of
@@ -17657,6 +17660,7 @@ function openPay(){
     '</div>' +
   '</div>' +
   '<div class="nf-go-bar"><span><small>' + (be ? 'First payment' : 'Total') + '</small><b>' + CUR() + money(sub + del) + '</b></span><button type="button">Continue →</button></div>';
+  var opener = document.activeElement;
   document.body.appendChild(el); document.documentElement.classList.add('nf-paying');
   var choice = ''; /* project picker returns once partners' projects are confirmed (Alex, 8 Nov) */
   function paintGive(){
@@ -17667,9 +17671,20 @@ function openPay(){
       return '<div><span>' + n + (oo ? ' <small>' + oo.ngo + '</small>' : '') + '</span><span>' + CUR() + money(F.by[n]) + '</span></div>'; }).join('');
     el.querySelector('.nf-go-n').textContent = F.be ? 'On Stripe’s secure page: card, Apple Pay or Google Pay.' : 'On Stripe’s secure page: card, Apple Pay, Google Pay, PayNow or GrabPay.';
   }
-  function close(){ el.remove(); document.documentElement.classList.remove('nf-paying'); document.removeEventListener('keydown', key); }
-  function key(e){ if(e.key === 'Escape') close(); }
+  function close(){ el.remove(); document.documentElement.classList.remove('nf-paying'); document.removeEventListener('keydown', key);
+    var back = (opener && document.contains(opener) && opener.offsetParent !== null && !opener.closest('#checkoutBtn, .cart')) ? opener : document.getElementById('cartBtn');   /* the basket drawer is closed by now */ if(back && back.focus) back.focus(); }
+  function key(e){
+    if(e.key === 'Escape'){ close(); return; }
+    if(e.key !== 'Tab') return;   /* keep Tab inside the checkout */
+    var f = Array.prototype.filter.call(el.querySelectorAll('button,a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'), function(n){ return !n.disabled && n.offsetParent !== null; });
+    if(!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if(!el.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+    else if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
   el.querySelector('.nf-pay-x').addEventListener('click', close); document.addEventListener('keydown', key);
+  el.querySelector('.nf-pay-x').focus();
   paintGive();
   var go = el.querySelector('.nf-go'), err = el.querySelector('.nf-go-err');
   el.querySelector('.nf-go-bar button').addEventListener('click', function(){ go.click(); });

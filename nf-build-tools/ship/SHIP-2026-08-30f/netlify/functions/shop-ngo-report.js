@@ -92,10 +92,17 @@ exports.handler = async function (event) {
         if (meta.source !== 'website-shop') continue;
         const rate = parseFloat(meta.contribution_rate || '0.10'), choice = meta.choice || 'where-needed';
         orders++; renewals++;
-        for (const l of (inv.lines && inv.lines.data) || []) {
+        let invLines = (inv.lines && inv.lines.data) || [];
+        if (inv.lines && inv.lines.has_more) {   // the embedded list is truncated: page through all of them
+          invLines = []; let lafter = '';
+          for (;;) { const lp = await get(`invoices/${inv.id}/lines?limit=100${lafter ? '&starting_after=' + lafter : ''}`, KEY);
+            invLines.push(...lp.data); if (!lp.has_more || !lp.data.length) break; lafter = lp.data[lp.data.length - 1].id; }
+        }
+        for (const l of invLines) {
           const pid = (l.price && (typeof l.price.product === 'string' ? l.price.product : l.price.product && l.price.product.id)) || (l.pricing && l.pricing.price_details && l.pricing.price_details.product);
           const m = await product(pid);
-          const v = contributions([{ amount_total: l.amount || 0, quantity: l.quantity || 0, description: l.description, price: { product: { metadata: m } } }], rate);
+          const paid = (l.amount || 0) - ((l.discount_amounts || []).reduce((n, d) => n + (d.amount || 0), 0));   // after discounts
+          const v = contributions([{ amount_total: Math.max(0, paid), quantity: l.quantity || 0, description: l.description, price: { product: { metadata: m } } }], rate);
           for (const [k, x] of Object.entries(v)) {
             if (!totals[k]) totals[k] = { origin: x.origin, partner: x.partner, sales: 0, contribution: 0, bags: 0 };
             totals[k].sales += x.sales; totals[k].contribution += x.contribution; totals[k].bags += x.bags;
