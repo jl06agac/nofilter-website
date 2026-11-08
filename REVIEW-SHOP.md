@@ -33,6 +33,24 @@ multi-page renewal invoices, partial and duplicate swaps). Browser: focus trap a
 iPhone 13. Still not exercised against live Stripe test mode: a discounted renewal invoice and a swap; to do
 before launch.
 
+## Codex re-review of `7b66f30`: fix in 164
+
+- **Restricted codes on subscriptions**: `subscriptionCodeOk(promo, coupon)` now also rejects any redemption cap
+  (on the code or the coupon, used or not) and any product restriction (`applies_to.products`).
+- **Found while fixing it**: the code lookup asked Stripe for `expand[]=data.coupon`. On Stripe's current API a
+  promotion code holds its coupon as an ID under `promotion.coupon`, so on an account on that version the
+  lookup would fail and a `?code=` from the counter QR would be dropped silently. The lookup now has no expand;
+  for a subscription the coupon is fetched separately (`coupons/{id}?expand[]=applies_to`), which works on old
+  and new versions.
+- Tests 19 pass, including Codex's two reproductions.
+
+## Trade access and quote (162, 163), checked on draft 6af089ce
+
+- `/api/access-verify` answers (405 to a GET); `/.netlify/functions/access-verify` and `access-request` are 404;
+  rapid POSTs got 429 from Netlify after about 13, so the rate-limit rule is accepted on this plan.
+- On drafts the access functions answer 503 (no `RESEND_API_KEY` / `ACCESS_SECRET` in the deploy-preview
+  context); unchanged from before.
+
 ## What it does now
 
 1. **Shop and coffee pages**: 250 g SGD 24, 1 kg SGD 75 (`MARKETS.SG.bag250/bag1kg`; the functions' defaults

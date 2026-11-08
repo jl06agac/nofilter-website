@@ -74,18 +74,20 @@ function cleanLines(lines) {
 
 // A code is built into a subscription's prices, so it lasts for every delivery. Only a code made for that
 // is honoured there: a percentage, duration 'forever', valid, not tied to one customer, no first-order or
-// minimum-spend rule, not expired, redemptions not used up. Anything else (a once-only or limited code) is
-// left out of a subscription order; in a one-off order Stripe applies the code and enforces its rules itself.
-function subscriptionCodeOk(promo, lines, p250, p1kg) {
-  const c = promo.coupon || (promo.promotion && promo.promotion.coupon) || {};
+// minimum-spend rule, not expired, not limited to certain products, and no redemption cap at all (a use built
+// into prices is never counted by Stripe, so a cap could not hold). Anything else is left out of a
+// subscription order; in a one-off order Stripe applies the code and enforces its own rules.
+// c is the coupon, fetched with applies_to expanded.
+function subscriptionCodeOk(promo, c) {
+  c = c || {};
   const r = promo.restrictions || {};
   const now = Math.floor(Date.now() / 1000);
   if (!promo.active || c.valid === false || !c.percent_off || c.duration !== 'forever') return false;
   if (promo.customer || r.first_time_transaction || r.minimum_amount) return false;
   if (promo.expires_at && promo.expires_at <= now) return false;
   if (c.redeem_by && c.redeem_by <= now) return false;
-  if (promo.max_redemptions && promo.times_redeemed >= promo.max_redemptions) return false;
-  if (c.max_redemptions && c.times_redeemed >= c.max_redemptions) return false;
+  if (promo.max_redemptions || c.max_redemptions) return false;
+  if (c.applies_to && Array.isArray(c.applies_to.products) && c.applies_to.products.length) return false;
   return true;
 }
 
@@ -158,9 +160,20 @@ exports.handler = async function (event) {
   // applied to the prices here, since a Stripe code would apply to every future delivery too.
   let codePct = 0, promoId = null;
   if (code) {
-    const found = await stripe('promotion_codes?active=true&limit=1&expand[]=data.coupon&code=' + encodeURIComponent(code), KEY, null, 'GET');
+    // No expand on the list: Stripe's current API holds the coupon as an ID under promotion.coupon (older
+    // versions put it at coupon), and an expand path the account's version doesn't have fails the whole call.
+    const found = await stripe('promotion_codes?active=true&limit=1&code=' + encodeURIComponent(code), KEY, null, 'GET');
     const promo = found.ok && found.data && Array.isArray(found.data.data) ? found.data.data[0] : null;
-    if (promo && promo.id) { promoId = promo.id; if (!every || subscriptionCodeOk(promo, lines, P250, P1KG)) { const c = promo.coupon || (promo.promotion && promo.promotion.coupon) || {}; codePct = (+c.percent_off || 0) / 100; } }
+    if (promo && promo.id) {
+      promoId = promo.id;
+      if (every) {
+        const ref = promo.coupon || (promo.promotion && promo.promotion.coupon);
+        const cid = typeof ref === 'string' ? ref : ref && ref.id;
+        const cr = cid ? await stripe('coupons/' + encodeURIComponent(cid) + '?expand[]=applies_to', KEY, null, 'GET') : null;
+        const coupon = cr && cr.ok ? cr.data : null;
+        if (coupon && subscriptionCodeOk(promo, coupon)) codePct = (+coupon.percent_off || 0) / 100;
+      }
+    }
     form.set('metadata[code]', code);
   }
   const unit = l => { const base = l.size === '250g' ? P250 : P1KG;

@@ -155,7 +155,7 @@ test('subscriptions: the range at 5% off; one frequency; one-offs ride along; de
 
 test('subscriptions with a client code: the better of the two, never both',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';
- const promo=pct=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[{id:'promo_1',active:true,coupon:{percent_off:pct,duration:'forever',valid:true}}]}}:{body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}});
+ const promo=pct=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[{id:'promo_1',active:true,promotion:{type:'coupon',coupon:'co_1'}}]}}:u.includes('/v1/coupons/co_1')?{body:{id:'co_1',percent_off:pct,duration:'forever',valid:true}}:{body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}});
  let calls=mockStripe(promo(10));
  let r=JSON.parse((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1},{name:'Batang Toru',size:'250g',qty:1}],code:'SPRINKLR10'}))).body);
  let f=sessionCall(calls);
@@ -241,22 +241,27 @@ test('subscription changes: swap coffee or size, change frequency without a char
 
 test('subscriptions: only a code made to last is built into the prices; once-only or limited codes are not',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';
- const ok=checkout._test.subscriptionCodeOk, base={id:'promo_1',active:true,coupon:{percent_off:10,duration:'forever',valid:true}};
- assert.equal(ok(base),true);
- assert.equal(ok({...base,coupon:{...base.coupon,duration:'once'}}),false,'once');
- assert.equal(ok({...base,coupon:{...base.coupon,duration:'repeating',duration_in_months:3}}),false,'repeating');
- assert.equal(ok({...base,restrictions:{first_time_transaction:true}}),false,'first order only');
- assert.equal(ok({...base,restrictions:{minimum_amount:5000,minimum_amount_currency:'sgd'}}),false,'minimum spend');
- assert.equal(ok({...base,customer:'cus_9'}),false,'one customer');
- assert.equal(ok({...base,max_redemptions:5,times_redeemed:5}),false,'used up');
- assert.equal(ok({...base,expires_at:1}),false,'expired');
- assert.equal(ok({...base,coupon:{...base.coupon,valid:false}}),false,'coupon no longer valid');
- const promo=p=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[p]}}:{body:{url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}});
- let calls=mockStripe(promo({...base,coupon:{...base.coupon,duration:'once'}}));
+ const ok=checkout._test.subscriptionCodeOk, base={id:'promo_1',active:true,promotion:{type:'coupon',coupon:'co_1'}}, cp={id:'co_1',percent_off:10,duration:'forever',valid:true};
+ assert.equal(ok(base,cp),true);
+ assert.equal(ok(base,{...cp,applies_to:{products:[]}}),true,'applies_to present but empty');
+ assert.equal(ok(base,{...cp,duration:'once'}),false,'once');
+ assert.equal(ok(base,{...cp,duration:'repeating',duration_in_months:3}),false,'repeating');
+ assert.equal(ok({...base,restrictions:{first_time_transaction:true}},cp),false,'first order only');
+ assert.equal(ok({...base,restrictions:{minimum_amount:5000,minimum_amount_currency:'sgd'}},cp),false,'minimum spend');
+ assert.equal(ok({...base,customer:'cus_9'},cp),false,'one customer');
+ assert.equal(ok({...base,max_redemptions:50,times_redeemed:1},cp),false,'a redemption cap, even unused (Codex)');
+ assert.equal(ok(base,{...cp,max_redemptions:50,times_redeemed:0}),false,'a cap on the coupon');
+ assert.equal(ok(base,{...cp,applies_to:{products:['prod_gayo']}}),false,'limited to one product (Codex)');
+ assert.equal(ok({...base,expires_at:1},cp),false,'expired');
+ assert.equal(ok(base,{...cp,valid:false}),false,'coupon no longer valid');
+ const promo=(p,c)=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[p]}}:u.includes('/v1/coupons/')?{body:c}:{body:{url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}});
+ let calls=mockStripe(promo(base,{...cp,duration:'once'}));
  let r=JSON.parse((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1}],code:'WELCOME10'}))).body);
  assert.equal(sessionCall(calls).get('line_items[0][price]'),'price_nf-sub-gayo-250g-w1-p5','a once-only code leaves the subscription at 5%');
  assert.equal(r.code,null);
- calls=mockStripe(promo({...base,coupon:{...base.coupon,duration:'once'}}));
+ assert.ok(calls.some(c=>c.url.includes('/v1/coupons/co_1?expand[]=applies_to')),'coupon fetched with its product limits');
+ assert.ok(!calls.some(c=>/promotion_codes.*expand/.test(c.url)),'no version-specific expand on the code lookup');
+ calls=mockStripe(promo(base,{...cp,duration:'once'}));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],code:'WELCOME10'}));
  assert.equal(sessionCall(calls).get('discounts[0][promotion_code]'),'promo_1','a one-off order still gets it, with Stripe enforcing its rules');
 });
