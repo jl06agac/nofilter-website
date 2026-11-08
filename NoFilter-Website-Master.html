@@ -17618,10 +17618,10 @@ var PAY_CHOICES = [
   { id:'coffee-with-forest', title:'Grow coffee with the forest', img:'/assets/shop/coffee-with-forest.webp' } ];
 window.__nfPayChoices = PAY_CHOICES;
 function payFigures(){
-  var f = { give:0, top:null, by:{}, sub:0, perDel:0, full:0, be: basketEvery() };
-  cart.forEach(function(l){ var v = lineTotal(l) * 0.10; f.give += v; f.by[l.name] = (f.by[l.name] || 0) + v; f.sub += lineTotal(l); f.full += l.price * l.qty; if(l.every) f.perDel += lineTotal(l); });
+  var f = { give:0, top:null, by:{}, sub:0, perDel:0, listTotal:0, be: basketEvery() };
+  cart.forEach(function(l){ var v = lineTotal(l) * 0.10; f.give += v; f.by[l.name] = (f.by[l.name] || 0) + v; f.sub += lineTotal(l); f.listTotal += l.price * l.qty; if(l.every) f.perDel += lineTotal(l); });
   Object.keys(f.by).forEach(function(n){ if(!f.top || f.by[n] > f.by[f.top]) f.top = n; });
-  f.del = (f.be ? f.perDel : f.full) >= FREE_FROM ? 0 : DELIVERY;
+  f.del = (f.be ? f.perDel : f.listTotal) >= FREE_FROM ? 0 : DELIVERY;
   f.repeat = f.perDel + (f.perDel >= FREE_FROM ? 0 : DELIVERY);
   return f;
 }
