@@ -17520,12 +17520,12 @@ function renderCart(){
     var oo = ORIGINS.filter(function(x){ return x.name === li.name; })[0];
     row.innerHTML = '<img class="cimg" src="' + (oo ? oo.bag : '') + '" alt="">' + '<div><div class="cn">' + li.name + '</div><div class="cs">' + li.size.toUpperCase() +
       ' · ' + CUR() + money(unitPrice(li)) + (li.every ? ' <s>' + money(li.price) + '</s>' : '') + '</div>' +
-      '<label class="csub"><input type="checkbox"' + (li.every ? ' checked' : '') + '> Subscribe &amp; save 10%</label>' +
+      '<span class="csub" role="radiogroup" aria-label="How to buy"><button type="button" data-s="0" aria-checked="' + !li.every + '">One-time</button><button type="button" data-s="1" aria-checked="' + !!li.every + '">Subscribe \u221210%</button></span>' +
       '<div class="cq"><button type="button" data-d="-1" aria-label="One fewer">−</button><span>' + li.qty + '</span><button type="button" data-d="1" aria-label="One more">+</button></div></div>' +
       '<div class="cn">' + CUR() + money(lineTotal(li)) + '</div>' +
       '<button class="cx" aria-label="Remove">✕</button>';
     $('.cx', row).addEventListener('click', function(){ cart.splice(i,1); renderCart(); });
-    $('.csub input', row).addEventListener('change', function(e){ li.every = e.target.checked ? (basketEvery() || window.__nfPlan.last || 2) : 0; renderCart(); });
+    $$('.csub button', row).forEach(function(b){ b.addEventListener('click', function(){ li.every = b.getAttribute('data-s') === '1' ? (basketEvery() || window.__nfPlan.last || 2) : 0; renderCart(); }); });
     $$('.cq button', row).forEach(function(b){ b.addEventListener('click', function(){
       li.qty = Math.min(20, li.qty + parseInt(b.getAttribute('data-d'), 10));
       if(li.qty < 1) cart.splice(i,1);
@@ -17536,9 +17536,11 @@ function renderCart(){
   var be = basketEvery();
   if(be){
     var pl = document.createElement('div'); pl.className = 'cart-plan';
-    pl.innerHTML = '<span>Subscription bags arrive</span><select aria-label="How often">' + [1,2,3,4].map(function(n){ return '<option value="' + n + '"' + (n === be ? ' selected' : '') + '>' + EVERY_LAB[n] + '</option>'; }).join('') +
-      '</select><small>from each Wednesday roast. Swap coffees, skip a delivery or cancel any time.</small>';
-    pl.querySelector('select').addEventListener('change', function(e){ setBasketEvery(parseInt(e.target.value, 10)); renderCart(); });
+    var save = 0; cart.forEach(function(l){ if(l.every) save += (l.price - unitPrice(l)) * l.qty; });
+    pl.innerHTML = '<div class="cp-h"><b>Your subscription</b><span>saves ' + CUR() + money(save) + ' a delivery</span></div>' +
+      '<div class="cp-f" role="radiogroup" aria-label="How often">' + [1,2,3,4].map(function(n){ return '<button type="button" data-f="' + n + '" aria-checked="' + (n === be) + '">' + { 1:'Weekly', 2:'2 weeks', 3:'3 weeks', 4:'4 weeks' }[n] + '</button>'; }).join('') + '</div>' +
+      '<small>From each Wednesday roast. Swap coffees, skip a delivery or cancel any time.</small>';
+    $$('.cp-f button', pl).forEach(function(b){ b.addEventListener('click', function(){ setBasketEvery(parseInt(b.getAttribute('data-f'), 10)); renderCart(); }); });
     body.appendChild(pl);
   }
   /* 142 · the empty space under the lines plays the landscape most of the basket comes from */
@@ -17738,12 +17740,13 @@ function paidPanel(panelOrder){
     if(!live){ x.innerHTML = note ? '<p class="nf-ty-note">' + esc(note) + '</p>' : ''; box.hidden = false; return; }
     x.innerHTML = '<div class="nf-ty-items2">' + (sb.items || []).map(function(it){
         var sz = /1\s*kg/i.test(it.size) ? '1kg' : '250g';
-        return '<div class="nf-ty-row" data-id="' + esc(it.id) + '"><select class="c" aria-label="Coffee">' + COFFEE_NAMES.map(function(n){ return '<option' + (n === it.name ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' +
+        var bg = ORIGINS.filter(function(o){ return o.name === it.name; })[0];
+        return '<div class="nf-ty-row" data-id="' + esc(it.id) + '"><img src="' + (bg ? bg.bag : '') + '" alt=""><select class="c" aria-label="Coffee">' + COFFEE_NAMES.map(function(n){ return '<option' + (n === it.name ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' +
           '<select class="z" aria-label="Bag size"><option value="250g"' + (sz === '250g' ? ' selected' : '') + '>250 g</option><option value="1kg"' + (sz === '1kg' ? ' selected' : '') + '>1 kg</option></select>' +
           '<span class="q"><button type="button" data-d="-1" aria-label="One fewer">\u2212</button><b>' + it.qty + '</b><button type="button" data-d="1" aria-label="One more">+</button></span></div>'; }).join('') + '</div>' +
       '<div class="nf-ty-acts"><button type="button" class="nf-ty-b pri" data-a="swap" disabled>Save coffee changes</button></div>' +
-      '<div class="nf-ty-freq"><label>How often <select aria-label="How often">' + [1,2,3,4].map(function(n){ return '<option value="' + n + '"' + (n === sb.every ? ' selected' : '') + '>' + EVERY_LAB[n] + '</option>'; }).join('') + '</select></label>' +
-        '<button type="button" class="nf-ty-b" data-a="every" disabled>Change</button><small>Starts after the delivery already paid for.</small></div>' +
+      '<div class="nf-ty-freq"><span class="k">How often</span><div class="ch" role="radiogroup" aria-label="How often">' + [1,2,3,4].map(function(n){ return '<button type="button" data-f="' + n + '" aria-checked="' + (n === sb.every) + '">' + { 1:'Weekly', 2:'2 weeks', 3:'3 weeks', 4:'4 weeks' }[n] + '</button>'; }).join('') + '</div>' +
+        '<button type="button" class="nf-ty-b" data-a="every" hidden>Change to <span></span></button><small>A new frequency starts after the delivery already paid for.</small></div>' +
       '<div class="nf-ty-acts">' + (sb.skipping ? '<button type="button" class="nf-ty-b" data-a="unskip">Undo skip</button>' : '<button type="button" class="nf-ty-b" data-a="skip">Skip the next delivery</button>') +
         '<a class="nf-ty-b ghost" href="/.netlify/functions/order-summary?order=' + encodeURIComponent(panelOrder) + '&manage=1">Card, address or cancel</a></div>' +
       (note ? '<p class="nf-ty-note">' + esc(note) + '</p>' : '');
@@ -17752,12 +17755,16 @@ function paidPanel(panelOrder){
     x.querySelectorAll('.nf-ty-row .q button').forEach(function(b){ b.addEventListener('click', function(){
       var n = b.parentNode.querySelector('b'), v = Math.max(0, Math.min(20, (parseInt(n.textContent, 10) || 0) + parseInt(b.getAttribute('data-d'), 10)));
       n.textContent = v; b.closest('.nf-ty-row').classList.toggle('gone', !v); dirty(); }); });
-    x.querySelector('.nf-ty-freq select').addEventListener('change', function(e){ x.querySelector('[data-a="every"]').disabled = parseInt(e.target.value, 10) === sb.every; });
+    var pickF = sb.every;
+    x.querySelectorAll('.nf-ty-freq [data-f]').forEach(function(b){ b.addEventListener('click', function(){
+      pickF = parseInt(b.getAttribute('data-f'), 10);
+      x.querySelectorAll('.nf-ty-freq [data-f]').forEach(function(z){ z.setAttribute('aria-checked', String(z === b)); });
+      var go = x.querySelector('[data-a="every"]'); go.hidden = pickF === sb.every; go.querySelector('span').textContent = EVERY_LAB[pickF]; }); });
     x.querySelectorAll('button[data-a]').forEach(function(b){ b.addEventListener('click', function(){
       var a = b.getAttribute('data-a'), body = { action: a };
       if(a === 'swap') body.items = Array.prototype.map.call(x.querySelectorAll('.nf-ty-row'), function(r){
         return { id: r.getAttribute('data-id'), name: r.querySelector('.c').value, size: r.querySelector('.z').value, qty: parseInt(r.querySelector('.q b').textContent, 10) || 0 }; });
-      if(a === 'every') body.every = parseInt(x.querySelector('.nf-ty-freq select').value, 10);
+      if(a === 'every') body.every = pickF;
       x.querySelectorAll('button').forEach(function(z){ z.disabled = true; }); b.textContent = 'Saving\u2026';
       subPost(body);
     }); });
@@ -27190,14 +27197,19 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty-saved{display:inline-block;margin-top:12px;font-size:14px;color:#1F6F5C;font-weight:600}
 .nf-ty [hidden]{display:none!important}
 .nf-ty-items2{display:grid;gap:8px;margin:16px 0 0}
-.nf-ty-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
+.nf-ty-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:8px;align-items:center}
+.nf-ty-row img{width:44px;height:44px;border-radius:9px;object-fit:cover;background:rgba(26,24,21,.05)}
 .nf-ty-row.gone select{opacity:.4;text-decoration:line-through}
-.nf-ty-row select,.nf-ty-freq select{height:40px;border-radius:10px;border:1px solid rgba(26,24,21,.2);background:#fff;padding:0 10px;font:500 14px var(--body,sans-serif);color:#1A1815;min-width:0}
+.nf-ty-row select{height:40px;border-radius:10px;border:1px solid rgba(26,24,21,.2);background:#fff;padding:0 10px;font:500 14px var(--body,sans-serif);color:#1A1815;min-width:0}
 .nf-ty-row .q{display:inline-flex;align-items:center;height:40px;border:1px solid rgba(26,24,21,.2);border-radius:999px;overflow:hidden;background:#fff}
 .nf-ty-row .q button{width:34px;height:100%;border:0;background:none;font-size:16px;cursor:pointer;color:#1A1815}
 .nf-ty-row .q b{min-width:22px;text-align:center;font-size:14px}
 .nf-ty-freq{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0;padding-top:16px;border-top:1px solid rgba(26,24,21,.08);font-size:14px}
-.nf-ty-freq label{display:flex;align-items:center;gap:10px}
+.nf-ty-freq .k{flex-basis:100%;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.55)}
+.nf-ty-freq .ch{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1 1 320px}
+.nf-ty-freq .ch button{height:38px;border-radius:999px;border:1.5px solid rgba(26,24,21,.15);background:#fff;font:600 13px var(--body,sans-serif);color:#1A1815;cursor:pointer}
+.nf-ty-freq .ch [aria-checked="true"]{background:#1A1815;border-color:#1A1815;color:#F4F2EE}
+.nf-ty-freq [data-a="every"]{background:#1F6F5C;border-color:#1F6F5C;color:#fff}
 .nf-ty-freq small{flex-basis:100%;color:rgba(26,24,21,.6);font-size:12.5px}
 .nf-ty-acts{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
 .nf-ty-b{display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;border:1px solid rgba(26,24,21,.2);background:#fff;color:#1A1815;font:500 14px var(--body,sans-serif);text-decoration:none;cursor:pointer}
@@ -27206,24 +27218,38 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty-b[disabled]{opacity:.45;cursor:default}
 .nf-ty-note{margin:12px 0 0;font-size:14px;font-weight:600;color:#1F6F5C}
 /* 152 · subscribe & save on the coffee page, and in the basket */
-#shop .nf-plan{display:grid;gap:8px;margin:14px 0 4px}
-#shop .nf-plan [data-p]{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(26,24,21,.16);background:rgba(255,255,255,.55);font:500 15px var(--font-b,sans-serif);color:#1A1815;text-align:left;cursor:pointer}
-#shop .nf-plan [data-p] i{width:18px;height:18px;border-radius:50%;border:2px solid rgba(26,24,21,.4);display:block}
-#shop .nf-plan [data-p] em{font-style:normal;font-weight:700}
-#shop .nf-plan [aria-checked="true"]{border-color:#1A1815;background:#fff}
-#shop .nf-plan [aria-checked="true"] i{border-color:#1A1815;background:radial-gradient(#1A1815 0 4px,transparent 5px)}
-#shop .nf-plan-f{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:12px;border:1.5px solid #1A1815;background:#fff;font:500 14px var(--font-b,sans-serif);color:rgba(26,24,21,.7)}
-#shop .nf-plan-f select{border:0;background:none;font:600 14px var(--font-b,sans-serif);color:#1A1815;cursor:pointer}
-#shop .nf-plan-note{margin:2px 2px 0;font:13px var(--font-b,sans-serif);color:rgba(244,242,238,.85)}
+#shop .nf-plan{margin:16px 0 6px;padding:6px;border-radius:16px;background:#F4F2EE;color:#1A1815;font-family:var(--font-b,sans-serif)}
+#shop .nf-seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#shop .nf-seg [data-p]{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:11px 14px;border-radius:11px;border:0;background:transparent;color:rgba(26,24,21,.7);text-align:left;cursor:pointer;font:500 14px var(--font-b,sans-serif);transition:background .2s,box-shadow .2s}
+#shop .nf-seg [data-p] .t{display:flex;align-items:center;gap:7px;font-weight:600;color:#1A1815}
+#shop .nf-seg [data-p] em{font-style:normal;font-weight:700;font-size:16px;color:#1A1815}
+#shop .nf-seg [data-p] s{font-size:13px;color:rgba(26,24,21,.45)}
+#shop .nf-seg [aria-checked="true"]{background:#fff;box-shadow:0 1px 2px rgba(26,24,21,.08),0 4px 14px rgba(26,24,21,.08)}
+#shop .nf-save{font:700 10.5px var(--font-b,sans-serif);letter-spacing:.02em;padding:3px 7px;border-radius:999px;background:#1F6F5C;color:#fff}
+#shop .nf-sub{padding:12px 8px 6px}
+#shop .nf-sub-k{display:block;font:500 10px var(--font-m,monospace);letter-spacing:.16em;text-transform:uppercase;color:rgba(26,24,21,.55);margin:0 0 8px}
+#shop .nf-freq{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#shop .nf-freq [data-f]{height:38px;border-radius:999px;border:1.5px solid rgba(26,24,21,.15);background:#fff;font:600 13px var(--font-b,sans-serif);color:#1A1815;cursor:pointer}
+#shop .nf-freq [aria-checked="true"]{border-color:#1A1815;background:#1A1815;color:#F4F2EE}
+#shop .nf-perks{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:rgba(26,24,21,.7)}
+#shop .nf-perks li{display:flex;align-items:center;gap:6px}
+#shop .nf-perks li::before{content:"";width:14px;height:14px;border-radius:50%;background:#1F6F5C url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M4 7.2l2 2 4-4.4' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;flex:none}
 #shop .nf-imp-sub{display:none}
 #shop .nf-sub-on .cx-imp-amt{display:none}
 #shop .nf-sub-on .nf-imp-sub{display:inline}
-.cart .csub{display:inline-flex;align-items:center;gap:6px;margin:6px 0 0;font:12.5px var(--body,sans-serif);color:rgba(26,24,21,.75);cursor:pointer}
-.cart .csub input{accent-color:#1A1815;width:15px;height:15px;margin:0}
-.cart .cs s{opacity:.55}
-.cart-plan{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:14px 0 4px;padding:12px 14px;border-radius:12px;background:#FBFAF8;border:1px solid rgba(26,24,21,.1);font:13.5px var(--body,sans-serif);color:#1A1815}
-.cart-plan select{font:600 13.5px var(--body,sans-serif);border:1px solid rgba(26,24,21,.2);border-radius:8px;padding:5px 8px;background:#fff;color:#1A1815}
-.cart-plan small{flex-basis:100%;font-size:12px;color:rgba(26,24,21,.6)}
+.cart .csub{display:inline-grid;grid-template-columns:auto auto;gap:2px;margin:7px 0 0;padding:2px;border-radius:999px;background:rgba(26,24,21,.07)}
+.cart .csub button{height:24px;padding:0 9px;border:0;border-radius:999px;background:transparent;font:600 11px var(--body,sans-serif);color:rgba(26,24,21,.6);cursor:pointer;white-space:nowrap}
+.cart .csub [aria-checked="true"]{background:#fff;color:#1A1815;box-shadow:0 1px 2px rgba(26,24,21,.12)}
+.cart .csub [data-s="1"][aria-checked="true"]{background:#1F6F5C;color:#fff}
+.cart .cs s{opacity:.5}
+.cart .ci > .cn{white-space:nowrap}
+.cart-plan{margin:14px 0 4px;padding:14px;border-radius:14px;background:#FBFAF8;border:1px solid rgba(26,24,21,.1);font:13.5px var(--body,sans-serif);color:#1A1815}
+.cart-plan .cp-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 10px}
+.cart-plan .cp-h span{font-size:12.5px;font-weight:600;color:#1F6F5C}
+.cart-plan .cp-f{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.cart-plan .cp-f button{height:32px;border-radius:999px;border:1.5px solid rgba(26,24,21,.15);background:#fff;font:600 12px var(--body,sans-serif);color:#1A1815;cursor:pointer}
+.cart-plan .cp-f [aria-checked="true"]{background:#1A1815;border-color:#1A1815;color:#F4F2EE}
+.cart-plan small{display:block;margin-top:9px;font-size:12px;color:rgba(26,24,21,.6)}
 /* 147 · the shop's panels are cream, not black (Alex: "it's ominous"). The basket re-points the site's
    colour tokens; the thank-you card is restyled in its own scope; the checkout panel's rules were recoloured. */
 .cart{--panel:#F4F2EE;--cream:#1A1815;--dim:rgba(26,24,21,.58);--dimmer:rgba(26,24,21,.42);--line:rgba(26,24,21,.12);--line2:rgba(26,24,21,.14);color:#1A1815}
@@ -27556,17 +27582,20 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
    picker component stays as shop.html wrote it. */
 (function(){
   var shop = document.getElementById('shop'); if(!shop) return;
-  var LAB = { 1:'Every week', 2:'Every 2 weeks', 3:'Every 3 weeks', 4:'Every 4 weeks' };
   var plan = window.__nfPlan || (window.__nfPlan = { every:0, last:2 });
   function money(v){ return (Math.round(v * 100) % 100 === 0) ? String(Math.round(v)) : v.toFixed(2); }
+  var SHORT = { 1:'Weekly', 2:'2 weeks', 3:'3 weeks', 4:'4 weeks' };
   function paint(box){
     var w = box.querySelector('.nf-plan'), pn = box.querySelector('.cx-price-n'); if(!w || !pn) return;
     var total = parseFloat(pn.textContent) || 0, cur = (box.querySelector('.cx-price') || {}).textContent || '';
     cur = (cur.match(/[A-Z]{3}/) || ['SGD'])[0];
     w.querySelector('[data-p="0"] em').textContent = cur + ' ' + money(total);
     w.querySelector('[data-p="1"] em').textContent = cur + ' ' + money(total * 0.9);
+    w.querySelector('[data-p="1"] s').textContent = money(total);
     w.querySelectorAll('[data-p]').forEach(function(b){ b.setAttribute('aria-checked', String((b.getAttribute('data-p') === '1') === !!plan.every)); });
-    var f = w.querySelector('.nf-plan-f'); f.hidden = !plan.every; f.querySelector('select').value = String(plan.every || plan.last || 2);
+    w.querySelector('.nf-sub').hidden = !plan.every;
+    var on = plan.every || plan.last || 2;
+    w.querySelectorAll('[data-f]').forEach(function(b){ b.setAttribute('aria-checked', String(+b.getAttribute('data-f') === on)); });
     var amt = box.querySelector('.cx-imp-amt'), sub = box.querySelector('.nf-imp-sub');
     if(amt && !sub){ sub = document.createElement('span'); sub.className = 'nf-imp-sub'; amt.parentNode.insertBefore(sub, amt.nextSibling); }
     if(sub){ sub.textContent = money(total * 0.9 * 0.10); box.classList.toggle('nf-sub-on', !!plan.every); }
@@ -27576,15 +27605,18 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
     if(box.querySelector('.nf-plan')) return;
     var row = box.querySelector('.cx-price-row'); if(!row) return;
     var w = document.createElement('div'); w.className = 'nf-plan'; w.setAttribute('role','radiogroup'); w.setAttribute('aria-label','How to buy');
-    w.innerHTML = '<button type="button" role="radio" data-p="0"><i></i><span>One-time purchase</span><em></em></button>' +
-      '<button type="button" role="radio" data-p="1"><i></i><span>Subscribe &amp; save 10%</span><em></em></button>' +
-      '<label class="nf-plan-f" hidden><span>How often would you like it?</span><select>' + [1,2,3,4].map(function(n){ return '<option value="' + n + '">' + LAB[n] + '</option>'; }).join('') + '</select></label>' +
-      '<p class="nf-plan-note">Roasted every Wednesday. Swap coffees, skip a delivery or cancel any time.</p>';
+    w.innerHTML = '<div class="nf-seg">' +
+        '<button type="button" role="radio" data-p="0"><span class="t">One-time</span><em></em></button>' +
+        '<button type="button" role="radio" data-p="1"><span class="t">Subscribe <b class="nf-save">Save 10%</b></span><span><em></em> <s></s></span></button></div>' +
+      '<div class="nf-sub" hidden><span class="nf-sub-k">Delivered</span><div class="nf-freq" role="radiogroup" aria-label="How often">' +
+        [1,2,3,4].map(function(n){ return '<button type="button" role="radio" data-f="' + n + '">' + SHORT[n] + '</button>'; }).join('') + '</div>' +
+        '<ul class="nf-perks"><li>Swap coffees any time</li><li>Skip or cancel any time</li><li>Free delivery, roasted Wednesdays</li></ul></div>';
     row.parentNode.insertBefore(w, row.nextSibling);
-    w.addEventListener('click', function(e){ var b = e.target.closest('[data-p]'); if(!b) return; e.stopPropagation();
-      plan.every = b.getAttribute('data-p') === '1' ? (plan.last || 2) : 0; paintAll(); });
-    w.querySelector('select').addEventListener('change', function(e){ plan.every = plan.last = parseInt(e.target.value, 10); paintAll(); });
-    w.querySelector('select').addEventListener('click', function(e){ e.stopPropagation(); });
+    w.addEventListener('click', function(e){ e.stopPropagation();
+      var b = e.target.closest('[data-p]'), f = e.target.closest('[data-f]');
+      if(b) plan.every = b.getAttribute('data-p') === '1' ? (plan.last || 2) : 0;
+      if(f) plan.every = plan.last = parseInt(f.getAttribute('data-f'), 10);
+      if(b || f) paintAll(); });
     var pn = box.querySelector('.cx-price-n'); if(pn) new MutationObserver(function(){ paint(box); }).observe(pn, { childList:true, characterData:true, subtree:true });
     paint(box);
   }
