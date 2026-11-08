@@ -287,3 +287,20 @@ test('report: renewals counted after discounts, and every line of a long invoice
  assert.equal(by.toru,700,'the line past the first page is counted');
  assert.equal(seen.length,2,'invoice lines paged through');
 });
+
+test('quote enquiry: a failed internal copy is retried once and logged, never silent',async()=>{
+ const q=require(path.join(F,'quote-confirm.js'));process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
+ const errs=[],orig=console.error;console.error=(...a)=>errs.push(a.join(' '));
+ try{
+  let calls=mockStripe((u,o)=>{const b=JSON.parse(o.body);return b.to[0]==='hello@nofilter.sg'?{ok:false,body:{}}:{body:{id:'em_1'}};});
+  calls.forEach(()=>{});
+  global.fetch=(f=>async(u,o)=>{const r=await f(u,o);r.status=r.ok?200:500;r.text=async()=>'down';return r;})(global.fetch);
+  const ev2={httpMethod:'POST',body:JSON.stringify({email:'pat@example.com',name:'Pat',company:'Acme',ref:'Q-123',market:'SGD'})};
+  let r=await q.handler(ev2);
+  assert.equal(r.statusCode,200,'the customer still gets their copy');assert.equal(r.body,'sent; desk copy failed');
+  assert.equal(calls.filter(c=>JSON.parse(c.opt.body).to[0]==='hello@nofilter.sg').length,2,'one retry');
+  assert.ok(errs.some(e=>/DESK COPY NOT SENT/.test(e)&&/Q-123/.test(e)),'logged with the enquiry reference');
+  calls=mockStripe(()=>({body:{id:'em_2'}}));
+  r=await q.handler(ev2);assert.equal(r.body,'sent');assert.equal(calls.length,2,'customer and desk, no retry');
+ }finally{console.error=orig;}
+});

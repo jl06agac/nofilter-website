@@ -21324,6 +21324,7 @@ function nfQuoteSubmit(ev){
      reader sees exactly what they see today. See netlify/functions/quote-confirm.js. */
   if(who.email && typeof fetch === 'function'){
     try {
+      var qm = document.getElementById('qThanksMail'); if(qm) qm.textContent = '.';
       fetch('/.netlify/functions/quote-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -21353,6 +21354,9 @@ function nfQuoteSubmit(ev){
           machMonthly:(c && c.machMonthly != null) ? c.machMonthly : null,
           cupsY:     (c && c.kgTotal && window.__nfVolCups) ? window.__nfVolCups() : null   /* block 109 */
         })
+      }).then(function(r){
+        var m = document.getElementById('qThanksMail');
+        if(r && r.ok && m) m.textContent = ', and we\u2019ve emailed you a copy for your records.';
       }).catch(function(){});
     } catch(e){}
   }
@@ -25292,8 +25296,8 @@ window.__nfRoller(
            reader gets one message twice, not two messages that nearly agree. */
         /* block 104 — Alex's copy, 3 Sep. The email carries the same promise and
            the record itself; this states it and gets out of the way. */
-        + '<p class="q-thanks-body">We\u2019ve got your selections, and we\u2019ve emailed you a copy '
-        + 'for your records.</p>'
+        /* 162: the email half is only said once quote-confirm answers 200 (Codex, 8 Nov) */
+        + '<p class="q-thanks-body">We\u2019ve got your selections<span id="qThanksMail">.</span></p>'
         + '<p class="q-thanks-body">We\u2019ll review everything and come back to you with anything '
         + 'that needs confirming \u2014 coffee to taste, a machine demo, or a few details about your '
         + 'space.</p>'

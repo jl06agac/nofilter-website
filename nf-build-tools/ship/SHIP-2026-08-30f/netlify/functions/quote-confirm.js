@@ -169,7 +169,9 @@ exports.handler = async function (event) {
     });
     if (!r.ok) return { statusCode: 502, body: 'send failed: ' + (await r.text()).slice(0, 200) };
 
-    /* the internal copy is best-effort and must never fail the reader's email */
+    /* the internal copy must never fail the reader's email, but it must not fail silently either (Codex,
+       8 Nov): one retry, then a line in the function log naming the enquiry. The enquiry itself is also
+       recorded by the page's Netlify Forms post ('quote' form), so it is never only in this email. */
     const desk = process.env.QUOTE_TO || 'hello@nofilter.sg';
     /* 28 Aug (pass157) — the order first, the contact second. This listed only
        who they were, which tells you a lead exists and nothing about how to
@@ -248,7 +250,7 @@ exports.handler = async function (event) {
       ['Market', p.market], ['Reference', ref],
       ['Tasting · showroom', p.tasteShow ? 'yes' : ''], ['Tasting · on site', p.tasteSite ? 'yes' : ''],
     ].filter(([, v]) => v).map(([k, v]) => (k === '—' ? '' : `${k}: ${v}`)).join('\n');
-    await send({
+    const deskMail = {
       from: FROM, to: [desk], reply_to: to,
       /* 28 Aug (pass157): was `${p.company || p.name || to}` — an OR, so it showed
          the company or the person but never both. Alex asked for both, and in a
@@ -262,9 +264,15 @@ exports.handler = async function (event) {
         ref || null,
       ].filter(Boolean).join(' · '),
       text: rows,
-    }).catch(() => {});
+    };
+    let deskOk = false;
+    for (let attempt = 0; attempt < 2 && !deskOk; attempt++) {
+      try { const d = await send(deskMail); deskOk = d.ok; if (!d.ok) console.error('quote-confirm: desk copy refused', d.status, (await d.text()).slice(0, 200)); }
+      catch (e) { console.error('quote-confirm: desk copy failed', e && e.message); }
+    }
+    if (!deskOk) console.error('quote-confirm: DESK COPY NOT SENT for enquiry', ref || '(no ref)', p.company || '', '- see Netlify Forms > quote');
 
-    return { statusCode: 200, body: 'sent' };
+    return { statusCode: 200, body: deskOk ? 'sent' : 'sent; desk copy failed' };
   } catch (e) {
     return { statusCode: 502, body: 'send error' };
   }
