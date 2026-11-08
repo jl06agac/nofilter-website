@@ -117,7 +117,10 @@ exports.handler = async function (event) {
   const piId = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent && s.payment_intent.id;
   const anchor = subId ? 'subscriptions/' + subId : piId ? 'payment_intents/' + piId : null;
   let sent = {};
-  try { if (anchor) sent = ((await stripeCall(anchor, SK)).metadata) || {}; } catch (e) { return { statusCode: 500, body: 'order not readable' }; }
+  // no object to record on means no protection against a late duplicate: don't send, let Stripe retry (a paid
+  // shop session always has a subscription or a payment intent)
+  if (!anchor) return { statusCode: 500, body: 'order not readable' };
+  try { sent = ((await stripeCall(anchor, SK)).metadata) || {}; } catch (e) { return { statusCode: 500, body: 'order not readable' }; }
   if (sent.nf_mail_customer === 'sent' && sent.nf_mail_desk === 'sent') return { statusCode: 200, body: 'already sent' };
 
   const r = await summary.handler({ httpMethod: 'GET', queryStringParameters: { order: s.id } });
@@ -141,9 +144,13 @@ exports.handler = async function (event) {
   const why = [];
   for (const [flag, payload, key] of jobs) {
     const x = await send(payload, key);
-    // 409: this key already sent an email (an earlier attempt that we didn't get to record)
-    if (x.ok || x.status === 409) {
-      if (anchor) { const f = new URLSearchParams(); f.set('metadata[' + flag + ']', 'sent'); try { await stripeCall(anchor, SK, f); } catch (e) {} }
+    // Only a 2xx is a send. Resend answers a repeat of the same key and content with the original 2xx; a 409
+    // means a request with that key is still in progress or the content differs, so it is a failure to retry.
+    if (x.ok) {
+      // the marker is what stops a duplicate after Resend's 24 hours; if it can't be saved, don't acknowledge:
+      // Stripe retries, Resend returns the original send for the same key, and the marker is saved then
+      const f = new URLSearchParams(); f.set('metadata[' + flag + ']', 'sent');
+      try { await stripeCall(anchor, SK, f); } catch (e) { why.push(flag.replace('nf_mail_', '') + ' sent, not recorded'); }
       continue;
     }
     let msg = ''; try { const j = await x.json(); msg = (j && (j.message || j.name)) || ''; } catch (e) {}

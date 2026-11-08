@@ -417,3 +417,28 @@ test('order emails: delayed payments, a retry never sends twice, and Stripe sees
  const n=mails.length;assert.equal((await fire('checkout.session.completed')).body,'already sent');assert.equal(mails.length,n);
  assert.equal(wh._test.category(401,'x'),'key');assert.equal(wh._test.category(403,'The domain is not verified'),'key');assert.equal(wh._test.category(422,'from address domain'),'sender');
 });
+
+test('order emails: a 409 is not a send, and an unrecorded send is not acknowledged',async()=>{
+ const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
+ const sess={id:'cs_test_yyyyyyyyyyyyyyyy',payment_status:'paid',mode:'payment',currency:'sgd',customer:'cus_1',payment_intent:'pi_2',created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
+  amount_subtotal:7500,amount_total:7500,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-BBBBBB'},customer_details:{email:'pat@example.com',name:'Pat'}};
+ let meta={},resendStatus=200,metaFail=false,mails=0;
+ mockStripe((u,o)=>{
+  if(u.startsWith('https://api.resend.com')){mails++;return resendStatus===200?{body:{id:'em'}}:{ok:false,status:resendStatus,body:{name:'concurrent_idempotent_requests'}};}
+  if(u.includes('/v1/payment_intents/pi_2')){if(o&&o.method==='POST'){if(metaFail)return {ok:false,status:500,body:{}};for(const [k,v] of new URLSearchParams(o.body))meta[k.slice(9,-1)]=v;}return {body:{id:'pi_2',metadata:meta}};}
+  if(u.includes('/line_items'))return {body:{data:[{description:'Gayo Lues coffee, 1 kg',quantity:1,amount_total:7500,price:{product:{metadata:{origin:'gayo',partner:'OIC'}}}}]}};
+  if(u.includes('checkout/sessions?customer='))return {body:{data:[]}};
+  if(u.includes('invoices?'))return {body:{data:[]}};
+  if(u.includes('/v1/checkout/sessions/'))return {body:sess};
+  return {body:{}};});
+ const sign=b=>{const t=Math.floor(Date.now()/1000);return 't='+t+',v1='+crypto.createHmac('sha256','whsec_test').update(t+'.'+b).digest('hex');};
+ const fire=async(obj=sess)=>{const b=JSON.stringify({type:'checkout.session.completed',data:{object:obj}});return wh.handler({httpMethod:'POST',headers:{'stripe-signature':sign(b)},body:b});};
+ resendStatus=409;let r=await fire();
+ assert.equal(r.statusCode,500,'a 409 is retried');assert.deepEqual(meta,{},'and not recorded as sent');
+ resendStatus=200;metaFail=true;r=await fire();
+ assert.equal(r.statusCode,500,'sent but not recorded: not acknowledged');assert.match(r.body,/not recorded/);assert.deepEqual(meta,{});
+ metaFail=false;r=await fire();assert.equal(r.body,'sent');assert.equal(meta.nf_mail_customer,'sent');assert.equal(meta.nf_mail_desk,'sent');
+ const n=mails;r=await fire({...sess,id:'cs_test_xxxxxxxxxxxxxxxx',payment_intent:null});
+ assert.equal(r.statusCode,500,'nothing to record on: nothing sent');assert.equal(mails,n);
+});
