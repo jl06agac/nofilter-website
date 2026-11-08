@@ -15717,7 +15717,7 @@ var money0 = function(n){ return Math.round(n).toLocaleString('en-SG'); };
 
 /* ── 0 · DATA ─────────────────────────────────────────────────────────── */
 var ORIGINS = [
-  { k:'toru',   name:'Batang Toru',      ngo:'PRCF Indonesia, SRI',
+  { k:'toru',   name:'Batang Toru',      ngo:'PRCF Indonesia, OIC',   /* 144 · was SRI; corrected to match the fact box and Alex (OIC receives and distributes it) */
     tasting:'Dark chocolate · Red plum · Cedar',
     coord:'1°38′18″N · 99°15′56″E', coordKind:'ON RECORD',
     colour:'#2f5d3a', acid:2, body:4, roast:3,
@@ -17605,7 +17605,7 @@ function openPay(d){
       '<video class="nf-pay-film" src="' + PAY_FILMS[o.k] + '" autoplay muted loop playsinline preload="metadata"></video>' +
       '<div class="nf-pay-cap"><span class="nf-pay-k">' + o.name + ' · ' + o.ngo + '</span></div>' +
       '<div class="nf-pay-ask"><h3>Where should your ' + CUR() + money(give) + ' go?</h3>' +
-        '<p>Choose one. Or leave it, and ' + o.ngo + ' puts it where it’s needed most.</p>' +
+        '<p>Choose one. Or leave it, and ' + o.ngo + ' will put it where it’s needed most.</p>' +
         '<div class="nf-pay-ch">' + PAY_CHOICES.map(function(c){ return '<button type="button" data-ch="' + c.id + '" aria-pressed="false"><img src="' + c.img + '" alt=""><span>' + c.title + '</span><i aria-hidden="true">✓</i></button>'; }).join('') + '</div></div>' +
     '</div>' +
     '<div class="nf-pay-form"><div id="nfPayForm"><p class="nf-pay-wait">Opening secure checkout…</p></div></div>' +

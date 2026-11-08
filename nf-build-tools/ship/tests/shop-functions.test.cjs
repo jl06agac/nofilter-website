@@ -25,7 +25,7 @@ test('prices are set here, every line carries its origin and partner, delivery i
  assert.equal(f.get('line_items[1][price_data][unit_amount]'),'2400');
  assert.equal(f.get('line_items[0][price_data][product_data][metadata][origin]'),'gadis');
  assert.equal(f.get('line_items[0][price_data][product_data][metadata][partner]'),'SRI');
- assert.equal(f.get('line_items[1][price_data][product_data][metadata][partner]'),'PRCF Indonesia, SRI');
+ assert.equal(f.get('line_items[1][price_data][product_data][metadata][partner]'),'PRCF Indonesia, OIC');
  assert.equal(f.get('metadata[contribution_rate]'),'0.10');assert.equal(f.get('metadata[source]'),'website-shop');
  assert.equal(f.get('shipping_address_collection[allowed_countries][0]'),'SG');
  assert.equal(f.get('allow_promotion_codes'),'true','customers can enter a code');

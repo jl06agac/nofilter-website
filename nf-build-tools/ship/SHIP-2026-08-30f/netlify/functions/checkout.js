@@ -18,7 +18,7 @@
 // order line carries these, so what each partner is owed can be totalled from Stripe
 // (see shop-ngo-report.js). Retail bags carry a flat 10% of what the customer paid.
 const ORIGINS = {
-  'Batang Toru': { origin: 'toru', partner: 'PRCF Indonesia, SRI' },
+  'Batang Toru': { origin: 'toru', partner: 'PRCF Indonesia, OIC' },
   'Batang Gadis': { origin: 'gadis', partner: 'SRI' },
   'Gayo Lues': { origin: 'gayo', partner: 'OIC' },
   'Arakan Mountains': { origin: 'arakan', partner: 'Fauna & Flora Myanmar, ACCA' }
