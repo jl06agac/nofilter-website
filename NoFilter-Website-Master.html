@@ -17663,14 +17663,14 @@ function paidPanel(){
   el.innerHTML = '<header class="nf-ty-bar"><span class="nf-ty-brand">NOFILTER</span><button type="button" class="nf-ty-back" data-close>Back to the shop</button></header>' +
     '<main class="nf-ty-in" tabindex="-1">' +
       '<p class="nf-ty-ref"><span class="nf-ty-dot" aria-hidden="true"></span><span class="nf-ty-refv">Order confirmed</span></p>' +
-      '<h1 class="nf-ty-h">Thanks so much<span class="nf-ty-name"></span>.</h1>' +
+      '<h2 class="nf-ty-h">Thanks so much<span class="nf-ty-name"></span>.</h2>' +
       '<p class="nf-ty-lead">We roast every Wednesday, and your coffee is dispatched shortly after, fresh from that week’s roast. <span class="nf-ty-mail">We’ve emailed your confirmation.</span></p>' +
       '<ol class="nf-ty-steps">' +
         '<li class="on"><b>Ordered</b><span>Today</span></li>' +
         '<li><b>Roasted</b><span>' + nextRoast() + '</span></li>' +
         '<li><b>Dispatched</b><span>Shortly after</span></li></ol>' +
-      '<section class="nf-ty-card nf-ty-order" hidden><h2>Your order</h2><div class="nf-ty-items"></div><div class="nf-ty-sums"></div><div class="nf-ty-meta"></div></section>' +
-      '<section class="nf-ty-card nf-ty-give" hidden><h2>Your 10% to conservation</h2>' +
+      '<section class="nf-ty-card nf-ty-order" hidden><h3>Your order</h3><div class="nf-ty-items"></div><div class="nf-ty-sums"></div><div class="nf-ty-meta"></div></section>' +
+      '<section class="nf-ty-card nf-ty-give" hidden><h3>Your 10% to conservation</h3>' +
         '<div class="nf-ty-v"><span class="nf-ty-cur">SGD</span> <span class="nf-ty-n">0.00</span></div>' +
         '<p class="nf-ty-l">goes back to the landscapes your coffee comes from.</p><div class="nf-ty-by"></div><div class="nf-ty-next"></div></section>' +
       '<p class="nf-ty-help">Questions about your order? Write to <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a><span class="nf-ty-help-ref"></span>.</p>' +
@@ -17700,10 +17700,10 @@ function paidPanel(){
       el.querySelector('.nf-ty-sums').innerHTML = rows.map(function(r){ return '<div><span>' + r[0] + '</span><span>' + r[1] + '</span></div>'; }).join('') +
         '<div class="tot"><span>Total paid</span><span>' + m(o.total) + '</span></div>';
       var meta = '';
-      if(o.address && o.address.length) meta += '<div><h3>Delivering to</h3><p>' + o.address.map(esc).join('<br>') + '</p></div>';
+      if(o.address && o.address.length) meta += '<div><h4>Delivering to</h4><p>' + o.address.map(esc).join('<br>') + '</p></div>';
       if(o.paidWith){ var pw = o.paidWith, wal = { apple_pay:'Apple Pay', google_pay:'Google Pay' }[pw.wallet] || '';
         var brand = String(pw.brand || '').replace(/^./, function(c){ return c.toUpperCase(); }).replace('Paynow','PayNow');
-        meta += '<div><h3>Paid with</h3><p>' + (wal ? wal + '<br>' : '') + esc(brand) + (pw.last4 ? ' •••• ' + esc(pw.last4) : '') + '</p></div>'; }
+        meta += '<div><h4>Paid with</h4><p>' + (wal ? wal + '<br>' : '') + esc(brand) + (pw.last4 ? ' •••• ' + esc(pw.last4) : '') + '</p></div>'; }
       el.querySelector('.nf-ty-meta').innerHTML = meta;
       el.querySelector('.nf-ty-order').hidden = false;
     }
@@ -27057,7 +27057,7 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty-steps b{font-size:14px;font-weight:600}
 .nf-ty-steps span{font-size:13px;color:rgba(26,24,21,.6)}
 .nf-ty-card{margin:28px 0 0;padding:clamp(18px,3vw,26px);background:#FBFAF8;border:1px solid rgba(26,24,21,.08);border-radius:18px}
-.nf-ty-card h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.6);margin:0 0 14px}
+.nf-ty-card h3{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.6);margin:0 0 14px}
 .nf-ty-it{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(26,24,21,.07)}
 .nf-ty-it img,.nf-ty-it i{width:52px;height:52px;border-radius:10px;object-fit:cover;background:rgba(26,24,21,.05)}
 .nf-ty-it b{display:block;font-weight:600;font-size:15px}
@@ -27068,7 +27068,7 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty-sums .tot{margin-top:6px;padding-top:12px;border-top:1px solid rgba(26,24,21,.1);font-size:16px;font-weight:700;color:#1A1815}
 .nf-ty-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:18px}
 .nf-ty-meta:empty{display:none}
-.nf-ty-meta h3{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.55);margin:0 0 6px}
+.nf-ty-meta h4{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.55);margin:0 0 6px}
 .nf-ty-meta p{margin:0;font-size:14px;line-height:1.55}
 .nf-ty-v{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(36px,5vw,48px);line-height:1;color:#C2410C}
 .nf-ty-cur{font-size:.42em;letter-spacing:.06em;vertical-align:.5em}
