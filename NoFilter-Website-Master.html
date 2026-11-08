@@ -17744,26 +17744,20 @@ function nextRoast(){
 function paidPanel(panelOrder){
   var el = document.createElement('div');
   el.className = 'nf-ty'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Order confirmed');
-  el.innerHTML = '<header class="nf-ty-bar"><span class="nf-ty-brand">NOFILTER</span><button type="button" class="nf-ty-back" data-close>Back to the shop</button></header>' +
+  /* 166 · slimmed (Alex, 8 Nov: "way too big"; the email carries the receipt). One screen: thanks, order
+     number, roast line, a compact summary with the conservation share, and the buttons. The subscription
+     controls sit behind "Manage subscription" (opened directly by the email's link, &manage=page). */
+  var mark = (document.querySelector('.brand img') || {}).src || '';
+  el.innerHTML = '<header class="nf-ty-bar">' + (mark ? '<img class="nf-ty-mark" src="' + mark + '" alt="NoFilter">' : '<span class="nf-ty-brand">NOFILTER</span>') + '<button type="button" class="nf-ty-back" data-close>Back to the shop</button></header>' +
     '<main class="nf-ty-in" tabindex="-1">' +
       '<p class="nf-ty-ref"><span class="nf-ty-dot" aria-hidden="true"></span><span class="nf-ty-refv">Order confirmed</span></p>' +
-      '<h2 class="nf-ty-h">Thanks so much<span class="nf-ty-name"></span>.</h2>' +
-      '<p class="nf-ty-lead">We roast every Wednesday, and your coffee is dispatched shortly after, fresh from that week’s roast. <span class="nf-ty-mail">We’ve emailed your confirmation.</span></p>' +
-      '<ol class="nf-ty-steps">' +
-        '<li class="on"><b>Ordered</b><span>Today</span></li>' +
-        '<li><b>Roasted</b><span>' + nextRoast() + '</span></li>' +
-        '<li><b>Dispatched</b><span>Shortly after</span></li></ol>' +
+      '<h2 class="nf-ty-h">Thanks<span class="nf-ty-name"></span>.</h2>' +
+      '<p class="nf-ty-lead">Roasted <b>' + nextRoast() + '</b>, dispatched shortly after. <span class="nf-ty-mail">Your receipt is on its way by email.</span></p>' +
+      '<section class="nf-ty-card nf-ty-order" hidden><div class="nf-ty-items"></div><div class="nf-ty-sums"></div><p class="nf-ty-again" hidden></p><p class="nf-ty-gl" hidden></p></section>' +
+      '<div class="nf-ty-acts2"><button type="button" class="nf-ty-b pri nf-ty-mng" hidden aria-expanded="false">Manage subscription</button><button type="button" class="nf-ty-b nf-ty-shop" data-close>Back to the coffee</button></div>' +
       '<section class="nf-ty-card nf-ty-sub" hidden><h3>Your subscription</h3><p class="nf-ty-sub-p"></p><div class="nf-ty-subx"></div></section>' +
-      '<section class="nf-ty-card nf-ty-order" hidden><h3>Your order</h3><div class="nf-ty-items"></div><div class="nf-ty-sums"></div><div class="nf-ty-meta"></div></section>' +
-      '<section class="nf-ty-card nf-ty-give" hidden><h3>Your 10% to conservation</h3>' +
-        '<div class="nf-ty-v"><span class="nf-ty-cur">SGD</span> <span class="nf-ty-n">0.00</span></div>' +
-        '<p class="nf-ty-l">goes back to the landscapes your coffee comes from.</p><div class="nf-ty-by"></div><div class="nf-ty-next"></div><p class="nf-ty-given" hidden></p></section>' +
-      '<section class="nf-ty-card nf-ty-keep" hidden><h3>See where it goes</h3>' +
-        '<label><input type="checkbox" name="rb"><span><b>Email me when our partners report back</b>, with photos of what this funded.</span></label>' +
-        '<label><input type="checkbox" name="nw"><span><b>News and offers from NoFilter</b>, now and then. Never shared.</span></label>' +
-        '<button type="button" class="nf-ty-save">Save</button><span class="nf-ty-saved" hidden>Saved. Thank you.</span></section>' +
-      '<p class="nf-ty-help">Questions about your order? Write to <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a><span class="nf-ty-help-ref"></span>.</p>' +
-      '<button type="button" class="nf-ty-cta" data-close>Back to the coffee</button>' +
+      '<label class="nf-ty-rb" hidden><input type="checkbox"> <span>Email me when our partners report back on what this funded.</span></label>' +
+      '<p class="nf-ty-help">Questions? <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a><span class="nf-ty-help-ref"></span>.</p>' +
     '</main>';
   document.body.appendChild(el); document.documentElement.classList.add('nf-paying');
   function close(){ el.removeAttribute('data-in'); document.documentElement.classList.remove('nf-paying'); setTimeout(function(){ el.remove(); }, 280); document.removeEventListener('keydown', key);
@@ -17784,16 +17778,16 @@ function paidPanel(panelOrder){
       .then(function(d){ if(d && d.subscription) paintSub(d.subscription, 'Saved.'); if(done) done(); })
       .catch(function(e){ paintSub(null, (e && e.error) ? 'Not saved: ' + e.error + '.' : 'Not saved. Please try again.'); if(done) done(); });
   }
-  var lastSub = null;
+  var lastSub = null, subOpen = false;   /* 166: the controls stay closed until Manage subscription */
   function paintSub(sb, note){
     if(sb) lastSub = sb; sb = lastSub; if(!sb) return;
     var lab = EVERY_LAB[sb.every], cur = 'SGD', box = el.querySelector('.nf-ty-sub');
     var when = sb.nextCharge ? ' The next one is charged on <b>' + sgDate(sb.nextCharge) + '</b> and roasted on ' + roastOnOrAfter(sb.nextCharge) + '.' : '';
     if(sb.skipping) when = ' <b>Your next delivery is skipped.</b> After that it carries on ' + lab + '.';
     if(sb.cancelling) when = ' <b>It ends after the delivery already paid for.</b>';
-    el.querySelector('.nf-ty-sub-p').innerHTML = 'Your coffee comes <b>' + lab + '</b>, at ' + (sb.off || 5) + '% off.' + when + (sb.delivery ? ' Delivery is SGD ' + money(sb.delivery / 100) + ' a delivery, free when a delivery comes to SGD ' + FREE_FROM + ' or more.' : ' Delivery is free.') + ' Each delivery sends 10% of what you pay for the coffee to conservation.';
+    el.querySelector('.nf-ty-sub-p').innerHTML = '<b>' + lab.replace(/^./, function(c){ return c.toUpperCase(); }) + '</b> at ' + (sb.off || 5) + '% off.' + when + (sb.delivery ? ' Free delivery from SGD ' + FREE_FROM + ' a delivery.' : '');   /* 166: the summary above carries the rest */
     var x = el.querySelector('.nf-ty-subx'), live = panelOrder && sb.managed && !sb.cancelling;
-    if(!live){ x.innerHTML = note ? '<p class="nf-ty-note">' + esc(note) + '</p>' : ''; box.hidden = false; return; }
+    if(!live){ x.innerHTML = note ? '<p class="nf-ty-note">' + esc(note) + '</p>' : ''; if(subOpen) box.hidden = false; return; }
     x.innerHTML = '<div class="nf-ty-items2">' + (sb.items || []).map(function(it){
         var sz = /1\s*kg/i.test(it.size) ? '1kg' : '250g';
         var bg = ORIGINS.filter(function(o){ return o.name === it.name; })[0];
@@ -17824,56 +17818,53 @@ function paidPanel(panelOrder){
       x.querySelectorAll('button').forEach(function(z){ z.disabled = true; }); b.textContent = 'Saving\u2026';
       subPost(body);
     }); });
-    box.hidden = false;
+    if(subOpen) box.hidden = false;
   }
   return { el: el, fill: function(d){
     if(!d) return;
     var cur = String(d.currency || 'sgd').toUpperCase(), o = d.order || {}, m = function(c){ return cur + ' ' + money(c / 100); };
     if(o.ref){ el.querySelector('.nf-ty-refv').textContent = 'Order ' + o.ref + ' · confirmed'; el.querySelector('.nf-ty-help-ref').textContent = ', quoting ' + o.ref; }
     if(o.firstName) el.querySelector('.nf-ty-name').textContent = ', ' + o.firstName;
-    if(o.email) el.querySelector('.nf-ty-mail').innerHTML = 'We’ve emailed your confirmation to <b>' + esc(o.email) + '</b>.';
+    if(o.email) el.querySelector('.nf-ty-mail').innerHTML = 'Your receipt is on its way to <b>' + esc(o.email) + '</b>.';
     if(o.items && o.items.length){
       el.querySelector('.nf-ty-items').innerHTML = o.items.map(function(it){
         var b = ORIGINS.filter(function(x){ return x.name === it.name; })[0];
-        return '<div class="nf-ty-it">' + (b ? '<img src="' + b.bag + '" alt="">' : '<i></i>') + '<span><b>' + esc(it.name) + '</b><small>' + esc(it.size) + ' × ' + it.qty + (it.every ? ' \u00b7 ' + EVERY_LAB[it.every] : '') + '</small></span><span>' + m(it.amount) + '</span></div>'; }).join('');
-      var rows = [['Subtotal', m(o.subtotal)]];
-      if(o.discount) rows.push(['Discount' + (d.code ? ' (' + esc(d.code) + ')' : ''), '−' + m(o.discount)]);
+        return '<div class="nf-ty-it">' + (b ? '<img src="' + b.bag + '" alt="">' : '<i></i>') + '<span><b>' + esc(it.name) + '</b><small>' + esc(it.size) + ' \u00d7 ' + it.qty + (it.every ? ' \u00b7 ' + EVERY_LAB[it.every] : '') + '</small></span><span>' + m(it.amount) + '</span></div>'; }).join('');
+      var rows = [];
+      if(o.discount) rows.push(['Discount' + (d.code ? ' (' + esc(d.code) + ')' : ''), '\u2212' + m(o.discount)]);
       rows.push(['Delivery', o.delivery ? m(o.delivery) : 'Free']);
       el.querySelector('.nf-ty-sums').innerHTML = rows.map(function(r){ return '<div><span>' + r[0] + '</span><span>' + r[1] + '</span></div>'; }).join('') +
         '<div class="tot"><span>Total paid</span><span>' + m(o.total) + '</span></div>';
-      var meta = '';
-      if(o.address && o.address.length) meta += '<div><h4>Delivering to</h4><p>' + o.address.map(esc).join('<br>') + '</p></div>';
-      if(o.paidWith){ var pw = o.paidWith, wal = { apple_pay:'Apple Pay', google_pay:'Google Pay' }[pw.wallet] || '';
-        var brand = String(pw.brand || '').replace(/^./, function(c){ return c.toUpperCase(); }).replace('Paynow','PayNow');
-        meta += '<div><h4>Paid with</h4><p>' + (wal ? wal + '<br>' : '') + esc(brand) + (pw.last4 ? ' •••• ' + esc(pw.last4) : '') + '</p></div>'; }
-      el.querySelector('.nf-ty-meta').innerHTML = meta;
       el.querySelector('.nf-ty-order').hidden = false;
     }
-    if(d.subscription && d.subscription.every){ paintSub(d.subscription);
-      var st = el.querySelectorAll('.nf-ty-steps li span'); if(st[2]) st[2].textContent = 'Shortly after, then ' + EVERY_LAB[d.subscription.every]; }
-    var gv = d.given, gp = el.querySelector('.nf-ty-given');
-    if(gv && gv.orders > 1){ gp.innerHTML = 'Your orders with us have now sent <b>' + m(gv.total) + '</b> to conservation.'; gp.hidden = false; }
-    else if(gv){ gp.textContent = 'Your first order with us. We\u2019ll keep count.'; gp.hidden = false; }
-    if(panelOrder && o.email){
-      var kp = el.querySelector('.nf-ty-keep'); kp.hidden = false;
-      kp.querySelector('.nf-ty-save').addEventListener('click', function(){
-        var btn = this; btn.disabled = true;
-        fetch('/.netlify/functions/order-summary', { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ order: panelOrder, reportBack: kp.querySelector('[name=rb]').checked, news: kp.querySelector('[name=nw]').checked }) })
-          .then(function(r){ if(!r.ok) throw 0; kp.querySelector('.nf-ty-saved').hidden = false; btn.hidden = true; })
-          .catch(function(){ btn.disabled = false; btn.textContent = 'Try again'; });
-      });
+    var sb = d.subscription;
+    if(sb && sb.every){
+      paintSub(sb);
+      var nx = el.querySelector('.nf-ty-again');
+      var per = (sb.items || []).reduce(function(n, it){ return n + (it.amount || 0); }, 0) + (sb.delivery || 0);
+      nx.innerHTML = 'Then <b>' + m(per) + ' ' + EVERY_LAB[sb.every] + '</b>' + (sb.nextCharge ? ', next on ' + sgDate(sb.nextCharge) : '') + '.';
+      nx.hidden = !per;
+      var mg = el.querySelector('.nf-ty-mng'), subBox = el.querySelector('.nf-ty-sub');
+      mg.hidden = false; subBox.hidden = true;
+      function openSub(){ subOpen = true; subBox.hidden = false; mg.setAttribute('aria-expanded', 'true'); mg.textContent = 'Hide subscription'; }
+      mg.addEventListener('click', function(){ if(subBox.hidden){ openSub(); subBox.scrollIntoView({ behavior:'smooth', block:'start' }); } else { subOpen = false; subBox.hidden = true; mg.setAttribute('aria-expanded', 'false'); mg.textContent = 'Manage subscription'; } });
+      if(/[?&]manage=page\b/.test(location.search)) openSub();
     }
     if(d.contribution){
-      var box = el.querySelector('.nf-ty-give'), n = el.querySelector('.nf-ty-n'), to = d.contribution / 100;
-      el.querySelector('.nf-ty-cur').textContent = cur;
-      el.querySelector('.nf-ty-by').innerHTML = d.byPartner.map(function(p){
-        return '<div><span>' + esc(p.name) + (p.partner ? ' <small>' + esc(p.partner) + '</small>' : '') + '</span><span>' + m(p.contribution) + '</span></div>'; }).join('');
-      var ch = (window.__nfPayChoices || []).filter(function(c){ return c.id === d.choice; })[0];
-      el.querySelector('.nf-ty-next').innerHTML = ch ? '<img src="' + ch.img + '" alt=""><span>You chose <b>' + ch.title + '</b>.</span>' : '<span>Our partners will put it where it’s needed most.</span>';
-      box.hidden = false;
-      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, t0 = performance.now();
-      (function tick(t){ var k = reduce ? 1 : Math.min(1, ((t || performance.now()) - t0) / 1100); n.textContent = money(to * (1 - Math.pow(1 - k, 3))); if(k < 1) requestAnimationFrame(tick); })();
+      var parts = (d.byPartner || []).map(function(p){ return esc(p.name) + (p.partner ? ' <small>' + esc(p.partner) + '</small>' : ''); });
+      var gl = el.querySelector('.nf-ty-gl');
+      gl.innerHTML = '<b>' + m(d.contribution) + ' to conservation</b>' + (parts.length ? ' \u00b7 ' + parts.join(', ') : '');
+      gl.hidden = false;
+    }
+    if(panelOrder && o.email){
+      var rb = el.querySelector('.nf-ty-rb'); rb.hidden = false;
+      rb.querySelector('input').addEventListener('change', function(){
+        var box = this;
+        fetch('/.netlify/functions/order-summary', { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ order: panelOrder, reportBack: box.checked, news: false }) })
+          .then(function(r){ if(!r.ok) throw 0; rb.classList.add('ok'); })
+          .catch(function(){ box.checked = !box.checked; });
+      });
     }
   } };
 }
@@ -27205,59 +27196,38 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty[data-in]{opacity:1}
 .nf-ty-bar{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:16px max(20px,calc((100vw - 760px)/2));background:rgba(244,242,238,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(26,24,21,.08)}
 .nf-ty-brand{font-family:var(--disp,sans-serif);font-weight:900;font-size:20px;letter-spacing:.02em;color:#1A1815}
+.nf-ty-mark{height:22px;width:auto;display:block}
 .nf-ty-back{background:none;border:1px solid rgba(26,24,21,.18);border-radius:999px;padding:8px 14px;font:500 13px var(--body,sans-serif);color:#1A1815;cursor:pointer}
 .nf-ty-back:hover{border-color:#1A1815}
-.nf-ty-in{max-width:680px;margin:0 auto;padding:clamp(28px,6vw,64px) 20px 72px;outline:none}
+.nf-ty-in{max-width:540px;margin:0 auto;padding:clamp(24px,5vw,48px) 20px 48px;outline:none}
 .nf-ty-ref{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(26,24,21,.6);margin:0}
 .nf-ty-dot{width:8px;height:8px;border-radius:50%;background:#1F8A70}
-.nf-ty-h{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(38px,6vw,58px);line-height:.98;letter-spacing:-.01em;margin:14px 0 0;color:#1A1815;text-wrap:balance}
-.nf-ty-lead{font-size:clamp(16px,1.9vw,18px);line-height:1.6;color:rgba(26,24,21,.75);margin:16px 0 0;max-width:58ch}
+.nf-ty-h{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(28px,4vw,36px);line-height:1;letter-spacing:-.01em;margin:10px 0 0;color:#1A1815;text-wrap:balance}
+.nf-ty-lead{font-size:15px;line-height:1.55;color:rgba(26,24,21,.75);margin:10px 0 0;max-width:58ch}
+.nf-ty-help{font-size:13px;color:rgba(26,24,21,.6);margin:18px 0 0}
+.nf-ty-help a{color:#1A1815;text-decoration:underline;text-underline-offset:3px}
+.nf-ty-again{margin:10px 0 0;font-size:13.5px;color:rgba(26,24,21,.7)}
+.nf-ty-again b{color:#1A1815;font-weight:600}
+.nf-ty-gl{margin:12px 0 0;padding-top:12px;border-top:1px solid rgba(26,24,21,.08);font-size:13.5px;line-height:1.5;color:rgba(26,24,21,.7)}
+.nf-ty-gl b{color:#C2410C;font-weight:700}
+.nf-ty-gl small{font-size:inherit;color:rgba(26,24,21,.55)}
+.nf-ty-acts2{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+.nf-ty-rb{display:flex;gap:10px;align-items:flex-start;margin:16px 0 0;font-size:13.5px;line-height:1.45;color:rgba(26,24,21,.75);cursor:pointer}
+.nf-ty-rb input{accent-color:#1A1815;width:16px;height:16px;margin:2px 0 0;flex:none}
+.nf-ty-rb.ok span::after{content:"  Saved.";color:#1F6F5C;font-weight:600}
 .nf-ty-lead b{color:#1A1815;font-weight:600}
-.nf-ty-steps{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:0;counter-reset:s}
-.nf-ty-steps li{position:relative;padding:18px 10px 0 0;border-top:2px solid rgba(26,24,21,.12);display:grid;gap:3px}
-.nf-ty-steps li::before{content:"";position:absolute;top:-7px;left:0;width:12px;height:12px;border-radius:50%;background:#F4F2EE;border:2px solid rgba(26,24,21,.25)}
-.nf-ty-steps li.on{border-top-color:#1F8A70}
-.nf-ty-steps li.on::before{background:#1F8A70;border-color:#1F8A70}
-.nf-ty-steps b{font-size:14px;font-weight:600}
-.nf-ty-steps span{font-size:13px;color:rgba(26,24,21,.6)}
-.nf-ty-card{margin:28px 0 0;padding:clamp(18px,3vw,26px);background:#FBFAF8;border:1px solid rgba(26,24,21,.08);border-radius:18px}
+.nf-ty-card{margin:18px 0 0;padding:clamp(14px,2.4vw,20px);background:#FBFAF8;border:1px solid rgba(26,24,21,.08);border-radius:18px}
 .nf-ty-card h3{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.6);margin:0 0 14px}
-.nf-ty-it{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(26,24,21,.07)}
-.nf-ty-it img,.nf-ty-it i{width:52px;height:52px;border-radius:10px;object-fit:cover;background:rgba(26,24,21,.05)}
+.nf-ty-it{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(26,24,21,.07)}
+.nf-ty-it img,.nf-ty-it i{width:40px;height:40px;border-radius:8px;object-fit:cover;background:rgba(26,24,21,.05)}
 .nf-ty-it b{display:block;font-weight:600;font-size:15px}
 .nf-ty-it small{font-size:13px;color:rgba(26,24,21,.6)}
 .nf-ty-it>span:last-child{font-size:15px;white-space:nowrap}
-.nf-ty-sums{display:grid;gap:6px;padding:14px 0 0;font-size:14px;color:rgba(26,24,21,.7)}
+.nf-ty-sums{display:grid;gap:4px;padding:10px 0 0;font-size:13.5px;color:rgba(26,24,21,.7)}
 .nf-ty-sums div{display:flex;justify-content:space-between;gap:12px}
-.nf-ty-sums .tot{margin-top:6px;padding-top:12px;border-top:1px solid rgba(26,24,21,.1);font-size:16px;font-weight:700;color:#1A1815}
-.nf-ty-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:18px}
-.nf-ty-meta:empty{display:none}
-.nf-ty-meta h4{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.55);margin:0 0 6px}
-.nf-ty-meta p{margin:0;font-size:14px;line-height:1.55}
-.nf-ty-v{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(36px,5vw,48px);line-height:1;color:#C2410C}
-.nf-ty-cur{font-size:.42em;letter-spacing:.06em;vertical-align:.5em}
-.nf-ty-l{font-size:14px;color:rgba(26,24,21,.7);margin:8px 0 14px}
-.nf-ty-by{display:grid;gap:6px;font-size:14px}
-.nf-ty-by div{display:flex;justify-content:space-between;gap:12px}
-.nf-ty-by small{font-size:inherit;color:rgba(26,24,21,.55)}
-.nf-ty-by div>span:last-child{white-space:nowrap}
-.nf-ty-next{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(26,24,21,.08);font-size:14px;color:rgba(26,24,21,.75)}
-.nf-ty-next img{width:52px;height:52px;border-radius:10px;object-fit:cover}
-.nf-ty-next b{color:#1A1815;font-weight:600}
-.nf-ty-help{font-size:14px;color:rgba(26,24,21,.65);margin:28px 0 0}
-.nf-ty-help a{color:#1A1815;text-decoration:underline;text-underline-offset:3px}
-.nf-ty-cta{margin:20px 0 0;width:100%;height:52px;border:0;border-radius:12px;background:#EE4D17;color:#fff;font:600 15px var(--body,sans-serif);cursor:pointer}
-.nf-ty-cta:hover{filter:brightness(1.06)}
-@media(max-width:520px){.nf-ty-steps b{font-size:13px}.nf-ty-steps span{font-size:12px}}
+.nf-ty-sums .tot{margin-top:4px;padding-top:10px;border-top:1px solid rgba(26,24,21,.1);font-size:15px;font-weight:700;color:#1A1815}
 .nf-ty-sub-p{margin:0;font-size:15px;line-height:1.6;color:rgba(26,24,21,.8)}
 .nf-ty-sub-p b{color:#1A1815;font-weight:600}
-.nf-ty-given{margin:16px 0 0;padding-top:14px;border-top:1px solid rgba(26,24,21,.08);font-size:14px;color:rgba(26,24,21,.75)}
-.nf-ty-given b{color:#C2410C;font-weight:700}
-.nf-ty-keep label{display:flex;gap:12px;align-items:flex-start;padding:8px 0;font-size:14px;line-height:1.5;color:rgba(26,24,21,.75);cursor:pointer}
-.nf-ty-keep label b{color:#1A1815;font-weight:600}
-.nf-ty-keep input{accent-color:#1A1815;width:18px;height:18px;margin:2px 0 0;flex:none}
-.nf-ty-save{margin-top:10px;height:42px;padding:0 22px;border-radius:10px;border:1px solid #1A1815;background:#1A1815;color:#F4F2EE;font:600 14px var(--body,sans-serif);cursor:pointer}
-.nf-ty-saved{display:inline-block;margin-top:12px;font-size:14px;color:#1F6F5C;font-weight:600}
 .nf-ty [hidden]{display:none!important}
 .nf-ty-items2{display:grid;gap:8px;margin:16px 0 0}
 .nf-ty-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:8px;align-items:center}

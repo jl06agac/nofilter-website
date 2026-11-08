@@ -329,3 +329,41 @@ test('trade access: the rate-limited wrappers pass requests through unchanged',a
  const mine=sent.find(m=>m.to&&m.to[0]==='pat@acme.com')||{};const code=(mine.html||'').match(/\b[A-Z]{4,}[A-Z]{4,}\d{3}\b/);assert.ok(code,'a code went out');
  const yes=await post(v,{email:'pat@acme.com',code:code[0]});assert.equal(yes.status,200,'the emailed code opens the rates');
 });
+
+test('order emails: signed Stripe events only; the customer gets the receipt with a manage link, NoFilter gets the order',async()=>{
+ const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
+ const sess={id:'cs_test_abcdefghijklmnop',object:'checkout.session',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_1',success_url:'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}',
+  amount_subtotal:2160,amount_total:2560,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-SRSP2T',delivery_cents:'400'},
+  customer_details:{email:'pat@example.com',name:'Pat Lee',address:{line1:'1 Raffles Place',postal_code:'048616',country:'SG'}},shipping_details:{name:'Pat Lee',address:{line1:'1 Raffles Place',postal_code:'048616',country:'SG'}}};
+ const sub={id:'sub_1',status:'active',metadata:{every_weeks:'1',off_pct:'10'},items:{data:[
+  {id:'si_1',quantity:1,current_period_end:1795000000,price:{unit_amount:2160,recurring:{interval:'week',interval_count:1},product:{name:'Arakan Mountains coffee, 250 g',metadata:{origin:'arakan',partner:'Fauna & Flora Myanmar, ACCA'}}}},
+  {id:'si_d',quantity:1,current_period_end:1795000000,price:{unit_amount:400,recurring:{interval:'week',interval_count:1},product:{name:'Delivery',metadata:{kind:'delivery'}}}}]}};
+ const mails=[];
+ mockStripe((u,o)=>{
+  if(u.startsWith('https://api.resend.com')){mails.push({body:JSON.parse(o.body),key:o.headers['Idempotency-Key']});return {body:{id:'em'}};}
+  if(u.includes('/line_items'))return {body:{data:[{description:'Arakan Mountains coffee, 250 g',quantity:1,amount_total:2160,price:{recurring:{interval:'week',interval_count:1},product:{metadata:{origin:'arakan',partner:'Fauna & Flora Myanmar, ACCA'}}}},{description:'Delivery',quantity:1,amount_total:400,price:{recurring:{interval:'week',interval_count:1},product:{name:'Delivery',metadata:{kind:'delivery'}}}}]}};
+  if(u.includes('/v1/subscriptions/sub_1'))return {body:sub};
+  if(u.includes('checkout/sessions?customer='))return {body:{data:[]}};
+  if(u.includes('invoices?'))return {body:{data:[]}};
+  if(u.includes('/v1/checkout/sessions/'))return {body:sess};
+  return {body:{}};});
+ const raw=JSON.stringify({type:'checkout.session.completed',data:{object:sess}});
+ const sign=(body,t=Math.floor(Date.now()/1000),sec='whsec_test')=>'t='+t+',v1='+crypto.createHmac('sha256',sec).update(t+'.'+body).digest('hex');
+ const call=(body,sig)=>wh.handler({httpMethod:'POST',headers:{'stripe-signature':sig},body});
+ assert.equal((await call(raw,sign(raw,undefined,'whsec_wrong'))).statusCode,400,'wrong secret');
+ assert.equal((await call(raw,sign(raw,Math.floor(Date.now()/1000)-900))).statusCode,400,'stale');
+ assert.equal((await call(raw.replace('NF-SRSP2T','NF-HACKED'),sign(raw))).statusCode,400,'body altered after signing');
+ assert.equal(mails.length,0,'nothing sent on a bad signature');
+ const other=JSON.stringify({type:'checkout.session.completed',data:{object:{...sess,metadata:{source:'other'}}}});
+ assert.equal((await call(other,sign(other))).body,'ignored');
+ const r=await call(raw,sign(raw));assert.equal(r.statusCode,200);assert.equal(mails.length,2);
+ const cust=mails.find(m=>m.body.to[0]==='pat@example.com'),desk=mails.find(m=>m.body.to[0]==='hello@nofilter.sg');
+ assert.ok(cust&&desk);assert.equal(cust.key,'shop-customer-cs_test_abcdefghijklmnop','a retried webhook cannot send twice');
+ assert.match(cust.body.subject,/NF-SRSP2T/);assert.match(cust.body.html,/Thanks, Pat\./);
+ assert.match(cust.body.html,/https:\/\/nofilter\.sg\/shop\/\?paid=1&order=cs_test_abcdefghijklmnop&manage=page/,'manage link opens the subscription controls');
+ assert.match(cust.body.html,/SGD 2\.16 to conservation/,'10% of the coffee, not the delivery');
+ assert.match(cust.body.html,/SGD 25\.60 every week/);
+ assert.doesNotMatch(cust.body.html,/8123|phone/i);
+ assert.match(desk.body.text,/1 x Arakan Mountains, 250 g/);assert.match(desk.body.text,/1 Raffles Place/);
+});
