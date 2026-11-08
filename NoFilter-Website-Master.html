@@ -9501,8 +9501,9 @@ video[data-noauto]{outline:none}
   <div class="cart-ft">
     <div class="readout">
       <div class="ro"><div class="k">Subtotal</div><div class="v" id="cartSub">SGD 0.00</div></div>
-      <div class="ro"><div class="k">To conservation</div><div class="v sig" id="cartGive">SGD 0.00</div><div class="cart-by" id="cartGiveBy"></div></div>
+      <div class="ro"><div class="k">To conservation</div><div class="v sig" id="cartGive">SGD 0.00</div></div>
     </div>
+    <div class="cart-by" id="cartGiveBy" aria-label="To conservation, by partner"></div>
     <!-- 140 · Nov 2026, after Alex's "rather ugly no?": the 10% is said once. The split by partner sits
          inside its own box, the caption that repeated it is gone, and the checkout message is a quiet
          sentence rather than orange capitals. -->
@@ -17528,7 +17529,7 @@ function renderCart(){
       var v = renderCart.film.querySelector('video');
       if(v.getAttribute('src') !== PAY_FILMS[lo.k]){ v.setAttribute('src', PAY_FILMS[lo.k]); try { var pp = v.play(); if(pp && pp.catch) pp.catch(function(){}); } catch(e){} }
       renderCart.film.querySelector('figcaption').innerHTML = '<span>Where it grows</span>' + lo.name + ' · with ' + lo.ngo;
-      body.appendChild(renderCart.film);
+      body.insertBefore(renderCart.film, body.firstChild);
     }
   }
   $('#cartSub').textContent = CUR() + money(sub);
@@ -17540,9 +17541,10 @@ function renderCart(){
     var k = li.name; if(!by[k]) by[k] = { name: li.name, ngo: o ? o.ngo : '', v: 0 };
     by[k].v += li.price * li.qty * 0.10;
   });
-  if(byEl){ byEl.textContent = ''; Object.keys(by).forEach(function(k){
+  /* 143 · one coffee: the film's caption already names its partner, so the split only shows from two */
+  if(byEl){ byEl.textContent = ''; if(Object.keys(by).length > 1) Object.keys(by).forEach(function(k){
     var r = document.createElement('div'); r.className = 'cb';
-    r.innerHTML = '<span>' + by[k].name + (by[k].ngo ? '<small>' + by[k].ngo + '</small>' : '') + '</span><span>' + money(by[k].v) + '</span>';
+    r.innerHTML = '<span>' + by[k].name + (by[k].ngo ? ' <small>' + by[k].ngo + '</small>' : '') + '</span><span>' + CUR() + money(by[k].v) + '</span>';
     byEl.appendChild(r); }); }
   var cn = $('#checkoutNote'); if(cn && !$('#checkoutBtn').disabled){ cn.style.display = 'none'; }
   var cc = $('#cartCode'); if(cc){ cc.hidden = !SHOP_CODE; cc.textContent = SHOP_CODE ? 'Code ' + SHOP_CODE + ' is applied at checkout.' : ''; }
@@ -26987,13 +26989,18 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 /* 139 · the cart's per-landscape split and the thank-you figures */
 .cart-by{display:grid;gap:3px;margin:8px 0 0}
 .cart-by:empty{display:none}
-.cart-by .cb small{display:block;font-size:9px;opacity:.75;margin-top:1px}
+.cart-by .cb small{font-size:inherit;opacity:.7}
+/* 143 · the split by partner runs the full width under the two figures, one line each */
+.cart-ft .cart-by{margin:-4px 0 0;padding:10px 12px;border:1px solid var(--line);display:grid;gap:6px}
+.cart-ft .cart-by:empty{display:none}
+.cart-by .cb>span:first-child,.nf-paid-by .cb>span:first-child{min-width:0}
+.cart-by .cb>span:last-child,.nf-paid-by .cb>span:last-child{white-space:nowrap}
 /* 142 · bag photos on the lines; the landscape film in the space beneath */
 .cart .ci{grid-template-columns:48px 1fr auto auto}
 .cart .ci .cimg{width:48px;height:48px;object-fit:cover;border-radius:2px;background:rgba(244,242,238,.06)}
-.cart-film{margin:16px 0 8px;position:relative;border-radius:3px;overflow:hidden;background:#111}
-.cart-film video{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-.cart-film figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 14px 12px;background:linear-gradient(transparent,rgba(8,9,10,.85));font-family:var(--body,sans-serif);font-size:13px;color:#F4F2EE}
+.cart-film{margin:12px 0 4px;position:relative;border-radius:3px;overflow:hidden;background:#111}
+.cart-film video{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.cart-film figcaption{position:absolute;left:0;right:0;bottom:0;padding:44px 14px 12px;background:linear-gradient(rgba(8,9,10,0),rgba(8,9,10,.6) 35%,rgba(8,9,10,.92));font-family:var(--body,sans-serif);font-size:13px;color:#F4F2EE}
 .cart-film figcaption span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,242,238,.65);margin-bottom:3px}
 /* 142 · the preview checkout (draft links only) */
 .nf-pv{font-family:var(--body,sans-serif);color:#222;max-width:420px;margin:0 auto;padding:8px}
