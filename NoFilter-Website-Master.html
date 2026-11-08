@@ -9503,6 +9503,9 @@ video[data-noauto]{outline:none}
       <div class="ro"><div class="k">Subtotal</div><div class="v" id="cartSub">SGD 0.00</div></div>
       <div class="ro"><div class="k">To forest · 10%</div><div class="v sig" id="cartGive">SGD 0.00</div></div>
     </div>
+    <!-- 139 · Nov 2026: the 10% split by landscape, so a basket says which partner each bag's share goes to -->
+    <div class="cart-by" id="cartGiveBy"></div>
+    <div class="lab cart-code" id="cartCode" hidden></div>
     <div class="lab" style="line-height:1.6">10% of every bag goes to the forest. Passed to the partner NGO that holds the polygon.</div>
     <button class="btn pri" id="checkoutBtn" style="justify-content:center">CHECKOUT <span class="ar">→</span></button>
     <div class="lab" id="checkoutNote" style="display:none;color:var(--signal)"></div>
@@ -17208,6 +17211,9 @@ $$('.org .org-hd').forEach(function(btn){
 });
 
 /* ── 9 · SHOP + CART ──────────────────────────────────────────────────── */
+/* 139 · a client code from the impact counter's shop QR (nofilter.sg/shop/?code=SPRINKLR10):
+   kept for this visit, shown in the cart, applied by Stripe if it knows it */
+var SHOP_CODE = (function(){ try { return (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,24); } catch(e){ return ''; } })();
 var cart = [];   /* in-memory only — no localStorage / sessionStorage */
 var shopGrid = $('#shopGrid');
 /* 113: absent whenever the shop section is not on this page */
@@ -17507,6 +17513,18 @@ function renderCart(){
   });
   $('#cartSub').textContent = CUR() + money(sub);
   $('#cartGive').textContent = CUR() + money(sub * 0.10);
+  /* 139 · each landscape's share, named with the partner the site lists for it */
+  var by = {}, byEl = $('#cartGiveBy');
+  cart.forEach(function(li){
+    var o = ORIGINS.filter(function(x){ return x.name === li.name; })[0];
+    var k = li.name; if(!by[k]) by[k] = { name: li.name, ngo: o ? o.ngo : '', v: 0 };
+    by[k].v += li.price * li.qty * 0.10;
+  });
+  if(byEl){ byEl.textContent = ''; Object.keys(by).forEach(function(k){
+    var r = document.createElement('div'); r.className = 'cb';
+    r.innerHTML = '<span>' + by[k].name + (by[k].ngo ? ' · ' + by[k].ngo : '') + '</span><span>' + CUR() + money(by[k].v) + '</span>';
+    byEl.appendChild(r); }); }
+  var cc = $('#cartCode'); if(cc){ cc.hidden = !SHOP_CODE; cc.textContent = SHOP_CODE ? 'Code ' + SHOP_CODE + ' is applied at checkout.' : ''; }
   $('#cartCount').textContent = String(n);
   $('#cartBtn').classList.toggle('hot', n > 0);
 }
@@ -17517,10 +17535,61 @@ function openCart(v){
 $('#cartBtn').addEventListener('click', function(){ openCart(true); });
 $('#cartClose').addEventListener('click', function(){ openCart(false); });
 $('#scrim').addEventListener('click', function(){ openCart(false); });
+/* 139 · checkout: the cart goes to checkout.js (names, sizes and quantities only; prices are
+   set there), which opens Stripe's checkout. Retail bags ship within Singapore for now. */
 $('#checkoutBtn').addEventListener('click', function(){
-  $('#checkoutNote').textContent = 'The shop opens shortly. Checkout is not open yet.';
-  $('#checkoutNote').style.display = 'block';
+  var note = $('#checkoutNote'), btn = $('#checkoutBtn');
+  function say(t){ note.textContent = t; note.style.display = 'block'; }
+  if(!cart.length){ say('Add a bag first.'); return; }
+  if(MKT.cur !== 'SGD'){ say('Retail bags ship within Singapore for now.'); return; }
+  btn.disabled = true; say('Opening secure checkout…');
+  fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty }; }), code: SHOP_CODE }) })
+    .then(function(r){ return r.json().then(function(d){ return { ok:r.ok, status:r.status, d:d }; }); })
+    .then(function(x){
+      if(x.ok && x.d.url){ location.href = x.d.url; return; }
+      btn.disabled = false;
+      say(x.status === 503 ? 'Checkout is not open yet. Your bags are still in the cart.' : 'Checkout could not open. Please try again.');
+    })
+    .catch(function(){ btn.disabled = false; say('Checkout could not open. Please check your connection and try again.'); });
 });
+/* 139 · back from Stripe (?paid=1&order=cs_…): a thank-you that shows what this order put towards
+   conservation and which partner it goes to. Built on the dispatch card's styles. The space under
+   the figures is where a "choose what it funds" list goes when the shop offers one. */
+(function(){
+  var q; try { q = new URLSearchParams(location.search); } catch(e){ return; }
+  if(q.get('paid') !== '1') return;
+  var order = q.get('order') || '';
+  try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
+  var el = document.createElement('div');
+  el.className = 'nf-soon nf-paid'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Order received');
+  el.innerHTML = '<div class="nf-soon-scrim" data-close></div><div class="nf-soon-card">' +
+    '<button class="nf-soon-x" type="button" data-close aria-label="Close">CLOSE \u2715</button>' +
+    '<span class="nf-soon-k">[ Order received ]</span>' +
+    '<h2 class="nf-soon-h">Thank you.</h2>' +
+    '<p class="nf-soon-p">Your coffee is on its way. The receipt is in your inbox.</p>' +
+    '<div class="nf-paid-give" hidden><div class="nf-paid-v"><span class="nf-paid-cur">SGD</span> <span class="nf-paid-n">0.00</span></div>' +
+      '<div class="nf-paid-l">from this order to conservation, where your coffee grows</div><div class="nf-paid-by"></div></div>' +
+    '<div class="nf-paid-next"></div>' +
+    '<div class="nf-soon-a"><button class="nf-soon-b pri" type="button" data-close>Back to the coffee \u2192</button></div></div>';
+  document.body.appendChild(el);
+  function close(){ el.removeAttribute('data-in'); setTimeout(function(){ el.remove(); }, 280); document.removeEventListener('keydown', key); }
+  function key(e){ if(e.key === 'Escape') close(); }
+  el.addEventListener('click', function(e){ if(e.target.closest('[data-close]')) close(); });
+  document.addEventListener('keydown', key);
+  el.setAttribute('data-open',''); requestAnimationFrame(function(){ el.setAttribute('data-in',''); el.querySelector('.nf-soon-x').focus(); });
+  if(!/^cs_(test|live)_/.test(order)) return;
+  fetch('/.netlify/functions/order-summary?order=' + encodeURIComponent(order)).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+    if(!d || !d.contribution) return;
+    var box = el.querySelector('.nf-paid-give'), n = el.querySelector('.nf-paid-n'), to = d.contribution / 100;
+    el.querySelector('.nf-paid-cur').textContent = String(d.currency || 'sgd').toUpperCase();
+    el.querySelector('.nf-paid-by').innerHTML = d.byPartner.map(function(p){
+      return '<div class="cb"><span>' + p.name + (p.partner ? ' · ' + p.partner : '') + '</span><span>' + String(d.currency || 'sgd').toUpperCase() + ' ' + money(p.contribution / 100) + '</span></div>'; }).join('');
+    box.hidden = false;
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, t0 = performance.now();
+    (function tick(t){ var k = reduce ? 1 : Math.min(1, ((t || performance.now()) - t0) / 1100); n.textContent = money(to * (1 - Math.pow(1 - k, 3))); if(k < 1) requestAnimationFrame(tick); })();
+  }).catch(function(){});
+})();
 renderCart();
 
 /* ── 10 · MACHINES ────────────────────────────────────────────────────── */
@@ -26820,6 +26889,15 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-soon{position:fixed;inset:0;z-index:4000;display:none;
   align-items:center;justify-content:center;padding:20px}
 .nf-soon[data-open]{display:flex}
+/* 139 · the cart's per-landscape split and the thank-you figures */
+.cart-by{display:grid;gap:4px;margin:2px 0 0}
+.cart-by .cb,.nf-paid-by .cb{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:rgba(244,242,238,.62)}
+.cart-code{color:var(--signal,#EE4D17)}
+.nf-paid-give{margin:20px 0 0;padding:16px 0 0;border-top:1px solid rgba(244,242,238,.12)}
+.nf-paid-v{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(34px,4vw,46px);line-height:1;color:var(--signal,#EE4D17)}
+.nf-paid-cur{font-size:.42em;letter-spacing:.06em;vertical-align:.5em}
+.nf-paid-l{font-family:var(--body,sans-serif);font-size:13px;color:rgba(244,242,238,.7);margin:6px 0 12px}
+.nf-paid-by{display:grid;gap:5px}
 .nf-soon-scrim{position:absolute;inset:0;background:rgba(8,9,10,.72);
   backdrop-filter:blur(3px);opacity:0;transition:opacity .28s ease}
 .nf-soon[data-in] .nf-soon-scrim{opacity:1}
