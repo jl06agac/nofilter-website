@@ -1,11 +1,11 @@
-/* NoFilter checkout: turns the cart into an embedded Stripe Checkout Session. The payment form is
-   mounted inside our own checkout panel (the landscape's film and the three projects beside it),
-   so this returns the session's client secret and the publishable key, not a URL.
+/* NoFilter checkout: turns the cart into a Stripe Checkout Session on Stripe's hosted page (156; it was
+   embedded in our panel before). The panel takes the customer's project choice first and sends it here;
+   this returns the hosted page's URL, and Stripe returns the customer to /shop/?paid=1&order=….
    PRICES AND PRODUCTS LIVE HERE, not in the page: the page sends only names, sizes and
    quantities, and anything not on the list below is refused.
    Netlify -> Site settings -> Environment:
      STRIPE_SECRET_KEY        sk_test_... to rehearse, sk_live_... to go live (without it: 503)
-     STRIPE_PUBLISHABLE_KEY   pk_test_... / pk_live_..., the matching public key for the form
+     (STRIPE_PUBLISHABLE_KEY is no longer needed: the hosted page needs no key on our side)
      PRICE_BAG_250G      unit amount in cents (default 2400 = SGD 24.00, MARKETS.SG.bag250)
      PRICE_BAG_1KG       unit amount in cents (default 8000 = SGD 80.00, MARKETS.SG.bag1kg)
      DELIVERY_CENTS      delivery charge per order in cents (default 0: retail prices include delivery)
@@ -72,7 +72,7 @@ function cleanLines(lines) {
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return reply(405, { error: 'POST only' });
   const KEY = process.env.STRIPE_SECRET_KEY;
-  if (!KEY || !process.env.STRIPE_PUBLISHABLE_KEY) return reply(503, { error: 'payments not configured' });
+  if (!KEY) return reply(503, { error: 'payments not configured' });
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch (e) { return reply(400, { error: 'bad request' }); }
 
@@ -102,8 +102,9 @@ exports.handler = async function (event) {
   const form = new URLSearchParams();
   form.set('mode', every ? 'subscription' : 'payment');
   form.set('locale', 'en-GB');
-  form.set('ui_mode', 'embedded_page'); // Stripe's current name for the embedded form (was 'embedded')
-  form.set('return_url', origin + '/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
+  // Stripe's hosted checkout (156): the customer goes to checkout.stripe.com and comes back here
+  form.set('success_url', origin + '/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
+  form.set('cancel_url', origin + '/shop/');
   form.set('shipping_address_collection[allowed_countries][0]', 'SG');
   form.set('phone_number_collection[enabled]', 'true');
   if (!every) {
@@ -175,8 +176,8 @@ exports.handler = async function (event) {
 
   const { ok, data } = await stripe('checkout/sessions', KEY, form);
   // Stripe's own message (a sentence about a parameter, never a key or customer detail) so a refusal can be diagnosed.
-  if (!ok || !data.client_secret) return reply(502, { error: 'stripe error', detail: String((data && data.error && data.error.message) || '').replace(/\b(sk|pk|rk)_(test|live)_\S+/g, '$1_$2_…') || null });
-  return reply(200, { clientSecret: data.client_secret, session: data.id, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY, code: applied ? code : null });
+  if (!ok || !data.url) return reply(502, { error: 'stripe error', detail: String((data && data.error && data.error.message) || '').replace(/\b(sk|pk|rk)_(test|live)_\S+/g, '$1_$2_…') || null });
+  return reply(200, { url: data.url, session: data.id, code: applied ? code : null });
 };
 
 exports._test = { cleanLines, COFFEES, ORIGINS, CHOICES, SUB_OFF };

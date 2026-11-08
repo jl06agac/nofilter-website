@@ -17596,29 +17596,17 @@ $('#scrim').addEventListener('click', function(){ openCart(false); });
 /* 139 · checkout: the cart goes to checkout.js (names, sizes and quantities only; prices are
    set there), which opens Stripe's checkout. Retail bags ship within Singapore for now. */
 $('#checkoutBtn').addEventListener('click', function(){
-  var note = $('#checkoutNote'), btn = $('#checkoutBtn');
+  var note = $('#checkoutNote');
   function say(t){ note.textContent = t; note.style.display = 'block'; }
   if(!cart.length){ say('Add a bag first.'); return; }
   if(MKT.cur !== 'SGD'){ say('Retail bags ship within Singapore for now.'); return; }
-  btn.disabled = true; say('Opening secure checkout…');
-  fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty, every:l.every || 0 }; }), code: SHOP_CODE }) })
-    .then(function(r){ return r.json().then(function(d){ return { ok:r.ok, status:r.status, d:d }; }); })
-    .then(function(x){
-      if(x.ok && x.d.clientSecret){ btn.disabled = false; note.style.display = 'none'; openPay(x.d); return; }
-      btn.disabled = false;
-      /* 142 · draft links only (…--nofilter-site.netlify.app, localhost): with no Stripe key the full
-         panel still opens, with a stand-in for Stripe's form, so the journey can be seen end to end.
-         nofilter.sg never gets this. */
-      if(x.status === 503 && /--[a-z0-9-]+\.netlify\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)){ note.style.display = 'none'; openPay({ preview: true }); return; }
-      say(x.status === 503 ? 'Checkout is not open yet. Your bags are still in the cart.' : 'Checkout could not open. Please try again.');
-    })
-    .catch(function(){ btn.disabled = false; say('Checkout could not open. Please check your connection and try again.'); });
+  note.style.display = 'none'; openCart(false); openPay();
 });
-/* 141 · the checkout panel. Stripe's payment form is mounted inside our own panel (embedded
-   checkout), so the landscape the coffee comes from plays beside it, and the customer can point
-   their 10% at one of three projects, as on the impact counter. The choice is written to the open
-   order (checkout.js action 'choose'); no choice means where the partner needs it most. */
+/* 141/156 · the checkout panel, step 1 of 2: the landscape the coffee comes from, the customer's choice of
+   project for their 10% (as on the impact counter; none means where the partner needs it most), and the order
+   summary with delivery. "Continue to secure payment" creates the order (checkout.js, with the choice on it)
+   and goes to Stripe's hosted checkout, in NoFilter's branding; Stripe returns to the confirmation page.
+   Hosted rather than embedded since 156 (Alex: Stripe's own page "looks better"). */
 var PAY_FILMS = { toru:'../../_CDN-UPLOAD-SAFE/batang-toru-banner-lite.mp4', gadis:'../../_CDN-UPLOAD-SAFE/batang-gadis-banner-lite.mp4',
   gayo:'../../_CDN-UPLOAD-SAFE/gayo-lues-banner-lite.mp4', arakan:'../../_CDN-UPLOAD-SAFE/batang-arakan-banner-lite.mp4' };
 var PAY_CHOICES = [
@@ -17626,16 +17614,15 @@ var PAY_CHOICES = [
   { id:'orangutans-in-danger', title:'Help orangutans in danger', img:'/assets/shop/orangutans-in-danger.webp' },
   { id:'coffee-with-forest', title:'Grow coffee with the forest', img:'/assets/shop/coffee-with-forest.webp' } ];
 window.__nfPayChoices = PAY_CHOICES;
-function loadStripeJs(){ return window.Stripe ? Promise.resolve(window.Stripe) : new Promise(function(ok, no){
-  var sc = document.createElement('script'); sc.src = 'https://js.stripe.com/endive/stripe.js'; /* 151 · Stripe's current release for embedded_page checkout */ sc.onload = function(){ ok(window.Stripe); }; sc.onerror = no; document.head.appendChild(sc); }); }
-function openPay(d){
-  var give = 0, top = null, by = {};
-  cart.forEach(function(l){ var v = lineTotal(l) * 0.10; give += v; by[l.name] = (by[l.name] || 0) + v; });
+function openPay(){
+  var give = 0, top = null, by = {}, sub = 0, perDel = 0, full = 0, be = basketEvery();
+  cart.forEach(function(l){ var v = lineTotal(l) * 0.10; give += v; by[l.name] = (by[l.name] || 0) + v; sub += lineTotal(l); full += l.price * l.qty; if(l.every) perDel += lineTotal(l); });
   Object.keys(by).forEach(function(n){ if(!top || by[n] > by[top]) top = n; });
   var o = ORIGINS.filter(function(x){ return x.name === top; })[0] || ORIGINS[0];
+  var delTest = be ? perDel : full, del = delTest >= FREE_FROM ? 0 : DELIVERY;
   var el = document.createElement('div'); el.className = 'nf-pay'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Checkout');
   el.innerHTML = '<div class="nf-pay-in">' +
-    '<div class="nf-pay-hd"><span>NOFILTER · SECURE CHECKOUT</span><button type="button" class="nf-pay-x" aria-label="Close checkout">CLOSE ✕</button></div>' +
+    '<div class="nf-pay-hd"><span>NOFILTER · CHECKOUT</span><button type="button" class="nf-pay-x" aria-label="Close checkout">CLOSE ✕</button></div>' +
     '<div class="nf-pay-story">' +
       '<video class="nf-pay-film" src="' + PAY_FILMS[o.k] + '" autoplay muted loop playsinline preload="metadata"></video>' +
       '<div class="nf-pay-cap"><span class="nf-pay-k">' + o.name + ' · ' + o.ngo + '</span></div>' +
@@ -17643,43 +17630,53 @@ function openPay(d){
         '<p>Choose one. Or leave it, and ' + o.ngo + ' will put it where it’s needed most.</p>' +
         '<div class="nf-pay-ch">' + PAY_CHOICES.map(function(c){ return '<button type="button" data-ch="' + c.id + '" aria-pressed="false"><img src="' + c.img + '" alt=""><span>' + c.title + '</span><i aria-hidden="true">✓</i></button>'; }).join('') + '</div></div>' +
     '</div>' +
-    '<div class="nf-pay-form"><span class="nf-pay-step">2 · Pay</span><div id="nfPayForm"><p class="nf-pay-wait">Opening secure checkout…</p></div></div>' +
-  '</div>';
+    '<div class="nf-pay-form"><span class="nf-pay-step">2 · Your order</span>' +
+      '<div class="nf-sum">' + cart.map(function(l){ var b = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
+          return '<div class="nf-sum-l"><img src="' + (b ? b.bag : '') + '" alt=""><span><b>' + l.name + '</b><small>' + l.size.toUpperCase() + ' × ' + l.qty + (l.every ? ' · ' + EVERY_LAB[l.every] : '') + '</small></span><span>' + CUR() + money(lineTotal(l)) + '</span></div>'; }).join('') +
+        '<div class="nf-sum-r"><span>Delivery' + (be ? ', each delivery' : '') + '</span><span>' + (del ? CUR() + money(del) : 'Free') + '</span></div>' +
+        '<div class="nf-sum-r nf-sum-t"><span>' + (be ? 'First payment' : 'Total') + '</span><span>' + CUR() + money(sub + del) + '</span></div>' +
+        (be ? '<p class="nf-sum-n">Then ' + CUR() + money(perDel + (perDel >= FREE_FROM ? 0 : DELIVERY)) + ' ' + EVERY_LAB[be] + ', until you cancel. Swap coffees, skip a delivery or cancel any time.</p>' : '') +
+        (SHOP_CODE ? '<p class="nf-sum-n">Code ' + SHOP_CODE + ' is applied on the next page.</p>' : '') +
+      '</div>' +
+      '<button type="button" class="nf-go">Continue to secure payment →</button>' +
+      '<p class="nf-go-n">On Stripe’s secure page: Apple Pay, Google Pay, PayNow or card.</p>' +
+      '<p class="nf-go-err" hidden></p>' +
+    '</div>' +
+  '</div>' +
+  '<div class="nf-go-bar"><span><small>' + (be ? 'First payment' : 'Total') + '</small>' + CUR() + money(sub + del) + '</span><button type="button">Continue →</button></div>';
   document.body.appendChild(el); document.documentElement.classList.add('nf-paying');
-  var checkout = null, choice = '';
-  function close(){ try { checkout && checkout.destroy(); } catch(e){} el.remove(); document.documentElement.classList.remove('nf-paying'); document.removeEventListener('keydown', key); }
+  var choice = '';
+  function close(){ el.remove(); document.documentElement.classList.remove('nf-paying'); document.removeEventListener('keydown', key); }
   function key(e){ if(e.key === 'Escape') close(); }
   el.querySelector('.nf-pay-x').addEventListener('click', close); document.addEventListener('keydown', key);
   el.querySelectorAll('[data-ch]').forEach(function(b){ b.addEventListener('click', function(){
     choice = choice === b.getAttribute('data-ch') ? '' : b.getAttribute('data-ch');
     el.querySelectorAll('[data-ch]').forEach(function(x){ x.setAttribute('aria-pressed', x.getAttribute('data-ch') === choice ? 'true' : 'false'); });
-    if(!d.preview) fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'choose', session:d.session, choice:choice }) }).catch(function(){});
   }); });
-  if(d.preview){
-    var sub = 0; cart.forEach(function(l){ sub += lineTotal(l); });
-    var f = el.querySelector('#nfPayForm');
-    f.innerHTML = '<div class="nf-pv">' +
-      '<div class="nf-pv-x"><span>Apple Pay</span><span>Google Pay</span><span>PayNow</span></div>' +
-      '<div class="nf-pv-or"><span>or pay by card</span></div>' +
-      '<div class="nf-pv-f">Email</div><div class="nf-pv-f">Card number</div><div class="nf-pv-f">Delivery address, Singapore</div>' +
-      cart.map(function(l){ return '<div class="nf-pv-l"><span>' + l.name + ' · ' + l.size + ' × ' + l.qty + '</span><span>' + CUR() + money(lineTotal(l)) + '</span></div>'; }).join('') +
-      '<div class="nf-pv-l nf-pv-t"><span>Total</span><span>' + CUR() + money(sub) + '</span></div>' +
-      '<button type="button" class="nf-pv-pay">Pay ' + CUR() + money(sub) + '</button>' +
-      '<p class="nf-pv-k">Draft preview. Stripe’s own form sits here on nofilter.sg; nothing is charged.</p></div>';
-    f.querySelector('.nf-pv-pay').addEventListener('click', function(){
-      var parts = {}; cart.forEach(function(l){ var o = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
-        if(!parts[l.name]) parts[l.name] = { name:l.name, partner: o ? o.ngo : '', contribution:0 }; parts[l.name].contribution += Math.round(lineTotal(l) * 10); });
-      var list = Object.keys(parts).map(function(k){ return parts[k]; });
-      var d2 = { currency: MKT.cur, contribution: list.reduce(function(n, p){ return n + p.contribution; }, 0), byPartner: list, choice: choice,
-        order: { ref: 'NF-PREVIEW', items: cart.map(function(l){ return { name: l.name, size: l.size === '1KG' || l.size === '1kg' ? '1 kg' : '250 g', qty: l.qty, every: l.every || 0, amount: Math.round(lineTotal(l) * 100) }; }),
-          subtotal: Math.round(sub * 100), discount: 0, delivery: 0, total: Math.round(sub * 100) } };
-      close(); cart.length = 0; renderCart(); openCart(false); paidPanel().fill(d2);
-    });
-    return;
-  }
-  loadStripeJs().then(function(Stripe){ var st = Stripe(d.publishableKey), o = { fetchClientSecret: function(){ return Promise.resolve(d.clientSecret); } }; return st.createEmbeddedCheckoutPage ? st.createEmbeddedCheckoutPage(o) : st.initEmbeddedCheckout(o); })
-    .then(function(c){ checkout = c; el.querySelector('#nfPayForm').textContent = ''; c.mount('#nfPayForm'); })
-    .catch(function(){ el.querySelector('#nfPayForm').innerHTML = '<p class="nf-pay-wait">Secure checkout could not load. Please check your connection and try again.</p>'; });
+  var go = el.querySelector('.nf-go'), err = el.querySelector('.nf-go-err');
+  el.querySelector('.nf-go-bar button').addEventListener('click', function(){ go.click(); });
+  go.addEventListener('click', function(){
+    go.disabled = true; go.textContent = 'Opening secure payment…'; err.hidden = true;
+    fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty, every:l.every || 0 }; }), code: SHOP_CODE, choice: choice }) })
+      .then(function(r){ return r.json().then(function(d){ return { ok:r.ok, status:r.status, d:d }; }); })
+      .then(function(x){
+        if(x.ok && x.d.url){ location.assign(x.d.url); return; }
+        /* draft links only, with no Stripe key: go straight to the confirmation page with the cart's figures */
+        if(x.status === 503 && /--[a-z0-9-]+\.netlify\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)){
+          var parts = {}; cart.forEach(function(l){ var oo = ORIGINS.filter(function(z){ return z.name === l.name; })[0];
+            if(!parts[l.name]) parts[l.name] = { name:l.name, partner: oo ? oo.ngo : '', contribution:0 }; parts[l.name].contribution += Math.round(lineTotal(l) * 10); });
+          var list = Object.keys(parts).map(function(k){ return parts[k]; });
+          var d2 = { currency: MKT.cur, contribution: list.reduce(function(n, pp){ return n + pp.contribution; }, 0), byPartner: list, choice: choice,
+            order: { ref: 'NF-PREVIEW', items: cart.map(function(l){ return { name: l.name, size: /1kg/i.test(l.size) ? '1 kg' : '250 g', qty: l.qty, every: l.every || 0, amount: Math.round(lineTotal(l) * 100) }; }),
+              subtotal: Math.round(sub * 100), discount: 0, delivery: Math.round(del * 100), total: Math.round((sub + del) * 100) } };
+          close(); cart.length = 0; renderCart(); openCart(false); paidPanel().fill(d2); return;
+        }
+        throw x;
+      })
+      .catch(function(x){ go.disabled = false; go.textContent = 'Continue to secure payment →'; err.hidden = false;
+        err.textContent = x && x.status === 503 ? 'Checkout is not open yet. Your bags are still in the basket.' : 'Secure payment could not open. Please try again.'; });
+  });
 }
 
 /* 148 · the order confirmation: a page of its own after paying, not a pop-up (Alex: "not a very
@@ -27278,18 +27275,28 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .cart-film figcaption{position:absolute;left:0;right:0;bottom:0;padding:44px 14px 12px;background:linear-gradient(rgba(8,9,10,0),rgba(8,9,10,.6) 35%,rgba(8,9,10,.92));font-family:var(--body,sans-serif);font-size:13px;color:#F4F2EE}
 .cart-film figcaption span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,242,238,.65);margin-bottom:3px}
 /* 142 · the preview checkout (draft links only) */
-.nf-pv{font-family:var(--body,sans-serif);color:#1A1815;display:grid;gap:10px}
-.nf-pv-x{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.nf-pv-x span{display:flex;align-items:center;justify-content:center;height:44px;border-radius:10px;background:#1A1815;color:#F4F2EE;font-weight:600;font-size:13.5px}
-.nf-pv-or{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(26,24,21,.5);margin:4px 0}
-.nf-pv-or::before,.nf-pv-or::after{content:"";flex:1;height:1px;background:rgba(26,24,21,.12)}
-.nf-pv-f{height:44px;display:flex;align-items:center;padding:0 14px;border-radius:10px;border:1px solid rgba(26,24,21,.16);background:rgba(26,24,21,.03);color:rgba(26,24,21,.45);font-size:14px}
-.nf-pv-l{display:flex;justify-content:space-between;padding:4px 2px;font-size:14px;color:rgba(26,24,21,.8)}
-.nf-pv-f+.nf-pv-l{margin-top:8px}
-.nf-pv-t{font-weight:700;color:#1A1815;padding-top:10px;border-top:1px solid rgba(26,24,21,.12)}
-.nf-pv-pay{width:100%;margin-top:6px;height:50px;border:0;border-radius:12px;background:#EE4D17;color:#fff;font:600 15.5px var(--body,sans-serif);cursor:pointer}
-.nf-pv-pay:hover{filter:brightness(1.07)}
-.nf-pv-k{font-size:12px;line-height:1.5;color:rgba(26,24,21,.45);margin:2px 0 0;text-align:center}
+.nf-sum{display:grid;gap:2px;margin:4px 0 0}
+.nf-sum-l{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(26,24,21,.08)}
+.nf-sum-l img{width:44px;height:44px;border-radius:9px;object-fit:cover;background:rgba(26,24,21,.05)}
+.nf-sum-l b{display:block;font-weight:600;font-size:14.5px;color:#1A1815}
+.nf-sum-l small{font-size:12.5px;color:rgba(26,24,21,.6)}
+.nf-sum-l>span:last-child{font-size:14.5px;white-space:nowrap;color:#1A1815}
+.nf-sum-r{display:flex;justify-content:space-between;padding:8px 0 0;font-size:14px;color:rgba(26,24,21,.7)}
+.nf-sum-t{padding-top:12px;margin-top:6px;border-top:1px solid rgba(26,24,21,.12);font-size:16px;font-weight:700;color:#1A1815}
+.nf-sum-n{margin:10px 0 0;font-size:13px;line-height:1.5;color:rgba(26,24,21,.65)}
+.nf-go{width:100%;height:54px;margin-top:20px;border:0;border-radius:12px;background:#EE4D17;color:#fff;font:600 16px var(--body,sans-serif);cursor:pointer}
+.nf-go:hover{filter:brightness(1.06)}
+.nf-go[disabled]{opacity:.7;cursor:default}
+.nf-go-n{margin:10px 0 0;text-align:center;font-size:12.5px;color:rgba(26,24,21,.55)}
+.nf-go-bar{display:none}
+@media(max-width:860px){
+  .nf-pay-form{padding-bottom:96px}
+  .nf-go-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:4101;align-items:center;justify-content:space-between;gap:12px;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:#F4F2EE;border-top:1px solid rgba(26,24,21,.12);box-shadow:0 -10px 30px -12px rgba(26,24,21,.25)}
+  .nf-go-bar span{display:grid;font:700 17px var(--body,sans-serif);color:#1A1815}
+  .nf-go-bar small{font-weight:500;font-size:12px;color:rgba(26,24,21,.6)}
+  .nf-go-bar button{height:48px;padding:0 22px;border:0;border-radius:12px;background:#EE4D17;color:#fff;font:600 15px var(--body,sans-serif)}
+}
+.nf-go-err{margin:10px 0 0;text-align:center;font-size:13.5px;font-weight:600;color:#a33a0d}
 .cart-by .cb{font-size:9.5px!important;letter-spacing:.03em!important;color:rgba(26,24,21,.55)!important}
 .cart .cq{display:inline-flex;align-items:center;gap:0;margin:8px 0 0;border:1px solid rgba(26,24,21,.16);border-radius:999px;overflow:hidden}
 .cart .cq button{width:26px;height:24px;background:none;border:0;color:rgba(26,24,21,.8);font:inherit;font-size:14px;cursor:pointer}
@@ -27320,8 +27327,6 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-pay-form{display:flex;flex-direction:column;min-width:0;padding:22px clamp(18px,3vw,32px) 30px}
 .nf-pay-hd{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:16px clamp(18px,3vw,32px);border-bottom:1px solid rgba(26,24,21,.1);font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(26,24,21,.6)}
 .nf-pay-x{background:none;border:0;color:rgba(26,24,21,.75);font:inherit;letter-spacing:.16em;cursor:pointer;padding:6px}
-#nfPayForm{flex:1;min-height:0} /* Stripe's form sizes itself; its colours and corners come from Stripe branding */
-.nf-pay-wait{font-family:var(--body,sans-serif);color:rgba(26,24,21,.6);font-size:14px;text-align:center;margin:60px 0}
 @media(max-width:860px){.nf-pay{padding:0}.nf-pay-in{grid-template-columns:1fr;border:0;border-radius:0;min-height:100%}.nf-pay-story{border-right:0;border-bottom:1px solid rgba(26,24,21,.1)}.nf-pay-film{aspect-ratio:2/1}.nf-pay-ch{gap:8px}.nf-pay-ch button{font-size:12px}.nf-pay-ch button img{aspect-ratio:1/1}}
 .nf-soon-scrim{position:absolute;inset:0;background:rgba(8,9,10,.72);
   backdrop-filter:blur(3px);opacity:0;transition:opacity .28s ease}

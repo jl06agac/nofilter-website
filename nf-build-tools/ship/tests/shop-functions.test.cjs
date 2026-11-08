@@ -14,7 +14,7 @@ function stripeWithCatalogue(rest){let n=0;return (u,o)=>{
  return rest(u,o);};}
 const sessionCall=calls=>new URLSearchParams(calls.find(c=>c.url.endsWith('/v1/checkout/sessions')).opt.body);
 
-test('no key: 503, nothing sent',async()=>{delete process.env.STRIPE_SECRET_KEY;process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';assert.equal((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}))).statusCode,503);});
+test('no key: 503, nothing sent',async()=>{delete process.env.STRIPE_SECRET_KEY;assert.equal((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}))).statusCode,503);});
 
 test('only the four coffees in 250 g or 1 kg; quantities merged and capped',()=>{
  const c=checkout._test.cleanLines;
@@ -27,9 +27,9 @@ test('only the four coffees in 250 g or 1 kg; quantities merged and capped',()=>
 
 test('prices are set here, every line carries its origin and partner, delivery in Singapore',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';delete process.env.PRICE_BAG_1KG;delete process.env.PRICE_BAG_250G;
- const calls=mockStripe(u=>({body:{client_secret:'cs_test_1_secret_x',id:'cs_test_1'}}));
+ const calls=mockStripe(u=>({body:{client_secret:'cs_test_1_secret_x',url:'https://checkout.stripe.com/c/pay/cs_test_1_secret_x',id:'cs_test_1'}}));
  const r=await checkout.handler(ev({lines:[{name:'Batang Gadis',size:'1kg',qty:2,price:0.01},{name:'Batang Toru',size:'250g',qty:1}]}));
- assert.equal(r.statusCode,200);const out=JSON.parse(r.body);assert.equal(out.clientSecret,'cs_test_1_secret_x');assert.equal(out.publishableKey,'pk_test_x');assert.equal(out.session,'cs_test_1');
+ assert.equal(r.statusCode,200);const out=JSON.parse(r.body);assert.equal(out.url,'https://checkout.stripe.com/c/pay/cs_test_1_secret_x');assert.equal(out.session,'cs_test_1');
  const f=new URLSearchParams(calls[0].opt.body);
  assert.equal(f.get('line_items[0][price_data][unit_amount]'),'8000','the page cannot set a price');
  assert.equal(f.get('line_items[1][price_data][unit_amount]'),'2400');
@@ -39,18 +39,18 @@ test('prices are set here, every line carries its origin and partner, delivery i
  assert.equal(f.get('metadata[contribution_rate]'),'0.10');assert.equal(f.get('metadata[source]'),'website-shop');
  assert.equal(f.get('shipping_address_collection[allowed_countries][0]'),'SG');
  assert.equal(f.get('allow_promotion_codes'),'true','customers can enter a code');
- assert.equal(f.get('ui_mode'),'embedded_page');assert.equal(f.get('return_url'),'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
+ assert.equal(f.get('ui_mode'),null,'hosted page');assert.equal(f.get('success_url'),'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}');assert.equal(f.get('cancel_url'),'https://nofilter.sg/shop/');
  assert.equal(f.get('line_items[0][price_data][product_data][images][0]'),'https://nofilter-shared.netlify.app/bag-batang-gadis-640.webp');
  assert.equal(f.get('metadata[choice]'),'','no choice yet means where it is needed most');
 });
 
 test('a known client code is applied; an unknown one leaves the code box open',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';
- let calls=mockStripe(u=>u.includes('promotion_codes')?{body:{data:[{id:'promo_123'}]}}:{body:{client_secret:'cs_test_2_secret',id:'cs_test_2'}});
+ let calls=mockStripe(u=>u.includes('promotion_codes')?{body:{data:[{id:'promo_123'}]}}:{body:{client_secret:'cs_test_2_secret',url:'https://checkout.stripe.com/c/pay/cs_test_2_secret',id:'cs_test_2'}});
  let r=await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],code:'sprinklr-10'}));
  assert.match(calls[0].url,/code=SPRINKLR10/);let f=new URLSearchParams(calls[1].opt.body);
  assert.equal(f.get('discounts[0][promotion_code]'),'promo_123');assert.equal(f.get('allow_promotion_codes'),null);assert.equal(JSON.parse(r.body).code,'SPRINKLR10');
- calls=mockStripe(u=>u.includes('promotion_codes')?{body:{data:[]}}:{body:{client_secret:'cs_test_3_secret',id:'cs_test_3'}});
+ calls=mockStripe(u=>u.includes('promotion_codes')?{body:{data:[]}}:{body:{client_secret:'cs_test_3_secret',url:'https://checkout.stripe.com/c/pay/cs_test_3_secret',id:'cs_test_3'}});
  r=await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],code:'NOPE'}));
  f=new URLSearchParams(calls[1].opt.body);assert.equal(f.get('discounts[0][promotion_code]'),null);assert.equal(f.get('allow_promotion_codes'),'true');assert.equal(f.get('metadata[code]'),'NOPE');
 });
@@ -99,10 +99,10 @@ test('order summary: only paid shop orders; order details for the confirmation p
 
 test('the chosen project is recorded on the open order, and only one of the three',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';
- let calls=mockStripe(u=>({body:{client_secret:'cs_test_9_secret',id:'cs_test_9'}}));
+ let calls=mockStripe(u=>({body:{client_secret:'cs_test_9_secret',url:'https://checkout.stripe.com/c/pay/cs_test_9_secret',id:'cs_test_9'}}));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],choice:'orangutans-in-danger'}));
  assert.equal(new URLSearchParams(calls[0].opt.body).get('metadata[choice]'),'orangutans-in-danger');
- calls=mockStripe(u=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ calls=mockStripe(u=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}}));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],choice:'buy-a-yacht'}));
  assert.equal(new URLSearchParams(calls[0].opt.body).get('metadata[choice]'),'');
  calls=mockStripe((u,o)=>o.method==='GET'?{body:{status:'open',metadata:{source:'website-shop'}}}:{body:{}});
@@ -115,7 +115,7 @@ test('the chosen project is recorded on the open order, and only one of the thre
 
 test('every order gets a quotable number, on the order and its payment',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';
- const calls=mockStripe(()=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ const calls=mockStripe(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}}));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}));
  const f=new URLSearchParams(calls[0].opt.body),ref=f.get('metadata[order_ref]');
  assert.match(ref,/^NF-[2-9A-HJKMNP-Z]{6}$/);
@@ -124,7 +124,7 @@ test('every order gets a quotable number, on the order and its payment',async()=
 
 test('subscriptions: the range at 5% off; one frequency; one-offs ride along; delivery under SGD 50',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';delete process.env.PRICE_BAG_1KG;delete process.env.PRICE_BAG_250G;
- const calls=mockStripe(stripeWithCatalogue(()=>({body:{client_secret:'x',id:'cs_test_9'}})));
+ const calls=mockStripe(stripeWithCatalogue(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}})));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:2,every:2},{name:'Batang Gadis',size:'1kg',qty:1,every:4},{name:'Batang Toru',size:'1kg',qty:1}]}));
  const f=sessionCall(calls);
  assert.equal(f.get('mode'),'subscription');
@@ -135,25 +135,25 @@ test('subscriptions: the range at 5% off; one frequency; one-offs ride along; de
  assert.equal(made.length,36,'4 coffees x 2 sizes x 4 frequencies, plus delivery x 4');assert.equal(made.find(m=>m.get('lookup_key')==='nf-sub-gayo-250g-w2-p5').get('unit_amount'),'2280');
  assert.equal(made.find(m=>m.get('lookup_key')==='nf-del-w2').get('unit_amount'),'400');
  assert.equal(calls.filter(c=>c.url.endsWith('/v1/products')).length,9);
- const small=mockStripe(stripeWithCatalogue(()=>({body:{client_secret:'x',id:'cs_test_9'}})));
+ const small=mockStripe(stripeWithCatalogue(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}})));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:2}]}));
  const sf=sessionCall(small);assert.equal(sf.get('line_items[1][price]'),'price_nf-del-w2','one 250 g bag a delivery pays SGD 4 delivery');assert.equal(sf.get('metadata[delivery_cents]'),'400');
  assert.equal(f.get('line_items[2][price_data][unit_amount]'),'8000');assert.equal(f.get('line_items[2][price_data][recurring][interval]'),null,'one-off rides along');
  assert.equal(f.get('subscription_data[metadata][source]'),'website-shop');assert.equal(f.get('subscription_data[metadata][every_weeks]'),'2');
  assert.equal(f.get('shipping_options[0][shipping_rate_data][type]'),null);assert.equal(f.get('allow_promotion_codes'),null,'no code box on subscriptions');
  assert.match(f.get('custom_text[submit][message]'),/every 2 weeks.*until you cancel.*\[Subscription terms\]\(https:\/\/nofilter.sg\/subscription-terms\/\)/);
- const one=mockStripe(()=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ const one=mockStripe(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}}));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}));
  const g=sessionCall(one);assert.equal(g.get('mode'),'payment');assert.equal(g.get('customer_creation'),'always');
  assert.equal(g.get('shipping_options[0][shipping_rate_data][fixed_amount][amount]'),'400','one-off under SGD 50: SGD 4');
- const big=mockStripe(()=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ const big=mockStripe(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}}));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'1kg',qty:1}]}));
  assert.equal(sessionCall(big).get('shipping_options[0][shipping_rate_data][fixed_amount][amount]'),'0','SGD 50 and over: free');
 });
 
 test('subscriptions with a client code: the better of the two, never both',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';
- const promo=pct=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[{id:'promo_1',coupon:{percent_off:pct}}]}}:{body:{client_secret:'x',id:'cs_test_9'}});
+ const promo=pct=>stripeWithCatalogue((u,o)=>u.includes('promotion_codes')?{body:{data:[{id:'promo_1',coupon:{percent_off:pct}}]}}:{body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}});
  let calls=mockStripe(promo(10));
  let r=JSON.parse((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1},{name:'Batang Toru',size:'250g',qty:1}],code:'SPRINKLR10'}))).body);
  let f=sessionCall(calls);

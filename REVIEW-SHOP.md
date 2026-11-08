@@ -88,6 +88,13 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
    is under SGD 50, added or dropped by the order page's changes. Delivery is never in the 10% (report, order
    summary, running total).
 
+13. **Hosted checkout** (156): Stripe's hosted page instead of the embedded form (Alex preferred its layout).
+   Our panel is step 1 (film, project choice, order summary with delivery and the subscription's repeat charge);
+   "Continue to secure payment" creates the session with the choice and redirects (`success_url` back to
+   `/shop/?paid=1&order=…`, `cancel_url` to `/shop/`). The 151 header changes (payment permission, opener policy)
+   were reverted: nothing of Stripe runs in our page now. `STRIPE_PUBLISHABLE_KEY` is no longer needed. The
+   `action: 'choose'` path in checkout.js is now unused (choice is set at creation).
+
 ## Known gaps (not bugs)
 
 - Retail ships within Singapore only; other markets get a message instead of checkout.
