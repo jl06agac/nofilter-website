@@ -31,6 +31,7 @@ exports.handler = async function (event) {
     }
     const byPartner = Object.values(by).map(v => ({ origin: v.origin, name: v.name, partner: v.partner, bags: v.bags, contribution: Math.round(v.sales * rate) }));
     return reply(200, { currency: s.currency || 'sgd', bags: byPartner.reduce((n, v) => n + v.bags, 0),
-      contribution: byPartner.reduce((n, v) => n + v.contribution, 0), byPartner, code: (s.metadata || {}).code || null });
+      contribution: byPartner.reduce((n, v) => n + v.contribution, 0), byPartner, code: (s.metadata || {}).code || null,
+      choice: (s.metadata || {}).choice || null });
   } catch (e) { return reply(502, { error: 'stripe error' }); }
 };

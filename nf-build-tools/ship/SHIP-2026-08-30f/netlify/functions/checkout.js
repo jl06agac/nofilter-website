@@ -1,8 +1,11 @@
-/* NoFilter checkout: turns the cart into a Stripe Checkout Session and returns its URL.
+/* NoFilter checkout: turns the cart into an embedded Stripe Checkout Session. The payment form is
+   mounted inside our own checkout panel (the landscape's film and the three projects beside it),
+   so this returns the session's client secret and the publishable key, not a URL.
    PRICES AND PRODUCTS LIVE HERE, not in the page: the page sends only names, sizes and
    quantities, and anything not on the list below is refused.
    Netlify -> Site settings -> Environment:
-     STRIPE_SECRET_KEY   sk_test_... to rehearse, sk_live_... to go live (without it: 503)
+     STRIPE_SECRET_KEY        sk_test_... to rehearse, sk_live_... to go live (without it: 503)
+     STRIPE_PUBLISHABLE_KEY   pk_test_... / pk_live_..., the matching public key for the form
      PRICE_BAG_250G      unit amount in cents (default 2400 = SGD 24.00, MARKETS.SG.bag250)
      PRICE_BAG_1KG       unit amount in cents (default 8000 = SGD 80.00, MARKETS.SG.bag1kg)
      DELIVERY_CENTS      delivery charge per order in cents (default 0: retail prices include delivery)
@@ -22,6 +25,11 @@ const ORIGINS = {
 };
 const COFFEES = Object.keys(ORIGINS);
 const CONTRIBUTION_RATE = '0.10';
+const BAGS = { 'Batang Toru': 'bag-batang-toru-640.webp', 'Batang Gadis': 'bag-batang-gadis-640.webp', 'Gayo Lues': 'bag-gayo-lues-640.webp', 'Arakan Mountains': 'bag-arakan-640.webp' };
+const CDN = 'https://nofilter-shared.netlify.app/';
+// The three things a customer can point their 10% at, as on the impact counter. No choice means
+// where the partner needs it most. Recorded on the order (metadata.choice) and totalled in the report.
+const CHOICES = { 'protect-forests': 'Protect wild forests', 'orangutans-in-danger': 'Help orangutans in danger', 'coffee-with-forest': 'Grow coffee with the forest' };
 const reply = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(body) });
 
 async function stripe(path, key, form, method = 'POST') {
@@ -51,9 +59,20 @@ function cleanLines(lines) {
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return reply(405, { error: 'POST only' });
   const KEY = process.env.STRIPE_SECRET_KEY;
-  if (!KEY) return reply(503, { error: 'payments not configured' });
+  if (!KEY || !process.env.STRIPE_PUBLISHABLE_KEY) return reply(503, { error: 'payments not configured' });
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch (e) { return reply(400, { error: 'bad request' }); }
+
+  // The customer changes their project while paying: written to the open order they are paying for.
+  if (body.action === 'choose') {
+    const id = String(body.session || '');
+    if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(id) || !(body.choice in CHOICES || body.choice === '')) return reply(400, { error: 'bad choice' });
+    const s = await stripe('checkout/sessions/' + id, KEY, null, 'GET');
+    if (!s.ok || s.data.status !== 'open' || (s.data.metadata || {}).source !== 'website-shop') return reply(409, { error: 'order not open' });
+    const f = new URLSearchParams(); f.set('metadata[choice]', body.choice);
+    const u = await stripe('checkout/sessions/' + id, KEY, f);
+    return u.ok ? reply(200, { choice: body.choice || null }) : reply(502, { error: 'stripe error' });
+  }
   const lines = cleanLines(body.lines);
   if (!lines) return reply(400, { error: 'bad cart' });
   const code = String(body.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 24);
@@ -68,8 +87,8 @@ exports.handler = async function (event) {
   const form = new URLSearchParams();
   form.set('mode', 'payment');
   form.set('locale', 'en-GB');
-  form.set('success_url', origin + '/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
-  form.set('cancel_url', origin + '/shop/');
+  form.set('ui_mode', 'embedded');
+  form.set('return_url', origin + '/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
   form.set('shipping_address_collection[allowed_countries][0]', 'SG');
   form.set('phone_number_collection[enabled]', 'true');
   form.set('shipping_options[0][shipping_rate_data][type]', 'fixed_amount');
@@ -78,6 +97,7 @@ exports.handler = async function (event) {
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'sgd');
   form.set('metadata[source]', 'website-shop');
   form.set('metadata[contribution_rate]', CONTRIBUTION_RATE);
+  form.set('metadata[choice]', body.choice in CHOICES ? body.choice : '');
   lines.forEach((l, i) => {
     form.set(`line_items[${i}][quantity]`, String(l.qty));
     form.set(`line_items[${i}][price_data][currency]`, 'sgd');
@@ -85,6 +105,7 @@ exports.handler = async function (event) {
     form.set(`line_items[${i}][price_data][product_data][name]`, `${l.name} coffee, ${l.size === '250g' ? '250 g' : '1 kg'}`);
     form.set(`line_items[${i}][price_data][product_data][metadata][origin]`, ORIGINS[l.name].origin);
     form.set(`line_items[${i}][price_data][product_data][metadata][partner]`, ORIGINS[l.name].partner);
+    form.set(`line_items[${i}][price_data][product_data][images][0]`, CDN + BAGS[l.name]);
   });
 
   // A client code is applied for them when Stripe knows it; otherwise they can type one in.
@@ -98,8 +119,8 @@ exports.handler = async function (event) {
   if (!applied) form.set('allow_promotion_codes', 'true');
 
   const { ok, data } = await stripe('checkout/sessions', KEY, form);
-  if (!ok || !data.url) return reply(502, { error: 'stripe error' });
-  return reply(200, { url: data.url, code: applied ? code : null });
+  if (!ok || !data.client_secret) return reply(502, { error: 'stripe error' });
+  return reply(200, { clientSecret: data.client_secret, session: data.id, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY, code: applied ? code : null });
 };
 
-exports._test = { cleanLines, COFFEES, ORIGINS };
+exports._test = { cleanLines, COFFEES, ORIGINS, CHOICES };

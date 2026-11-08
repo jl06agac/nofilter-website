@@ -5,6 +5,7 @@
    For every paid order the shop created (metadata.source = website-shop), each line's
    amount after discounts is grouped by the coffee's origin and partner (stamped on the line
    by checkout.js), and the contribution is that amount times the order's contribution_rate.
+   byChoice splits the same amounts by the project the customer chose (where-needed if none).
    Delivery charges are not coffee and carry no contribution. Refunds are not netted off:
    a refunded order is listed under `refunded` so it can be excluded by hand.
    Dates are Singapore dates, inclusive. Amounts are in cents (SGD). */
@@ -48,7 +49,7 @@ exports.handler = async function (event) {
   const gte = sgDay(q.from, false), lte = sgDay(q.to, true);
   if (!(gte <= lte)) return reply(400, { error: 'from is after to' });
 
-  const totals = {}, refunded = [];
+  const totals = {}, refunded = [], byChoice = {};
   let orders = 0, after = '';
   try {
     for (;;) {
@@ -60,9 +61,13 @@ exports.handler = async function (event) {
         const pi = s.payment_intent && typeof s.payment_intent === 'object' ? s.payment_intent : null;
         if (pi && pi.latest_charge && typeof pi.latest_charge === 'object' && pi.latest_charge.refunded) refunded.push(s.id);
         orders++;
+        const choice = (s.metadata || {}).choice || 'where-needed';
         for (const [k, v] of Object.entries(contributions(lines.data, rate))) {
           if (!totals[k]) totals[k] = { origin: v.origin, partner: v.partner, sales: 0, contribution: 0, bags: 0 };
           totals[k].sales += v.sales; totals[k].contribution += v.contribution; totals[k].bags += v.bags;
+          const ck = choice + '|' + k;
+          if (!byChoice[ck]) byChoice[ck] = { choice, origin: v.origin, partner: v.partner, contribution: 0 };
+          byChoice[ck].contribution += v.contribution;
         }
       }
       if (!page.has_more || !page.data.length) break;
@@ -71,7 +76,7 @@ exports.handler = async function (event) {
   } catch (e) { return reply(502, { error: e.message }); }
 
   const byPartner = Object.values(totals).sort((a, b) => b.contribution - a.contribution);
-  return reply(200, { from: q.from, to: q.to, currency: 'sgd', orders, byPartner,
+  return reply(200, { from: q.from, to: q.to, currency: 'sgd', orders, byPartner, byChoice: Object.values(byChoice),
     contribution: byPartner.reduce((n, v) => n + v.contribution, 0), refunded });
 };
 

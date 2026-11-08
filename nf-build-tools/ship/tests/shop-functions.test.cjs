@@ -5,7 +5,7 @@ const checkout=require(path.join(F,'checkout.js')),report=require(path.join(F,'s
 const ev=(body,headers={origin:'https://nofilter.sg'})=>({httpMethod:'POST',headers,body:JSON.stringify(body)});
 function mockStripe(handler){const calls=[];global.fetch=async(url,opt={})=>{calls.push({url,opt});const r=handler(url,opt);return {ok:r.ok!==false,json:async()=>r.body};};return calls;}
 
-test('no key: 503, nothing sent',async()=>{delete process.env.STRIPE_SECRET_KEY;assert.equal((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}))).statusCode,503);});
+test('no key: 503, nothing sent',async()=>{delete process.env.STRIPE_SECRET_KEY;process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';assert.equal((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}))).statusCode,503);});
 
 test('only the four coffees in 250 g or 1 kg; quantities merged and capped',()=>{
  const c=checkout._test.cleanLines;
@@ -16,10 +16,10 @@ test('only the four coffees in 250 g or 1 kg; quantities merged and capped',()=>
 });
 
 test('prices are set here, every line carries its origin and partner, delivery in Singapore',async()=>{
- process.env.STRIPE_SECRET_KEY='sk_test_x';delete process.env.PRICE_BAG_1KG;delete process.env.PRICE_BAG_250G;
- const calls=mockStripe(u=>({body:{url:'https://checkout.stripe.com/s/1'}}));
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';delete process.env.PRICE_BAG_1KG;delete process.env.PRICE_BAG_250G;
+ const calls=mockStripe(u=>({body:{client_secret:'cs_test_1_secret_x',id:'cs_test_1'}}));
  const r=await checkout.handler(ev({lines:[{name:'Batang Gadis',size:'1kg',qty:2,price:0.01},{name:'Batang Toru',size:'250g',qty:1}]}));
- assert.equal(r.statusCode,200);assert.equal(JSON.parse(r.body).url,'https://checkout.stripe.com/s/1');
+ assert.equal(r.statusCode,200);const out=JSON.parse(r.body);assert.equal(out.clientSecret,'cs_test_1_secret_x');assert.equal(out.publishableKey,'pk_test_x');assert.equal(out.session,'cs_test_1');
  const f=new URLSearchParams(calls[0].opt.body);
  assert.equal(f.get('line_items[0][price_data][unit_amount]'),'8000','the page cannot set a price');
  assert.equal(f.get('line_items[1][price_data][unit_amount]'),'2400');
@@ -29,16 +29,18 @@ test('prices are set here, every line carries its origin and partner, delivery i
  assert.equal(f.get('metadata[contribution_rate]'),'0.10');assert.equal(f.get('metadata[source]'),'website-shop');
  assert.equal(f.get('shipping_address_collection[allowed_countries][0]'),'SG');
  assert.equal(f.get('allow_promotion_codes'),'true','customers can enter a code');
- assert.equal(f.get('success_url'),'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
+ assert.equal(f.get('ui_mode'),'embedded');assert.equal(f.get('return_url'),'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
+ assert.equal(f.get('line_items[0][price_data][product_data][images][0]'),'https://nofilter-shared.netlify.app/bag-batang-gadis-640.webp');
+ assert.equal(f.get('metadata[choice]'),'','no choice yet means where it is needed most');
 });
 
 test('a known client code is applied; an unknown one leaves the code box open',async()=>{
  process.env.STRIPE_SECRET_KEY='sk_test_x';
- let calls=mockStripe(u=>u.includes('promotion_codes')?{body:{data:[{id:'promo_123'}]}}:{body:{url:'https://checkout.stripe.com/s/2'}});
+ let calls=mockStripe(u=>u.includes('promotion_codes')?{body:{data:[{id:'promo_123'}]}}:{body:{client_secret:'cs_test_2_secret',id:'cs_test_2'}});
  let r=await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],code:'sprinklr-10'}));
  assert.match(calls[0].url,/code=SPRINKLR10/);let f=new URLSearchParams(calls[1].opt.body);
  assert.equal(f.get('discounts[0][promotion_code]'),'promo_123');assert.equal(f.get('allow_promotion_codes'),null);assert.equal(JSON.parse(r.body).code,'SPRINKLR10');
- calls=mockStripe(u=>u.includes('promotion_codes')?{body:{data:[]}}:{body:{url:'https://checkout.stripe.com/s/3'}});
+ calls=mockStripe(u=>u.includes('promotion_codes')?{body:{data:[]}}:{body:{client_secret:'cs_test_3_secret',id:'cs_test_3'}});
  r=await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],code:'NOPE'}));
  f=new URLSearchParams(calls[1].opt.body);assert.equal(f.get('discounts[0][promotion_code]'),null);assert.equal(f.get('allow_promotion_codes'),'true');assert.equal(f.get('metadata[code]'),'NOPE');
 });
@@ -79,4 +81,20 @@ test('order summary: only paid shop orders; contribution by partner; nothing per
  assert(!JSON.stringify(r).includes('a@b.c'),'no personal details');
  mockStripe(()=>({body:{payment_status:'unpaid',metadata:{source:'website-shop'}}}));
  assert.equal((await sum.handler({queryStringParameters:{order:'cs_test_abcdefghijklmnop'}})).statusCode,404);
+});
+
+test('the chosen project is recorded on the open order, and only one of the three',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';
+ let calls=mockStripe(u=>({body:{client_secret:'cs_test_9_secret',id:'cs_test_9'}}));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],choice:'orangutans-in-danger'}));
+ assert.equal(new URLSearchParams(calls[0].opt.body).get('metadata[choice]'),'orangutans-in-danger');
+ calls=mockStripe(u=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],choice:'buy-a-yacht'}));
+ assert.equal(new URLSearchParams(calls[0].opt.body).get('metadata[choice]'),'');
+ calls=mockStripe((u,o)=>o.method==='GET'?{body:{status:'open',metadata:{source:'website-shop'}}}:{body:{}});
+ let r=await checkout.handler(ev({action:'choose',session:'cs_test_abcdefghijkl',choice:'coffee-with-forest'}));
+ assert.equal(r.statusCode,200);assert.equal(new URLSearchParams(calls[1].opt.body).get('metadata[choice]'),'coffee-with-forest');
+ assert.equal((await checkout.handler(ev({action:'choose',session:'cs_test_abcdefghijkl',choice:'nope'}))).statusCode,400);
+ mockStripe((u,o)=>({body:{status:'complete',metadata:{source:'website-shop'}}}));
+ assert.equal((await checkout.handler(ev({action:'choose',session:'cs_test_abcdefghijkl',choice:'protect-forests'}))).statusCode,409,'a paid order cannot be changed');
 });
