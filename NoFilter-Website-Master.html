@@ -17228,7 +17228,7 @@ var CODE_INFO = null;
 function offFor(l){
   var c = CODE_INFO || null, be = basketEvery();
   if(be) return l.every ? Math.max(SUB_OFF, c && c.subs ? c.pct : 0) : (c && c.subs ? c.pct : 0);
-  return c ? c.pct : 0;
+  return c && c.oneOff ? c.pct : 0;   /* a code with conditions is left to Stripe's page */
 }
 function unitPrice(l){ var off = offFor(l); return off ? Math.round(l.price * (1 - off) * 100) / 100 : l.price; }
 function codeNote(){
@@ -17237,12 +17237,13 @@ function codeNote(){
   if(CODE_INFO === false) return 'Code ' + SHOP_CODE + ' is checked on the payment page.';
   var pc = Math.round(CODE_INFO.pct * 100) + '%';
   if(basketEvery() && !CODE_INFO.subs) return 'Code ' + SHOP_CODE + ' (' + pc + ') is for one-off orders, so subscriptions keep their 5%.';
+  if(!basketEvery() && !CODE_INFO.oneOff) return 'Code ' + SHOP_CODE + ' (' + pc + ') is checked on the payment page.';
   return 'Code ' + SHOP_CODE + ': ' + pc + ' off, included above.';
 }
 if(SHOP_CODE && typeof fetch === 'function'){
   fetch('/.netlify/functions/checkout?code=' + encodeURIComponent(SHOP_CODE)).then(function(r){
-    if(r.status === 404) return false; if(!r.ok) return null; return r.json().then(function(j){ return { pct: +j.pct || 0, subs: !!j.subscriptions }; });
-  }).then(function(v){ CODE_INFO = v; try{ renderCart(); }catch(e){} }).catch(function(){});
+    if(r.status === 404) return false; if(!r.ok) return null; return r.json().then(function(j){ return { pct: +j.pct || 0, subs: !!j.subscriptions, oneOff: !!j.oneOff }; });
+  }).then(function(v){ CODE_INFO = v; try{ renderCart(); }catch(e){} try{ if(window.__nfPayRepaint) window.__nfPayRepaint(); }catch(e){} }).catch(function(){});   /* an open checkout refreshes too (171) */
 }
 function lineTotal(l){ return unitPrice(l) * l.qty; }
 function basketEvery(){ var e = 0; cart.forEach(function(l){ if(l.every) e = l.every; }); return e; }
@@ -17694,7 +17695,7 @@ function openPay(){
       return '<div><span>' + n + (oo ? ' <small>' + oo.ngo + '</small>' : '') + '</span><span>' + CUR() + money(F.by[n]) + '</span></div>'; }).join('');
     el.querySelector('.nf-go-n').textContent = F.be ? 'On Stripe’s secure page: card, Apple Pay or Google Pay.' : 'On Stripe’s secure page: card, Apple Pay, Google Pay, PayNow or GrabPay.';
   }
-  function close(){ el.remove(); document.documentElement.classList.remove('nf-paying'); document.removeEventListener('keydown', key);
+  function close(){ el.remove(); window.__nfPayRepaint = null; document.documentElement.classList.remove('nf-paying'); document.removeEventListener('keydown', key);
     var back = (opener && document.contains(opener) && opener.offsetParent !== null && !opener.closest('#checkoutBtn, .cart')) ? opener : document.getElementById('cartBtn');   /* the basket drawer is closed by now */ if(back && back.focus) back.focus(); }
   function key(e){
     if(e.key === 'Escape'){ close(); return; }
@@ -17711,6 +17712,7 @@ function openPay(){
   paintGive();
   var go = el.querySelector('.nf-go'), err = el.querySelector('.nf-go-err');
   el.querySelector('.nf-go-bar button').addEventListener('click', function(){ go.click(); });
+  window.__nfPayRepaint = function(){ repaint(); };   /* the code lookup can finish while checkout is open (171) */
   function repaint(){
     F = payFigures(); give = F.give; sub = F.sub; del = F.del; be = F.be;
     el.querySelector('.nf-sum').innerHTML = paySummary(F);
@@ -21336,10 +21338,13 @@ function nfQuoteSubmit(ev){
      spinner, and the catch is deliberately silent. It fails harmlessly on a file://
      preview and on any deploy where RESEND_API_KEY has not been set yet, and the
      reader sees exactly what they see today. See netlify/functions/quote-confirm.js. */
+  /* 171 (Codex): both sends are watched. If neither the Netlify Forms record nor the internal email gets
+     through, the thank-you says so and gives the address, instead of "received". */
+  var pConfirm = Promise.resolve(false), pForm = Promise.resolve(false);
   if(who.email && typeof fetch === 'function'){
     try {
       var qm = document.getElementById('qThanksMail'); if(qm) qm.textContent = '.';
-      fetch('/.netlify/functions/quote-confirm', {
+      pConfirm = fetch('/.netlify/functions/quote-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -21369,9 +21374,12 @@ function nfQuoteSubmit(ev){
           cupsY:     (c && c.kgTotal && window.__nfVolCups) ? window.__nfVolCups() : null   /* block 109 */
         })
       }).then(function(r){
-        var m = document.getElementById('qThanksMail');
-        if(r && r.ok && m) m.textContent = ', and we\u2019ve emailed you a copy for your records.';
-      }).catch(function(){});
+        return r.text().then(function(t){
+          var m = document.getElementById('qThanksMail');
+          if(r.ok && m) m.textContent = ', and we\u2019ve emailed you a copy for your records.';
+          return r.ok && t === 'sent';   /* 'sent' = the internal copy reached NoFilter too */
+        });
+      }).catch(function(){ return false; });
     } catch(e){}
   }
 
@@ -21427,15 +21435,25 @@ function nfQuoteSubmit(ev){
       var body = Object.keys(nfForm).map(function(k){
         return encodeURIComponent(k) + '=' + encodeURIComponent(nfForm[k] == null ? '' : nfForm[k]);
       }).join('&');
-      fetch('/', {
+      pForm = fetch('/', {
         method : 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body   : body
-      }).catch(function(){});
+      }).then(function(r){ return r.ok; }).catch(function(){ return false; });
     } catch(e){}
   }
 
   $('#sendState').textContent = 'SENT ✓';
+  Promise.all([pConfirm, pForm]).then(function(res){
+    if(res[0] || res[1]) return;   /* at least one durable record reached NoFilter */
+    var th = document.getElementById('qThanks'); if(!th) return;
+    var st = $('#sendState'); if(st) st.textContent = 'NOT SENT';
+    var mk = th.querySelector('.q-thanks-mark'); if(mk) mk.textContent = '!';
+    var ti = th.querySelector('.q-thanks-title'); if(ti) ti.textContent = 'Not sent yet.';
+    var bodies = th.querySelectorAll('.q-thanks-body');
+    if(bodies[0]) bodies[0].textContent = 'We couldn\u2019t record your selections just now. Please email hello@nofilter.sg' + (typeof QREF === 'string' && QREF ? ' quoting ' + QREF : '') + ', and we\u2019ll pick it up from there.';
+    for(var i = 1; i < bodies.length; i++) bodies[i].hidden = true;
+  });
   var panel = $('#sendPanel .panel-bd');
   if(panel.__nfOrig == null) panel.__nfOrig = panel.innerHTML;   /* for the reset */
   panel.textContent = '';

@@ -2,7 +2,7 @@
    emails NoFilter the order to fulfil.
      POST /.netlify/functions/shop-webhook   (Stripe webhook, event checkout.session.completed)
    Set up once in Stripe (Developers, Webhooks): endpoint https://nofilter.sg/.netlify/functions/shop-webhook,
-   event checkout.session.completed. Stripe shows a signing secret (whsec_...); it goes in Netlify as
+   events checkout.session.completed and checkout.session.async_payment_succeeded. Stripe shows a signing secret (whsec_...); it goes in Netlify as
    STRIPE_WEBHOOK_SECRET. Without it this function answers 503 and sends nothing.
    Every request is checked against Stripe's signature (HMAC-SHA256 of "timestamp.body", five minutes'
    tolerance), so nobody else can make the site send mail. The order details come from order-summary.js, the
@@ -32,7 +32,7 @@ function verify(raw, header, secret, now = Date.now()) {
   return sigs.some(s => s.length === want.length && crypto.timingSafeEqual(Buffer.from(s), Buffer.from(want)));
 }
 
-function customerEmail(d, origin, sessionId) {
+function customerEmail(d, origin, sessionId, when = Date.now()) {
   const o = d.order || {}, sb = d.subscription, first = o.firstName ? ', ' + ESC(o.firstName) : '';
   const manage = sb && sb.every ? `${origin}/shop/?paid=1&order=${encodeURIComponent(sessionId)}&manage=page` : '';
   const per = sb && sb.every ? (sb.items || []).reduce((n, it) => n + (it.amount || 0), 0) + (sb.delivery || 0) : 0;
@@ -47,7 +47,7 @@ function customerEmail(d, origin, sessionId) {
 <tr><td style="border-top:2px solid #EE4D17;padding-top:22px">
 <p style="margin:0 0 6px;font:600 11px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#6B645C">Order ${ESC(o.ref || '')} &middot; confirmed</p>
 <h1 style="margin:0 0 10px;font-size:24px;line-height:1.2;font-weight:800">Thanks${first}.</h1>
-<p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#4A443E">We roast every Wednesday. Yours is roasted <b style="color:#1A1815">${roastAfter(Date.now())}</b> and dispatched shortly after, fresh from that roast.</p>
+<p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#4A443E">We roast every Wednesday. Yours is roasted <b style="color:#1A1815">${roastAfter(when)}</b> and dispatched shortly after, fresh from that roast.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${items}</table>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px">${sums}</table>
 ${per ? `<p style="margin:14px 0 0;font-size:14px;color:#4A443E">Then <b style="color:#1A1815">${money(per)} ${EVERY[sb.every]}</b>${sb.nextCharge ? ', next charged on ' + dateOf(sb.nextCharge) : ''}. Swap coffees, change how often, skip a delivery or cancel whenever you like.</p>
@@ -60,7 +60,7 @@ ${pw ? `<td valign="top" style="font-size:13px;line-height:1.55;color:#4A443E"><
 <p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:#6B645C">Questions? Reply to this email, quoting ${ESC(o.ref || 'your order number')}.${per ? ` <a href="${origin}/subscription-terms/" style="color:#6B645C">Subscription terms</a>.` : ''}</p>
 <p style="margin:18px 0 0;font-size:12px;color:#8A837A">NoFilter Pte. Ltd., Singapore</p>
 </td></tr></table></body></html>`;
-  const text = [`Order ${o.ref} confirmed. Thanks${o.firstName ? ', ' + o.firstName : ''}.`, `Roasted ${roastAfter(Date.now())}, dispatched shortly after.`, '',
+  const text = [`Order ${o.ref} confirmed. Thanks${o.firstName ? ', ' + o.firstName : ''}.`, `Roasted ${roastAfter(when)}, dispatched shortly after.`, '',
     ...(o.items || []).map(it => `${it.name}, ${it.size} x ${it.qty}${it.every ? ', ' + EVERY[it.every] : ''}: ${money(it.amount)}`),
     o.discount ? `Discount: -${money(o.discount)}` : null, `Delivery: ${o.delivery ? money(o.delivery) : 'Free'}`, `Total paid: ${money(o.total)}`,
     per ? `\nThen ${money(per)} ${EVERY[sb.every]}. Manage your subscription: ${manage}` : null,
@@ -69,9 +69,9 @@ ${pw ? `<td valign="top" style="font-size:13px;line-height:1.55;color:#4A443E"><
   return { subject: `Your NoFilter order ${o.ref || ''}`.trim(), html, text };
 }
 
-function deskEmail(d, sessionId) {
+function deskEmail(d, sessionId, when = Date.now()) {
   const o = d.order || {}, sb = d.subscription;
-  const lines = [`New shop order ${o.ref}${sb && sb.every ? ' (subscription, ' + EVERY[sb.every] + ')' : ''}`, `Roast: ${roastAfter(Date.now())}`, '',
+  const lines = [`New shop order ${o.ref}${sb && sb.every ? ' (subscription, ' + EVERY[sb.every] + ')' : ''}`, `Roast: ${roastAfter(when)}`, '',
     ...(o.items || []).map(it => `${it.qty} x ${it.name}, ${it.size}${it.every ? ' (' + EVERY[it.every] + ')' : ''}`), '',
     `Total paid: ${money(o.total)} (delivery ${o.delivery ? money(o.delivery) : 'free'}${o.discount ? ', discount ' + money(o.discount) + (d.code ? ' ' + d.code : '') : ''})`,
     d.contribution ? `To conservation: ${money(d.contribution)} (${(d.byPartner || []).map(p => p.partner + ' ' + money(p.contribution)).join(', ')})` : null, '',
@@ -79,41 +79,78 @@ function deskEmail(d, sessionId) {
   return { subject: `Shop order ${o.ref}${sb && sb.every ? ' · subscription' : ''} · ${money(o.total)}`, text: lines.join('\n') };
 }
 
+// 171 (Codex): a delayed payment method finishes later with checkout.session.async_payment_succeeded; both
+// events are handled, and only a paid session sends anything. Which emails have gone out is kept on the
+// order's own Stripe object (the subscription, or the payment for a one-off order) as metadata, so a retry
+// days later, past Resend's 24-hour idempotency window, never sends one twice. Emails are built from the
+// order's creation time, so a retry inside the window sends the same content under the same key.
+const EVENTS = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'];
+async function stripeCall(path, key, form) {
+  const res = await fetch('https://api.stripe.com/v1/' + path, { method: form ? 'POST' : 'GET',
+    headers: { Authorization: 'Bearer ' + key, ...(form ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}) }, body: form ? form.toString() : undefined });
+  const data = await res.json(); if (!res.ok) throw Error('stripe ' + res.status); return data;
+}
+// what Stripe's delivery log may show: a status and a category, never the provider's own text
+function category(status, message) {
+  const m = String(message || '').toLowerCase();
+  if (status === 401 || status === 403 || /api key/.test(m)) return 'key';
+  if (/from|domain|sender/.test(m)) return 'sender';
+  if (status === 429) return 'rate-limited';
+  if (status === 422 || status === 400) return 'rejected';
+  return 'error';
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'POST only' };
-  const SECRET = process.env.STRIPE_WEBHOOK_SECRET, KEY = process.env.RESEND_API_KEY, FROM = process.env.QUOTE_FROM;
-  if (!SECRET || !KEY || !FROM) return { statusCode: 503, body: 'not configured' };
+  const SECRET = process.env.STRIPE_WEBHOOK_SECRET, KEY = process.env.RESEND_API_KEY, FROM = process.env.QUOTE_FROM, SK = process.env.STRIPE_SECRET_KEY;
+  if (!SECRET || !KEY || !FROM || !SK) return { statusCode: 503, body: 'not configured' };
   const raw = event.isBase64Encoded ? Buffer.from(event.body || '', 'base64').toString('utf8') : (event.body || '');
   const h = event.headers || {};
   if (!verify(raw, h['stripe-signature'] || h['Stripe-Signature'], SECRET)) return { statusCode: 400, body: 'bad signature' };
   let ev; try { ev = JSON.parse(raw); } catch (e) { return { statusCode: 400, body: 'bad body' }; }
   const s = ev && ev.data && ev.data.object;
-  if (ev.type !== 'checkout.session.completed' || !s || (s.metadata || {}).source !== 'website-shop' || s.payment_status !== 'paid') return { statusCode: 200, body: 'ignored' };
+  if (!EVENTS.includes(ev.type) || !s || (s.metadata || {}).source !== 'website-shop') return { statusCode: 200, body: 'ignored' };
+  if (s.payment_status !== 'paid') return { statusCode: 200, body: 'waiting for payment' };   // the async success event follows
+
+  // the order's own Stripe object carries which emails have been sent
+  const subId = typeof s.subscription === 'string' ? s.subscription : s.subscription && s.subscription.id;
+  const piId = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent && s.payment_intent.id;
+  const anchor = subId ? 'subscriptions/' + subId : piId ? 'payment_intents/' + piId : null;
+  let sent = {};
+  try { if (anchor) sent = ((await stripeCall(anchor, SK)).metadata) || {}; } catch (e) { return { statusCode: 500, body: 'order not readable' }; }
+  if (sent.nf_mail_customer === 'sent' && sent.nf_mail_desk === 'sent') return { statusCode: 200, body: 'already sent' };
 
   const r = await summary.handler({ httpMethod: 'GET', queryStringParameters: { order: s.id } });
   if (r.statusCode !== 200) return { statusCode: 500, body: 'order not readable' };   // Stripe retries
   const d = JSON.parse(r.body);
   let origin = 'https://nofilter.sg';
   try { origin = new URL(s.success_url).origin; } catch (e) {}
+  const when = (s.created || Math.floor(Date.now() / 1000)) * 1000;
   const send = (payload, key) => fetch('https://api.resend.com/emails', { method: 'POST',
     headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify(payload) });
   const desk = process.env.ORDERS_TO || process.env.QUOTE_TO || 'hello@nofilter.sg';
-  const results = [];
-  if (d.order && d.order.email) {
-    const m = customerEmail(d, origin, s.id);
-    results.push(await send({ from: FROM, to: [d.order.email], reply_to: desk, subject: m.subject, html: m.html, text: m.text }, 'shop-customer-' + s.id));
+  const jobs = [];
+  if (sent.nf_mail_customer !== 'sent' && d.order && d.order.email) {
+    const m = customerEmail(d, origin, s.id, when);
+    jobs.push(['nf_mail_customer', { from: FROM, to: [d.order.email], reply_to: desk, subject: m.subject, html: m.html, text: m.text }, 'shop-customer-' + s.id]);
   }
-  const k = deskEmail(d, s.id);
-  results.push(await send({ from: FROM, to: [desk], reply_to: (d.order && d.order.email) || desk, subject: k.subject, text: k.text }, 'shop-desk-' + s.id));
-  const bad = results.filter(x => !x.ok);
-  if (bad.length) {
-    // Resend's own reason (never the key), so Stripe's delivery log says what to fix
-    const why = [];
-    for (const x of bad) { let m = ''; try { const j = await x.json(); m = (j && (j.message || j.error || j.name)) || ''; } catch (e) {} why.push(x.status + (m ? ' ' + String(m).replace(/re_[A-Za-z0-9_]+/g, 're_…').slice(0, 160) : '')); }
-    console.error('shop-webhook: email not sent for', (d.order || {}).ref, why.join(' | '));
-    return { statusCode: 500, body: 'email failed: ' + why.join(' | ') };
+  if (sent.nf_mail_desk !== 'sent') {
+    const k = deskEmail(d, s.id, when);
+    jobs.push(['nf_mail_desk', { from: FROM, to: [desk], reply_to: (d.order && d.order.email) || desk, subject: k.subject, text: k.text }, 'shop-desk-' + s.id]);
   }
+  const why = [];
+  for (const [flag, payload, key] of jobs) {
+    const x = await send(payload, key);
+    // 409: this key already sent an email (an earlier attempt that we didn't get to record)
+    if (x.ok || x.status === 409) {
+      if (anchor) { const f = new URLSearchParams(); f.set('metadata[' + flag + ']', 'sent'); try { await stripeCall(anchor, SK, f); } catch (e) {} }
+      continue;
+    }
+    let msg = ''; try { const j = await x.json(); msg = (j && (j.message || j.name)) || ''; } catch (e) {}
+    why.push(flag.replace('nf_mail_', '') + ' ' + x.status + ' ' + category(x.status, msg));
+  }
+  if (why.length) { console.error('shop-webhook: email not sent for', (d.order || {}).ref, why.join(' | ')); return { statusCode: 500, body: 'email failed: ' + why.join(' | ') }; }
   return { statusCode: 200, body: 'sent' };
 };
 
-exports._test = { verify, customerEmail, deskEmail, roastAfter };
+exports._test = { verify, customerEmail, deskEmail, roastAfter, category };

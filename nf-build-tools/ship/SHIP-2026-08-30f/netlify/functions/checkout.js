@@ -105,7 +105,15 @@ async function lookupCode(code, KEY) {
   const cid = typeof ref === 'string' ? ref : ref && ref.id;
   const cr = cid ? await stripe('coupons/' + encodeURIComponent(cid) + '?expand[]=applies_to', KEY, null, 'GET') : null;
   const coupon = cr && cr.ok ? cr.data : null;
-  return { promoId: promo.id, pct: coupon && coupon.percent_off ? coupon.percent_off / 100 : 0, subOk: !!(coupon && subscriptionCodeOk(promo, coupon)) };
+  // oneOffOk: the basket may show the discount on one-off bags only when Stripe can't refuse or narrow it for
+  // this basket (no customer, first-order, minimum-spend or product rule, not expired or used up); otherwise
+  // the page leaves the price to Stripe's payment page (171, Codex)
+  const r = promo.restrictions || {}, now = Math.floor(Date.now() / 1000);
+  const oneOffOk = !!(coupon && coupon.percent_off && coupon.valid !== false && !promo.customer && !r.first_time_transaction && !r.minimum_amount
+    && !(coupon.applies_to && Array.isArray(coupon.applies_to.products) && coupon.applies_to.products.length)
+    && !(promo.expires_at && promo.expires_at <= now) && !(promo.max_redemptions && promo.times_redeemed >= promo.max_redemptions)
+    && !(coupon.max_redemptions && coupon.times_redeemed >= coupon.max_redemptions));
+  return { promoId: promo.id, pct: coupon && coupon.percent_off ? coupon.percent_off / 100 : 0, subOk: !!(coupon && subscriptionCodeOk(promo, coupon)), oneOffOk };
 }
 
 exports.handler = async function (event) {
@@ -117,7 +125,7 @@ exports.handler = async function (event) {
     const code = String((event.queryStringParameters || {}).code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 24);
     if (!code) return reply(400, { error: 'no code' });
     const c = await lookupCode(code, KEY);
-    return reply(c && c.pct ? 200 : 404, c && c.pct ? { code, pct: c.pct, subscriptions: c.subOk } : { error: 'unknown code' });
+    return reply(c && c.pct ? 200 : 404, c && c.pct ? { code, pct: c.pct, subscriptions: c.subOk, oneOff: c.oneOffOk } : { error: 'unknown code' });
   }
   if (event.httpMethod !== 'POST') return reply(405, { error: 'POST only' });
   if (!KEY) return reply(503, { error: 'payments not configured' });

@@ -7,7 +7,7 @@ const ev=(body,headers={origin:'https://nofilter.sg'})=>({httpMethod:'POST',head
 function tooDeep(url){const m=String(url).match(/expand(?:%5B%5D|\[\])=([^&]+)/g)||[];return m.map(x=>decodeURIComponent(x.split('=')[1])).find(p=>p.split('.').length>4);}
 function mockStripe(handler){const calls=[];global.fetch=async(url,opt={})=>{calls.push({url,opt});const deep=String(url).includes('api.stripe.com')&&tooDeep(url);
  if(deep)return {ok:false,status:400,json:async()=>({error:{message:'You cannot expand more than 4 levels of a property. Property: '+deep}})};
- const r=handler(url,opt);return {ok:r.ok!==false,json:async()=>r.body};};return calls;}
+ const r=handler(url,opt);return {ok:r.ok!==false,status:r.status||(r.ok===false?400:200),json:async()=>r.body};};return calls;}
 
 
 // A fake Stripe that also answers the catalogue calls (prices by lookup key, products, prices).
@@ -385,4 +385,34 @@ test('the server charges the prices the shop page shows (BAG equals MARKETS.SG i
  const m=html.match(/bag250:\s*([\d.]+),\s*bag1kg:\s*([\d.]+)/);assert.ok(m,'MARKETS.SG bag prices found');
  assert.deepEqual(checkout._test.BAG,{'250g':Math.round(+m[1]*100),'1kg':Math.round(+m[2]*100)});
  process.env.PRICE_BAG_1KG='8000';assert.equal(checkout._test.BAG['1kg'],7500,'a Netlify setting no longer overrides it');delete process.env.PRICE_BAG_1KG;
+});
+
+test('order emails: delayed payments, a retry never sends twice, and Stripe sees only an error category',async()=>{
+ const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
+ const sess={id:'cs_test_zzzzzzzzzzzzzzzz',payment_status:'paid',mode:'payment',currency:'sgd',customer:'cus_1',payment_intent:'pi_1',created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
+  amount_subtotal:7500,amount_total:7500,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-AAAAAA'},customer_details:{email:'pat@example.com',name:'pat lee'}};
+ let meta={},mails=[],failDesk=0;
+ mockStripe((u,o)=>{
+  if(u.startsWith('https://api.resend.com')){const b=JSON.parse(o.body);mails.push(b);if(b.to[0]==='hello@nofilter.sg'&&failDesk){failDesk--;return {ok:false,status:422,body:{message:'Invalid `to` field: pat@example.com is not allowed'}};}return {body:{id:'em'}};}
+  if(u.includes('/v1/payment_intents/pi_1')){if(o&&o.method==='POST'){for(const [k,v] of new URLSearchParams(o.body))meta[k.slice(9,-1)]=v;}return {body:{id:'pi_1',metadata:meta,latest_charge:null}};}
+  if(u.includes('/line_items'))return {body:{data:[{description:'Gayo Lues coffee, 1 kg',quantity:1,amount_total:7500,price:{product:{metadata:{origin:'gayo',partner:'OIC'}}}}]}};
+  if(u.includes('checkout/sessions?customer='))return {body:{data:[]}};
+  if(u.includes('invoices?'))return {body:{data:[]}};
+  if(u.includes('/v1/checkout/sessions/'))return {body:sess};
+  return {body:{}};});
+ const sign=(b)=>{const t=Math.floor(Date.now()/1000);return 't='+t+',v1='+crypto.createHmac('sha256','whsec_test').update(t+'.'+b).digest('hex');};
+ const fire=async(type,obj=sess)=>{const b=JSON.stringify({type,data:{object:obj}});return wh.handler({httpMethod:'POST',headers:{'stripe-signature':sign(b)},body:b});};
+ assert.equal((await fire('checkout.session.completed',{...sess,payment_status:'unpaid'})).body,'waiting for payment');assert.equal(mails.length,0);
+ // the desk copy fails once: the customer email is recorded, Stripe's log shows a category only
+ failDesk=1;let r=await fire('checkout.session.async_payment_succeeded');
+ assert.equal(r.statusCode,500);assert.equal(r.body,'email failed: desk 422 rejected');assert.doesNotMatch(r.body,/pat@/);
+ assert.equal(meta.nf_mail_customer,'sent');assert.equal(meta.nf_mail_desk,undefined);
+ // Stripe retries: only the desk copy goes, the customer isn't emailed again
+ const before=mails.filter(m=>m.to[0]==='pat@example.com').length;
+ r=await fire('checkout.session.async_payment_succeeded');assert.equal(r.body,'sent');
+ assert.equal(mails.filter(m=>m.to[0]==='pat@example.com').length,before,'no second receipt');assert.equal(meta.nf_mail_desk,'sent');
+ // days later, past Resend's 24 hours: nothing sent at all
+ const n=mails.length;assert.equal((await fire('checkout.session.completed')).body,'already sent');assert.equal(mails.length,n);
+ assert.equal(wh._test.category(401,'x'),'key');assert.equal(wh._test.category(403,'The domain is not verified'),'key');assert.equal(wh._test.category(422,'from address domain'),'sender');
 });
