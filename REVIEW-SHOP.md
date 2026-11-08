@@ -63,7 +63,7 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
    variables: `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` (test keys first, `sk_test_` / `pk_test_`),
    and `REPORT_KEY` (any long random phrase; it unlocks the NGO report).
 2. In Stripe: switch on Apple Pay, Google Pay and PayNow (Settings, Payment methods); verify the Apple Pay
-   domain `nofilter.sg`; Branding: background `#0D1012`, accent `#EE4D17`, logo.
+   domain `nofilter.sg`; Branding: background `#F4F2EE` (the shop's cream), accent `#EE4D17`, corners rounded, logo.
 3. Create the client promotion codes (10% off, e.g. `SPRINKLR10`, `EASTSPRING10`).
 4. Rehearse with test card 4242 4242 4242 4242 on a draft; then swap to live keys.
 5. Decide: does Arakan stay in the shop while Myanmar is phased out?

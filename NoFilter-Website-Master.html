@@ -896,13 +896,13 @@ p{margin:0 0 1em}
 .addbtn:hover{background:var(--signal);border-color:var(--signal);color:#fff}
 .addbtn.ok{background:var(--signal);border-color:var(--signal);color:#fff}
 
-.cart{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);z-index:80;background:var(--panel);
-  border-left:1px solid var(--line2);transform:translateX(102%);transition:transform .4s var(--ease);
+.cart{position:fixed;top:12px;right:12px;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);width:min(400px,calc(100vw - 24px));border-radius:18px;overflow:hidden;box-shadow:0 30px 80px -30px rgba(0,0,0,.85);z-index:80;background:var(--panel);
+  border:1px solid var(--line2);transform:translateX(calc(100% + 24px));transition:transform .4s var(--ease);
   display:flex;flex-direction:column}
 .cart.open{transform:none}
 .cart-hd{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--line);
   font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
-.cart-bd{flex:1;overflow-y:auto;padding:6px 16px}
+.cart-bd{flex:0 1 auto;min-height:0;overflow-y:auto;padding:6px 16px} /* 145 · the docket is as long as its lines; scrolls only at full height */
 .cart-ft{border-top:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:12px}
 .ci{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:12px 0;
   border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px}
@@ -17604,11 +17604,11 @@ function openPay(d){
     '<div class="nf-pay-story">' +
       '<video class="nf-pay-film" src="' + PAY_FILMS[o.k] + '" autoplay muted loop playsinline preload="metadata"></video>' +
       '<div class="nf-pay-cap"><span class="nf-pay-k">' + o.name + ' · ' + o.ngo + '</span></div>' +
-      '<div class="nf-pay-ask"><h3>Where should your ' + CUR() + money(give) + ' go?</h3>' +
+      '<div class="nf-pay-ask"><span class="nf-pay-step">1 · Where it goes</span><h3>Where should your ' + CUR() + money(give) + ' go?</h3>' +
         '<p>Choose one. Or leave it, and ' + o.ngo + ' will put it where it’s needed most.</p>' +
         '<div class="nf-pay-ch">' + PAY_CHOICES.map(function(c){ return '<button type="button" data-ch="' + c.id + '" aria-pressed="false"><img src="' + c.img + '" alt=""><span>' + c.title + '</span><i aria-hidden="true">✓</i></button>'; }).join('') + '</div></div>' +
     '</div>' +
-    '<div class="nf-pay-form"><div id="nfPayForm"><p class="nf-pay-wait">Opening secure checkout…</p></div></div>' +
+    '<div class="nf-pay-form"><span class="nf-pay-step">2 · Pay</span><div id="nfPayForm"><p class="nf-pay-wait">Opening secure checkout…</p></div></div>' +
   '</div>';
   document.body.appendChild(el); document.documentElement.classList.add('nf-paying');
   var checkout = null, choice = '';
@@ -17623,11 +17623,14 @@ function openPay(d){
   if(d.preview){
     var sub = 0; cart.forEach(function(l){ sub += l.price * l.qty; });
     var f = el.querySelector('#nfPayForm');
-    f.innerHTML = '<div class="nf-pv"><span class="nf-pv-k">Draft preview · no payment is taken</span>' +
-      '<p>On nofilter.sg, Stripe’s payment form sits here: Apple Pay, Google Pay, PayNow and cards, then a delivery address.</p>' +
+    f.innerHTML = '<div class="nf-pv">' +
+      '<div class="nf-pv-x"><span>Apple Pay</span><span>Google Pay</span><span>PayNow</span></div>' +
+      '<div class="nf-pv-or"><span>or pay by card</span></div>' +
+      '<div class="nf-pv-f">Email</div><div class="nf-pv-f">Card number</div><div class="nf-pv-f">Delivery address, Singapore</div>' +
       cart.map(function(l){ return '<div class="nf-pv-l"><span>' + l.name + ' · ' + l.size + ' × ' + l.qty + '</span><span>' + CUR() + money(l.price * l.qty) + '</span></div>'; }).join('') +
       '<div class="nf-pv-l nf-pv-t"><span>Total</span><span>' + CUR() + money(sub) + '</span></div>' +
-      '<button type="button" class="nf-pv-pay">Pay ' + CUR() + money(sub) + ' (preview)</button></div>';
+      '<button type="button" class="nf-pv-pay">Pay ' + CUR() + money(sub) + '</button>' +
+      '<p class="nf-pv-k">Draft preview. Stripe’s own form sits here on nofilter.sg; nothing is charged.</p></div>';
     f.querySelector('.nf-pv-pay').addEventListener('click', function(){
       var parts = {}; cart.forEach(function(l){ var o = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
         if(!parts[l.name]) parts[l.name] = { name:l.name, partner: o ? o.ngo : '', contribution:0 }; parts[l.name].contribution += Math.round(l.price * l.qty * 10); });
@@ -17663,7 +17666,7 @@ function paidPanel(){
   function key(e){ if(e.key === 'Escape') close(); }
   el.addEventListener('click', function(e){ if(e.target.closest('[data-close]')) close(); });
   document.addEventListener('keydown', key);
-  el.setAttribute('data-open',''); requestAnimationFrame(function(){ el.setAttribute('data-in',''); el.querySelector('.nf-soon-x').focus(); });
+  el.setAttribute('data-open',''); requestAnimationFrame(function(){ el.setAttribute('data-in',''); var cd = el.querySelector('.nf-soon-card'); cd.setAttribute('tabindex','-1'); cd.focus({preventScroll:true}); });
   return { el: el, fill: function(d){
     if(!d || !d.contribution) return;
     var cur = String(d.currency || 'sgd').toUpperCase(), box = el.querySelector('.nf-paid-give'), n = el.querySelector('.nf-paid-n'), to = d.contribution / 100;
@@ -26991,64 +26994,93 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .cart-by:empty{display:none}
 .cart-by .cb small{font-size:inherit;opacity:.7}
 /* 143 · the split by partner runs the full width under the two figures, one line each */
-.cart-ft .cart-by{margin:-4px 0 0;padding:10px 12px;border:1px solid var(--line);display:grid;gap:6px}
+.cart-ft .cart-by{margin:-4px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;display:grid;gap:6px}
 .cart-ft .cart-by:empty{display:none}
+/* 146 · softer shop: rounded figures box and checkout button in the basket; the thank-you card to match */
+.cart-ft .readout{border-radius:12px;overflow:hidden}
+.cart-ft #checkoutBtn{border-radius:12px}
+.nf-paid .nf-soon-card{border-radius:18px}
+.nf-paid .nf-soon-card:focus{outline:none}
+.nf-paid .nf-soon-k{border-radius:999px}
+.nf-paid .nf-soon-b{border-radius:12px}
+.nf-paid .nf-soon-x{border-radius:999px}
+.nf-paid .nf-paid-next img{border-radius:10px}
+/* 147 · the shop's panels are cream, not black (Alex: "it's ominous"). The basket re-points the site's
+   colour tokens; the thank-you card is restyled in its own scope; the checkout panel's rules were recoloured. */
+.cart{--panel:#F4F2EE;--cream:#1A1815;--dim:rgba(26,24,21,.58);--dimmer:rgba(26,24,21,.42);--line:rgba(26,24,21,.12);--line2:rgba(26,24,21,.14);color:#1A1815}
+.cart .readout .ro{background:#FBFAF8}
+.cart .readout .ro .v.sig,.cart-by .cb>span:last-child{color:#C2410C}
+.nf-paid .nf-soon-scrim{background:rgba(26,24,21,.55)}
+.nf-paid .nf-soon-card{background:#F4F2EE;border-color:rgba(26,24,21,.1);box-shadow:0 40px 90px -40px rgba(26,24,21,.6)}
+.nf-paid .nf-soon-h{color:#1A1815}
+.nf-paid .nf-soon-p{color:rgba(26,24,21,.72)}
+.nf-paid .nf-soon-x{color:rgba(26,24,21,.55)}
+.nf-paid .nf-soon-x:hover{color:#1A1815}
+.nf-paid .nf-soon-k{color:#C2410C;background:rgba(238,77,23,.08);border-color:rgba(238,77,23,.25)}
+.nf-paid .nf-paid-v{color:#D2400F}
 .cart-by .cb>span:first-child,.nf-paid-by .cb>span:first-child{min-width:0}
 .cart-by .cb>span:last-child,.nf-paid-by .cb>span:last-child{white-space:nowrap}
 /* 142 · bag photos on the lines; the landscape film in the space beneath */
 .cart .ci{grid-template-columns:48px 1fr auto auto}
-.cart .ci .cimg{width:48px;height:48px;object-fit:cover;border-radius:2px;background:rgba(244,242,238,.06)}
-.cart-film{margin:12px 0 4px;position:relative;border-radius:3px;overflow:hidden;background:#111}
+.cart .ci .cimg{width:48px;height:48px;object-fit:cover;border-radius:8px;background:rgba(26,24,21,.06)}
+.cart-film{margin:12px 0 4px;position:relative;border-radius:12px;overflow:hidden;background:#111}
 .cart-film video{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .cart-film figcaption{position:absolute;left:0;right:0;bottom:0;padding:44px 14px 12px;background:linear-gradient(rgba(8,9,10,0),rgba(8,9,10,.6) 35%,rgba(8,9,10,.92));font-family:var(--body,sans-serif);font-size:13px;color:#F4F2EE}
 .cart-film figcaption span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,242,238,.65);margin-bottom:3px}
 /* 142 · the preview checkout (draft links only) */
-.nf-pv{font-family:var(--body,sans-serif);color:#222;max-width:420px;margin:0 auto;padding:8px}
-.nf-pv-k{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#a33a0d;border:1px solid #e9b49a;background:#fdf0e9;border-radius:3px;padding:5px 8px}
-.nf-pv p{font-size:13.5px;line-height:1.55;color:#555;margin:12px 0 16px}
-.nf-pv-l{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee;font-size:14px}
-.nf-pv-t{font-weight:700;border-bottom:0}
-.nf-pv-pay{width:100%;margin-top:14px;padding:14px;border:0;border-radius:6px;background:#EE4D17;color:#fff;font:600 15px var(--body,sans-serif);cursor:pointer}
-.cart-by .cb{font-size:9.5px!important;letter-spacing:.03em!important;color:rgba(244,242,238,.55)!important}
-.cart .cq{display:inline-flex;align-items:center;gap:0;margin:8px 0 0;border:1px solid rgba(244,242,238,.16);border-radius:2px}
-.cart .cq button{width:26px;height:24px;background:none;border:0;color:rgba(244,242,238,.8);font:inherit;font-size:14px;cursor:pointer}
-.cart .cq button:hover{background:rgba(244,242,238,.07)}
-.cart .cq span{min-width:22px;text-align:center;font-family:var(--mono);font-size:11px;color:#F4F2EE}
-.cart-note{font-family:var(--body,sans-serif);font-size:13px;line-height:1.5;color:rgba(244,242,238,.66);text-align:center}
-.cart-code{font-family:var(--body,sans-serif);font-size:13px;color:rgba(244,242,238,.8)}
-.cart-by .cb,.nf-paid-by .cb{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:rgba(244,242,238,.62)}
-.nf-paid-give{margin:20px 0 0;padding:16px 0 0;border-top:1px solid rgba(244,242,238,.12)}
+.nf-pv{font-family:var(--body,sans-serif);color:#1A1815;display:grid;gap:10px}
+.nf-pv-x{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.nf-pv-x span{display:flex;align-items:center;justify-content:center;height:44px;border-radius:10px;background:#1A1815;color:#F4F2EE;font-weight:600;font-size:13.5px}
+.nf-pv-or{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(26,24,21,.5);margin:4px 0}
+.nf-pv-or::before,.nf-pv-or::after{content:"";flex:1;height:1px;background:rgba(26,24,21,.12)}
+.nf-pv-f{height:44px;display:flex;align-items:center;padding:0 14px;border-radius:10px;border:1px solid rgba(26,24,21,.16);background:rgba(26,24,21,.03);color:rgba(26,24,21,.45);font-size:14px}
+.nf-pv-l{display:flex;justify-content:space-between;padding:4px 2px;font-size:14px;color:rgba(26,24,21,.8)}
+.nf-pv-f+.nf-pv-l{margin-top:8px}
+.nf-pv-t{font-weight:700;color:#1A1815;padding-top:10px;border-top:1px solid rgba(26,24,21,.12)}
+.nf-pv-pay{width:100%;margin-top:6px;height:50px;border:0;border-radius:12px;background:#EE4D17;color:#fff;font:600 15.5px var(--body,sans-serif);cursor:pointer}
+.nf-pv-pay:hover{filter:brightness(1.07)}
+.nf-pv-k{font-size:12px;line-height:1.5;color:rgba(26,24,21,.45);margin:2px 0 0;text-align:center}
+.cart-by .cb{font-size:9.5px!important;letter-spacing:.03em!important;color:rgba(26,24,21,.55)!important}
+.cart .cq{display:inline-flex;align-items:center;gap:0;margin:8px 0 0;border:1px solid rgba(26,24,21,.16);border-radius:999px;overflow:hidden}
+.cart .cq button{width:26px;height:24px;background:none;border:0;color:rgba(26,24,21,.8);font:inherit;font-size:14px;cursor:pointer}
+.cart .cq button:hover{background:rgba(26,24,21,.07)}
+.cart .cq span{min-width:22px;text-align:center;font-family:var(--mono);font-size:11px;color:#1A1815}
+.cart-note{font-family:var(--body,sans-serif);font-size:13px;line-height:1.5;color:rgba(26,24,21,.66);text-align:center}
+.cart-code{font-family:var(--body,sans-serif);font-size:13px;color:rgba(26,24,21,.8)}
+.cart-by .cb,.nf-paid-by .cb{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:rgba(26,24,21,.62)}
+.nf-paid-give{margin:20px 0 0;padding:16px 0 0;border-top:1px solid rgba(26,24,21,.12)}
 .nf-paid-v{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(34px,4vw,46px);line-height:1;color:var(--signal,#EE4D17)}
 .nf-paid-cur{font-size:.42em;letter-spacing:.06em;vertical-align:.5em}
-.nf-paid-l{font-family:var(--body,sans-serif);font-size:13px;color:rgba(244,242,238,.7);margin:6px 0 12px}
+.nf-paid-l{font-family:var(--body,sans-serif);font-size:13px;color:rgba(26,24,21,.7);margin:6px 0 12px}
 .nf-paid-by{display:grid;gap:5px}
-.nf-paid-next{display:flex;align-items:center;gap:12px;margin:16px 0 0;font-family:var(--body,sans-serif);font-size:13px;color:rgba(244,242,238,.78)}
+.nf-paid-next{display:flex;align-items:center;gap:12px;margin:16px 0 0;font-family:var(--body,sans-serif);font-size:13px;color:rgba(26,24,21,.78)}
 .nf-paid-next img{width:52px;height:52px;object-fit:cover;border-radius:2px}
-.nf-paid-next b{color:#F4F2EE;font-weight:600}
+.nf-paid-next b{color:#1A1815;font-weight:600}
 /* 141 · the checkout panel */
 .nf-paying body{overflow:hidden}
-.nf-pay{position:fixed;inset:0;z-index:4100;background:rgba(8,9,10,.86);backdrop-filter:blur(3px);overflow:auto;padding:clamp(0px,2vw,28px)}
-.nf-pay-in{max-width:1180px;margin:0 auto;min-height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto 1fr;align-content:start;background:#0D1012;border:1px solid rgba(244,242,238,.12);border-radius:3px}
-.nf-pay-story{position:relative;display:flex;flex-direction:column;border-right:1px solid rgba(244,242,238,.1)}
-.nf-pay-film{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#111}
-.nf-pay-cap{padding:10px clamp(18px,3vw,32px) 0}
-.nf-pay-k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,242,238,.6)}
-.nf-pay-ask{padding:18px clamp(18px,3vw,32px) 28px}
-.nf-pay-ask h3{font-family:var(--disp,sans-serif);font-weight:900;text-transform:uppercase;font-size:clamp(24px,2.6vw,34px);line-height:.98;color:#F4F2EE;margin:0}
-.nf-pay-ask p{font-family:var(--body,sans-serif);font-size:13.5px;line-height:1.55;color:rgba(244,242,238,.7);margin:10px 0 16px}
+.nf-pay{position:fixed;inset:0;z-index:4100;background:rgba(26,24,21,.55);backdrop-filter:blur(6px);overflow:auto;padding:clamp(0px,3vw,40px);display:grid;place-items:start center}
+.nf-pay-in{width:min(1000px,100%);margin:auto 0;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);align-content:start;background:#F4F2EE;border:1px solid rgba(26,24,21,.1);border-radius:18px;overflow:hidden;box-shadow:0 40px 100px -40px rgba(0,0,0,.9)}
+.nf-pay-story{position:relative;display:flex;flex-direction:column;border-right:1px solid rgba(26,24,21,.1)}
+.nf-pay-film{width:calc(100% - 2*clamp(18px,3vw,32px));margin:22px auto 0;border-radius:12px;aspect-ratio:16/9;object-fit:cover;display:block;background:#111}
+.nf-pay-cap{padding:12px clamp(18px,3vw,32px) 0}
+.nf-pay-step{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--signal,#EE4D17);margin:0 0 10px}
+.nf-pay-k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(26,24,21,.6)}
+.nf-pay-ask{padding:22px clamp(18px,3vw,32px) 30px}
+.nf-pay-ask h3{font-family:var(--disp,sans-serif);font-weight:900;text-transform:uppercase;font-size:clamp(24px,2.6vw,34px);line-height:.98;color:#1A1815;margin:0}
+.nf-pay-ask p{font-family:var(--body,sans-serif);font-size:13.5px;line-height:1.55;color:rgba(26,24,21,.7);margin:10px 0 16px}
 .nf-pay-ch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.nf-pay-ch button{position:relative;display:flex;flex-direction:column;gap:8px;padding:0 0 10px;background:rgba(244,242,238,.04);border:1px solid rgba(244,242,238,.14);border-radius:3px;color:#F4F2EE;cursor:pointer;text-align:left;font-family:var(--body,sans-serif);font-size:13px;line-height:1.3;overflow:hidden}
-.nf-pay-ch button img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.nf-pay-ch button{position:relative;display:flex;flex-direction:column;gap:8px;padding:0 0 10px;background:rgba(26,24,21,.04);border:1px solid rgba(26,24,21,.14);border-radius:12px;color:#1A1815;cursor:pointer;text-align:left;transition:border-color .2s,background .2s;font-family:var(--body,sans-serif);font-size:13px;line-height:1.3;overflow:hidden}
+.nf-pay-ch button img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
 .nf-pay-ch button span{padding:0 10px}
-.nf-pay-ch button i{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:#F4F2EE;color:#0D1012;font-style:normal;font-weight:700;font-size:13px;display:none;align-items:center;justify-content:center}
+.nf-pay-ch button i{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:#1A1815;color:#F4F2EE;font-style:normal;font-weight:700;font-size:13px;display:none;align-items:center;justify-content:center}
 .nf-pay-ch button[aria-pressed="true"]{border:2px solid var(--signal,#EE4D17);background:rgba(238,77,23,.08)}
 .nf-pay-ch button[aria-pressed="true"] i{display:flex}
-.nf-pay-form{display:flex;flex-direction:column;min-width:0}
-.nf-pay-hd{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(244,242,238,.1);font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(244,242,238,.6)}
-.nf-pay-x{background:none;border:0;color:rgba(244,242,238,.75);font:inherit;letter-spacing:.16em;cursor:pointer;padding:6px}
-#nfPayForm{flex:1;padding:16px;background:#fff;min-height:540px}
-.nf-pay-wait{font-family:var(--body,sans-serif);color:#555;font-size:14px;text-align:center;margin:60px 0}
-@media(max-width:860px){.nf-pay{padding:0}.nf-pay-in{grid-template-columns:1fr;border:0;border-radius:0}.nf-pay-story{border-right:0;border-bottom:1px solid rgba(244,242,238,.1)}.nf-pay-film{aspect-ratio:21/9}.nf-pay-ch{gap:8px}.nf-pay-ch button{font-size:12px}#nfPayForm{min-height:620px}}
+.nf-pay-form{display:flex;flex-direction:column;min-width:0;padding:22px clamp(18px,3vw,32px) 30px}
+.nf-pay-hd{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:16px clamp(18px,3vw,32px);border-bottom:1px solid rgba(26,24,21,.1);font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(26,24,21,.6)}
+.nf-pay-x{background:none;border:0;color:rgba(26,24,21,.75);font:inherit;letter-spacing:.16em;cursor:pointer;padding:6px}
+#nfPayForm{flex:1;min-height:0} /* Stripe's form sizes itself; its colours and corners come from Stripe branding */
+.nf-pay-wait{font-family:var(--body,sans-serif);color:rgba(26,24,21,.6);font-size:14px;text-align:center;margin:60px 0}
+@media(max-width:860px){.nf-pay{padding:0}.nf-pay-in{grid-template-columns:1fr;border:0;border-radius:0;min-height:100%}.nf-pay-story{border-right:0;border-bottom:1px solid rgba(26,24,21,.1)}.nf-pay-film{aspect-ratio:2/1}.nf-pay-ch{gap:8px}.nf-pay-ch button{font-size:12px}.nf-pay-ch button img{aspect-ratio:1/1}}
 .nf-soon-scrim{position:absolute;inset:0;background:rgba(8,9,10,.72);
   backdrop-filter:blur(3px);opacity:0;transition:opacity .28s ease}
 .nf-soon[data-in] .nf-soon-scrim{opacity:1}
