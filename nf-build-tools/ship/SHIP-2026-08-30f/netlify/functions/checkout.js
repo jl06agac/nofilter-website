@@ -128,7 +128,7 @@ exports.handler = async function (event) {
 
   const { ok, data } = await stripe('checkout/sessions', KEY, form);
   // Stripe's own message (a sentence about a parameter, never a key or customer detail) so a refusal can be diagnosed.
-  if (!ok || !data.client_secret) return reply(502, { error: 'stripe error', detail: (data && data.error && data.error.message) || null });
+  if (!ok || !data.client_secret) return reply(502, { error: 'stripe error', detail: String((data && data.error && data.error.message) || '').replace(/\b(sk|pk|rk)_(test|live)_\S+/g, '$1_$2_…') || null });
   return reply(200, { clientSecret: data.client_secret, session: data.id, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY, code: applied ? code : null });
 };
 
