@@ -106,7 +106,13 @@ exports.handler = async function (event) {
   const k = deskEmail(d, s.id);
   results.push(await send({ from: FROM, to: [desk], reply_to: (d.order && d.order.email) || desk, subject: k.subject, text: k.text }, 'shop-desk-' + s.id));
   const bad = results.filter(x => !x.ok);
-  if (bad.length) { console.error('shop-webhook: email not sent for', (d.order || {}).ref, bad.map(x => x.status).join(',')); return { statusCode: 500, body: 'email failed' }; }
+  if (bad.length) {
+    // Resend's own reason (never the key), so Stripe's delivery log says what to fix
+    const why = [];
+    for (const x of bad) { let m = ''; try { const j = await x.json(); m = (j && (j.message || j.error || j.name)) || ''; } catch (e) {} why.push(x.status + (m ? ' ' + String(m).replace(/re_[A-Za-z0-9_]+/g, 're_…').slice(0, 160) : '')); }
+    console.error('shop-webhook: email not sent for', (d.order || {}).ref, why.join(' | '));
+    return { statusCode: 500, body: 'email failed: ' + why.join(' | ') };
+  }
   return { statusCode: 200, body: 'sent' };
 };
 
