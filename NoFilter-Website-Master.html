@@ -17647,33 +17647,36 @@ function openPay(){
     '<div class="nf-pay-story">' +
       '<video class="nf-pay-film" src="' + PAY_FILMS[o.k] + '" autoplay muted loop playsinline preload="metadata"></video>' +
       '<div class="nf-pay-cap"><span class="nf-pay-k">' + o.name + ' · ' + o.ngo + '</span></div>' +
-      '<div class="nf-pay-ask"><span class="nf-pay-step">1 · Where it goes</span><h3>Where should your ' + CUR() + money(give) + ' go?</h3>' +
-        '<p>Choose one. Or leave it, and ' + o.ngo + ' will put it where it’s needed most.</p>' +
-        '<div class="nf-pay-ch">' + PAY_CHOICES.map(function(c){ return '<button type="button" data-ch="' + c.id + '" aria-pressed="false"><img src="' + c.img + '" alt=""><span>' + c.title + '</span><i aria-hidden="true">✓</i></button>'; }).join('') + '</div></div>' +
+      '<div class="nf-pay-ask"><span class="nf-pay-step">Where it goes</span><h3></h3><p class="nf-pay-p"></p><div class="nf-pay-by"></div></div>' +
     '</div>' +
-    '<div class="nf-pay-form"><span class="nf-pay-step">2 · Your order</span>' +
+    '<div class="nf-pay-form"><span class="nf-pay-step">Your order</span>' +
       '<div class="nf-sum">' + paySummary(F) + '</div>' +
       '<button type="button" class="nf-go">Continue to secure payment →</button>' +
-      '<p class="nf-go-n">On Stripe’s secure page: Apple Pay, Google Pay, PayNow or card.</p>' +
+      '<p class="nf-go-n"></p>' +
       '<p class="nf-go-err" hidden></p>' +
     '</div>' +
   '</div>' +
   '<div class="nf-go-bar"><span><small>' + (be ? 'First payment' : 'Total') + '</small><b>' + CUR() + money(sub + del) + '</b></span><button type="button">Continue →</button></div>';
   document.body.appendChild(el); document.documentElement.classList.add('nf-paying');
-  var choice = '';
+  var choice = ''; /* project picker returns once partners' projects are confirmed (Alex, 8 Nov) */
+  function paintGive(){
+    el.querySelector('.nf-pay-ask h3').textContent = CUR() + money(F.give) + ' to conservation';
+    var names = Object.keys(F.by);
+    el.querySelector('.nf-pay-p').textContent = '10% of what you pay for the coffee goes back to ' + (names.length > 1 ? 'the landscapes it comes from' : 'the landscape it comes from') + ', to the conservation partners working there.';
+    el.querySelector('.nf-pay-by').innerHTML = names.map(function(n){ var oo = ORIGINS.filter(function(z){ return z.name === n; })[0];
+      return '<div><span>' + n + (oo ? ' <small>' + oo.ngo + '</small>' : '') + '</span><span>' + CUR() + money(F.by[n]) + '</span></div>'; }).join('');
+    el.querySelector('.nf-go-n').textContent = F.be ? 'On Stripe’s secure page: card, Apple Pay or Google Pay.' : 'On Stripe’s secure page: card, Apple Pay, Google Pay, PayNow or GrabPay.';
+  }
   function close(){ el.remove(); document.documentElement.classList.remove('nf-paying'); document.removeEventListener('keydown', key); }
   function key(e){ if(e.key === 'Escape') close(); }
   el.querySelector('.nf-pay-x').addEventListener('click', close); document.addEventListener('keydown', key);
-  el.querySelectorAll('[data-ch]').forEach(function(b){ b.addEventListener('click', function(){
-    choice = choice === b.getAttribute('data-ch') ? '' : b.getAttribute('data-ch');
-    el.querySelectorAll('[data-ch]').forEach(function(x){ x.setAttribute('aria-pressed', x.getAttribute('data-ch') === choice ? 'true' : 'false'); });
-  }); });
+  paintGive();
   var go = el.querySelector('.nf-go'), err = el.querySelector('.nf-go-err');
   el.querySelector('.nf-go-bar button').addEventListener('click', function(){ go.click(); });
   function repaint(){
     F = payFigures(); give = F.give; sub = F.sub; del = F.del; be = F.be;
     el.querySelector('.nf-sum').innerHTML = paySummary(F);
-    el.querySelector('.nf-pay-ask h3').textContent = 'Where should your ' + CUR() + money(F.give) + ' go?';
+    paintGive();
     el.querySelector('.nf-go-bar small').textContent = F.be ? 'First payment' : 'Total';
     el.querySelector('.nf-go-bar b').textContent = CUR() + money(F.sub + F.del);
     renderCart();
@@ -27366,18 +27369,15 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-pay-k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(26,24,21,.6)}
 .nf-pay-ask{padding:22px clamp(18px,3vw,32px) 30px}
 .nf-pay-ask h3{font-family:var(--disp,sans-serif);font-weight:900;text-transform:uppercase;font-size:clamp(24px,2.6vw,34px);line-height:.98;color:#1A1815;margin:0}
+.nf-pay-by{display:grid;gap:8px;padding-top:14px;border-top:1px solid rgba(26,24,21,.1)}
+.nf-pay-by div{display:flex;justify-content:space-between;gap:12px;font-family:var(--body,sans-serif);font-size:14px;color:#1A1815}
+.nf-pay-by small{font-size:inherit;color:rgba(26,24,21,.6)}
+.nf-pay-by div>span:last-child{white-space:nowrap;font-weight:600}
 .nf-pay-ask p{font-family:var(--body,sans-serif);font-size:13.5px;line-height:1.55;color:rgba(26,24,21,.7);margin:10px 0 16px}
-.nf-pay-ch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.nf-pay-ch button{position:relative;display:flex;flex-direction:column;gap:8px;padding:0 0 10px;background:rgba(26,24,21,.04);border:1px solid rgba(26,24,21,.14);border-radius:12px;color:#1A1815;cursor:pointer;text-align:left;transition:border-color .2s,background .2s;font-family:var(--body,sans-serif);font-size:13px;line-height:1.3;overflow:hidden}
-.nf-pay-ch button img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-.nf-pay-ch button span{padding:0 10px}
-.nf-pay-ch button i{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:#1A1815;color:#F4F2EE;font-style:normal;font-weight:700;font-size:13px;display:none;align-items:center;justify-content:center}
-.nf-pay-ch button[aria-pressed="true"]{border:2px solid var(--signal,#EE4D17);background:rgba(238,77,23,.08)}
-.nf-pay-ch button[aria-pressed="true"] i{display:flex}
 .nf-pay-form{display:flex;flex-direction:column;min-width:0;padding:22px clamp(18px,3vw,32px) 30px}
 .nf-pay-hd{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:16px clamp(18px,3vw,32px);border-bottom:1px solid rgba(26,24,21,.1);font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(26,24,21,.6)}
 .nf-pay-x{background:none;border:0;color:rgba(26,24,21,.75);font:inherit;letter-spacing:.16em;cursor:pointer;padding:6px}
-@media(max-width:860px){.nf-pay{padding:0}.nf-pay-in{grid-template-columns:1fr;border:0;border-radius:0;min-height:100%}.nf-pay-story{border-right:0;border-bottom:1px solid rgba(26,24,21,.1)}.nf-pay-film{aspect-ratio:2/1}.nf-pay-ch{gap:8px}.nf-pay-ch button{font-size:12px}.nf-pay-ch button img{aspect-ratio:1/1}}
+@media(max-width:860px){.nf-pay{padding:0}.nf-pay-in{grid-template-columns:1fr;border:0;border-radius:0;min-height:100%}.nf-pay-story{border-right:0;border-bottom:1px solid rgba(26,24,21,.1)}.nf-pay-film{aspect-ratio:2/1}}
 .nf-soon-scrim{position:absolute;inset:0;background:rgba(8,9,10,.72);
   backdrop-filter:blur(3px);opacity:0;transition:opacity .28s ease}
 .nf-soon[data-in] .nf-soon-scrim{opacity:1}
