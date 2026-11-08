@@ -127,7 +127,8 @@ exports.handler = async function (event) {
   if (!applied) form.set('allow_promotion_codes', 'true');
 
   const { ok, data } = await stripe('checkout/sessions', KEY, form);
-  if (!ok || !data.client_secret) return reply(502, { error: 'stripe error' });
+  // Stripe's own message (a sentence about a parameter, never a key or customer detail) so a refusal can be diagnosed.
+  if (!ok || !data.client_secret) return reply(502, { error: 'stripe error', detail: (data && data.error && data.error.message) || null });
   return reply(200, { clientSecret: data.client_secret, session: data.id, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY, code: applied ? code : null });
 };
 
