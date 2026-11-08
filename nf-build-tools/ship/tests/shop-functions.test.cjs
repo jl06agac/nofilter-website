@@ -469,3 +469,14 @@ test('order emails: a retry after the customer changes the subscription carries 
  assert.match(cust[0].body,/SGD 25\.60 every week/);assert.doesNotMatch(cust[0].body,/1111|4242/,'no card line on a subscription email');
  assert.equal(sub.metadata.nf_mail_customer,'sent');
 });
+
+test('order emails: nothing is sent outside Resend\'s 24-hour window',async()=>{
+ const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';
+ const sess={id:'cs_test_vvvvvvvvvvvvvvvv',payment_status:'paid',mode:'payment',payment_intent:'pi_3',created:1794151811,metadata:{source:'website-shop',order_ref:'NF-DDDDDD'},customer_details:{email:'pat@example.com'}};
+ let mails=0;mockStripe(u=>{if(u.startsWith('https://api.resend.com')){mails++;return {body:{id:'em'}};}if(u.includes('/v1/payment_intents/pi_3'))return {body:{id:'pi_3',metadata:{nf_mail_customer:'sent'}}};return {body:{}};});
+ const orig=console.error;console.error=()=>{};
+ try{const b=JSON.stringify({type:'checkout.session.completed',created:Math.floor(Date.now()/1000)-24*3600,data:{object:sess}});const t=Math.floor(Date.now()/1000);
+  const r=await wh.handler({httpMethod:'POST',headers:{'stripe-signature':'t='+t+',v1='+crypto.createHmac('sha256','whsec_test').update(t+'.'+b).digest('hex')},body:b});
+  assert.equal(r.statusCode,200);assert.equal(r.body,'too late to send safely');assert.equal(mails,0);}finally{console.error=orig;}
+});

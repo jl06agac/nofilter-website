@@ -138,6 +138,13 @@ exports.handler = async function (event) {
   if (!anchor) return { statusCode: 500, body: 'order not readable' };
   try { sent = ((await stripeCall(anchor, SK)).metadata) || {}; } catch (e) { return { statusCode: 500, body: 'order not readable' }; }
   if (sent.nf_mail_customer === 'sent' && sent.nf_mail_desk === 'sent') return { statusCode: 200, body: 'already sent' };
+  // 174 (Codex): never send outside Resend's 24-hour idempotency window. Stripe retries the same event (same
+  // id and created time) for up to 3 days; past 23 hours a retry can't be told apart from a first send, so it
+  // sends nothing and logs instead. A missing email shows up in the log; a duplicate would reach the customer.
+  if (ev.created && Date.now() / 1000 - ev.created > 23 * 3600) {
+    console.error('shop-webhook: past the 23-hour send window, not sending for', (s.metadata || {}).order_ref, s.id, JSON.stringify(sent));
+    return { statusCode: 200, body: 'too late to send safely' };
+  }
 
   const r = await summary.handler({ httpMethod: 'GET', queryStringParameters: { order: s.id } });
   if (r.statusCode !== 200) return { statusCode: 500, body: 'order not readable' };   // Stripe retries
