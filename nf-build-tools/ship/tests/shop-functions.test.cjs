@@ -3,7 +3,11 @@ const test=require('node:test'),assert=require('node:assert/strict'),path=requir
 const F=path.join(__dirname,'..','SHIP-2026-08-30f','netlify','functions');
 const checkout=require(path.join(F,'checkout.js')),report=require(path.join(F,'shop-ngo-report.js'));
 const ev=(body,headers={origin:'https://nofilter.sg'})=>({httpMethod:'POST',headers,body:JSON.stringify(body)});
-function mockStripe(handler){const calls=[];global.fetch=async(url,opt={})=>{calls.push({url,opt});const r=handler(url,opt);return {ok:r.ok!==false,json:async()=>r.body};};return calls;}
+// Stripe refuses an expand deeper than 4 levels (found live on 8 Nov, when the mocks had let one through).
+function tooDeep(url){const m=String(url).match(/expand(?:%5B%5D|\[\])=([^&]+)/g)||[];return m.map(x=>decodeURIComponent(x.split('=')[1])).find(p=>p.split('.').length>4);}
+function mockStripe(handler){const calls=[];global.fetch=async(url,opt={})=>{calls.push({url,opt});const deep=String(url).includes('api.stripe.com')&&tooDeep(url);
+ if(deep)return {ok:false,status:400,json:async()=>({error:{message:'You cannot expand more than 4 levels of a property. Property: '+deep}})};
+ const r=handler(url,opt);return {ok:r.ok!==false,json:async()=>r.body};};return calls;}
 
 
 // A fake Stripe that also answers the catalogue calls (prices by lookup key, products, prices).
@@ -178,6 +182,7 @@ test('order summary: subscription, running total, choices and the manage link',a
  const calls=mockStripe((u,o)=>{
   if(u.includes('/line_items'))return {body:{data:[{description:'Gayo Lues coffee, 250 g',quantity:1,amount_total:2160,price:{recurring:{interval:'week',interval_count:2},product:{metadata:{origin:'gayo',partner:'OIC'}}}}]}};
   if(u.includes('checkout/sessions?customer='))return {body:{data:[{payment_status:'paid',amount_total:2160,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10'}},{payment_status:'paid',amount_total:8000,total_details:{amount_shipping:0},metadata:{source:'website-shop'}}]}};
+  if(u.includes('/v1/subscriptions/sub_1'))return {body:session.subscription};
   if(u.includes('invoices?'))return {body:{data:[{billing_reason:'subscription_cycle',amount_paid:2160,parent:{subscription_details:{metadata:{source:'website-shop',contribution_rate:'0.10'}}}},{billing_reason:'subscription_create',amount_paid:2160,parent:{subscription_details:{metadata:{source:'website-shop'}}}}]}};
   if(u.includes('billing_portal/configurations'))return {body:{data:[{id:'bpc_1',metadata:{nf:'shop-v1'}}]}};
   if(u.includes('billing_portal'))return {body:{url:'https://billing.stripe.com/p/session/x'}};
@@ -216,7 +221,7 @@ test('subscription changes: swap coffee or size, change frequency without a char
  const item=(id,origin,name,every)=>({id,quantity:1,current_period_end:1795000000,price:{unit_amount:2160,recurring:{interval:'week',interval_count:every},product:{name,metadata:{origin}}}});
  const session={payment_status:'paid',mode:'subscription',customer:'cus_1',metadata:{source:'website-shop'},
   subscription:{id:'sub_1',status:'active',metadata:{every_weeks:'2',off_pct:'5'},items:{data:[item('si_1','gayo','Gayo Lues coffee, 250 g',2),item('si_2','toru','Batang Toru coffee, 1 kg',2)]}}};
- let calls=mockStripe(stripeWithCatalogue(u=>({body:u.includes('/v1/subscriptions/')?{}:session})));
+ let calls=mockStripe(stripeWithCatalogue((u,o)=>({body:u.includes('/v1/subscriptions/')?((o&&o.method==='POST')?{}:session.subscription):session})));
  const post=b=>sum.handler({httpMethod:'POST',body:JSON.stringify({order:'cs_test_abcdefghijklmnop',...b})});
  let r=await post({action:'swap',items:[{id:'si_1',name:'Batang Gadis',size:'1 kg',qty:2},{id:'si_2',name:'Batang Toru',size:'1kg',qty:0}]});
  assert.equal(r.statusCode,200);let f=new URLSearchParams(calls.filter(c=>c.url.includes('/v1/subscriptions/sub_1')).pop().opt.body);

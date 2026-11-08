@@ -67,10 +67,12 @@ exports.handler = async function (event) {
   const id = String((post ? body.order : q.order) || '');
   if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(id)) return reply(400, { error: 'bad order' });
   try {
-    const s = await call('checkout/sessions/' + id + '?expand[]=payment_intent.latest_charge&expand[]=subscription.default_payment_method&expand[]=subscription.items.data.price.product', KEY);
+    // Stripe expands at most 4 levels, so the subscription's items and products come in their own call
+    const s = await call('checkout/sessions/' + id + '?expand[]=payment_intent.latest_charge', KEY);
     if (s.payment_status !== 'paid' || (s.metadata || {}).source !== 'website-shop') return reply(404, { error: 'no such order' });
     const customer = typeof s.customer === 'string' ? s.customer : (s.customer && s.customer.id) || null;
-    const sub = s.subscription && typeof s.subscription === 'object' ? s.subscription : null;
+    const subId = typeof s.subscription === 'string' ? s.subscription : (s.subscription && s.subscription.id) || null;
+    const sub = subId ? await call('subscriptions/' + subId + '?expand[]=default_payment_method&expand[]=items.data.price.product', KEY) : null;
 
     // Subscription changes
     if (post && body.action) {
