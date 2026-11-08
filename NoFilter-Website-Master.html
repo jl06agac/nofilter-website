@@ -17534,14 +17534,17 @@ function renderCart(){
   });
   /* 152 · one frequency for the subscription bags, changeable here */
   var be = basketEvery();
+  /* 157 · the plan sits in the fixed footer, above the totals, so it is always in view (Alex missed it
+     at the bottom of the scrolling lines) */
+  var oldPl = $('#cartPlan'); if(oldPl) oldPl.remove();
   if(be){
-    var pl = document.createElement('div'); pl.className = 'cart-plan';
+    var pl = document.createElement('div'); pl.className = 'cart-plan'; pl.id = 'cartPlan';
     var save = 0; cart.forEach(function(l){ if(l.every) save += (l.price - unitPrice(l)) * l.qty; });
     pl.innerHTML = '<div class="cp-h"><b>Your subscription</b><span>saves ' + CUR() + money(save) + ' a delivery</span></div>' +
       '<div class="cp-f" role="radiogroup" aria-label="How often">' + [1,2,3,4].map(function(n){ return '<button type="button" data-f="' + n + '" aria-checked="' + (n === be) + '">' + { 1:'Weekly', 2:'2 weeks', 3:'3 weeks', 4:'4 weeks' }[n] + '</button>'; }).join('') + '</div>' +
       '<small>From each Wednesday roast. Swap coffees, skip a delivery or cancel any time.</small>';
     $$('.cp-f button', pl).forEach(function(b){ b.addEventListener('click', function(){ setBasketEvery(parseInt(b.getAttribute('data-f'), 10)); renderCart(); }); });
-    body.appendChild(pl);
+    var ft = $('.cart-ft'); ft.insertBefore(pl, ft.firstChild);
   }
   /* 142 · the empty space under the lines plays the landscape most of the basket comes from */
   if(cart.length){
@@ -17614,12 +17617,30 @@ var PAY_CHOICES = [
   { id:'orangutans-in-danger', title:'Help orangutans in danger', img:'/assets/shop/orangutans-in-danger.webp' },
   { id:'coffee-with-forest', title:'Grow coffee with the forest', img:'/assets/shop/coffee-with-forest.webp' } ];
 window.__nfPayChoices = PAY_CHOICES;
+function payFigures(){
+  var f = { give:0, top:null, by:{}, sub:0, perDel:0, full:0, be: basketEvery() };
+  cart.forEach(function(l){ var v = lineTotal(l) * 0.10; f.give += v; f.by[l.name] = (f.by[l.name] || 0) + v; f.sub += lineTotal(l); f.full += l.price * l.qty; if(l.every) f.perDel += lineTotal(l); });
+  Object.keys(f.by).forEach(function(n){ if(!f.top || f.by[n] > f.by[f.top]) f.top = n; });
+  f.del = (f.be ? f.perDel : f.full) >= FREE_FROM ? 0 : DELIVERY;
+  f.repeat = f.perDel + (f.perDel >= FREE_FROM ? 0 : DELIVERY);
+  return f;
+}
+function paySummary(F){
+  return cart.map(function(l, i){ var b = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
+      return '<div class="nf-sum-l"><img src="' + (b ? b.bag : '') + '" alt=""><span><b>' + l.name + '</b><small>' + l.size.toUpperCase() + ' \u00d7 ' + l.qty + '</small>' +
+        '<span class="csub nf-sum-s" role="radiogroup" aria-label="How to buy"><button type="button" data-i="' + i + '" data-s="0" aria-checked="' + !l.every + '">One-time</button><button type="button" data-i="' + i + '" data-s="1" aria-checked="' + !!l.every + '">Subscribe \u22125%</button></span></span>' +
+        '<span>' + (l.every ? '<s>' + money(l.price * l.qty) + '</s> ' : '') + CUR() + money(lineTotal(l)) + '</span></div>'; }).join('') +
+    (F.be ? '<div class="nf-sum-f"><span>How often</span><div role="radiogroup" aria-label="How often">' + [1,2,3,4].map(function(n){ return '<button type="button" data-f="' + n + '" aria-checked="' + (n === F.be) + '">' + { 1:'Weekly', 2:'2 weeks', 3:'3 weeks', 4:'4 weeks' }[n] + '</button>'; }).join('') + '</div></div>'
+      : '<button type="button" class="nf-sum-up" data-all="1">Subscribe to all and save 5% \u00b7 ' + CUR() + money(F.sub * SUB_OFF) + ' off each delivery</button>') +
+    '<div class="nf-sum-r"><span>Delivery' + (F.be ? ', each delivery' : '') + '</span><span>' + (F.del ? CUR() + money(F.del) : 'Free') + '</span></div>' +
+    '<div class="nf-sum-r nf-sum-t"><span>' + (F.be ? 'First payment' : 'Total') + '</span><span>' + CUR() + money(F.sub + F.del) + '</span></div>' +
+    (F.be ? '<p class="nf-sum-n">Then ' + CUR() + money(F.repeat) + ' ' + EVERY_LAB[F.be] + ', until you cancel. Swap coffees, skip a delivery or cancel any time.</p>' : '') +
+    (F.del ? '<p class="nf-sum-n nf-sum-free">Free delivery from ' + CUR() + FREE_FROM + (F.be ? ' a delivery' : '') + '.</p>' : '') +
+    (SHOP_CODE ? '<p class="nf-sum-n">Code ' + SHOP_CODE + ' is applied on the next page.</p>' : '');
+}
 function openPay(){
-  var give = 0, top = null, by = {}, sub = 0, perDel = 0, full = 0, be = basketEvery();
-  cart.forEach(function(l){ var v = lineTotal(l) * 0.10; give += v; by[l.name] = (by[l.name] || 0) + v; sub += lineTotal(l); full += l.price * l.qty; if(l.every) perDel += lineTotal(l); });
-  Object.keys(by).forEach(function(n){ if(!top || by[n] > by[top]) top = n; });
-  var o = ORIGINS.filter(function(x){ return x.name === top; })[0] || ORIGINS[0];
-  var delTest = be ? perDel : full, del = delTest >= FREE_FROM ? 0 : DELIVERY;
+  var F = payFigures(), give = F.give, sub = F.sub, del = F.del, be = F.be;
+  var o = ORIGINS.filter(function(x){ return x.name === F.top; })[0] || ORIGINS[0];
   var el = document.createElement('div'); el.className = 'nf-pay'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Checkout');
   el.innerHTML = '<div class="nf-pay-in">' +
     '<div class="nf-pay-hd"><span>NOFILTER · CHECKOUT</span><button type="button" class="nf-pay-x" aria-label="Close checkout">CLOSE ✕</button></div>' +
@@ -17631,19 +17652,13 @@ function openPay(){
         '<div class="nf-pay-ch">' + PAY_CHOICES.map(function(c){ return '<button type="button" data-ch="' + c.id + '" aria-pressed="false"><img src="' + c.img + '" alt=""><span>' + c.title + '</span><i aria-hidden="true">✓</i></button>'; }).join('') + '</div></div>' +
     '</div>' +
     '<div class="nf-pay-form"><span class="nf-pay-step">2 · Your order</span>' +
-      '<div class="nf-sum">' + cart.map(function(l){ var b = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
-          return '<div class="nf-sum-l"><img src="' + (b ? b.bag : '') + '" alt=""><span><b>' + l.name + '</b><small>' + l.size.toUpperCase() + ' × ' + l.qty + (l.every ? ' · ' + EVERY_LAB[l.every] : '') + '</small></span><span>' + CUR() + money(lineTotal(l)) + '</span></div>'; }).join('') +
-        '<div class="nf-sum-r"><span>Delivery' + (be ? ', each delivery' : '') + '</span><span>' + (del ? CUR() + money(del) : 'Free') + '</span></div>' +
-        '<div class="nf-sum-r nf-sum-t"><span>' + (be ? 'First payment' : 'Total') + '</span><span>' + CUR() + money(sub + del) + '</span></div>' +
-        (be ? '<p class="nf-sum-n">Then ' + CUR() + money(perDel + (perDel >= FREE_FROM ? 0 : DELIVERY)) + ' ' + EVERY_LAB[be] + ', until you cancel. Swap coffees, skip a delivery or cancel any time.</p>' : '') +
-        (SHOP_CODE ? '<p class="nf-sum-n">Code ' + SHOP_CODE + ' is applied on the next page.</p>' : '') +
-      '</div>' +
+      '<div class="nf-sum">' + paySummary(F) + '</div>' +
       '<button type="button" class="nf-go">Continue to secure payment →</button>' +
       '<p class="nf-go-n">On Stripe’s secure page: Apple Pay, Google Pay, PayNow or card.</p>' +
       '<p class="nf-go-err" hidden></p>' +
     '</div>' +
   '</div>' +
-  '<div class="nf-go-bar"><span><small>' + (be ? 'First payment' : 'Total') + '</small>' + CUR() + money(sub + del) + '</span><button type="button">Continue →</button></div>';
+  '<div class="nf-go-bar"><span><small>' + (be ? 'First payment' : 'Total') + '</small><b>' + CUR() + money(sub + del) + '</b></span><button type="button">Continue →</button></div>';
   document.body.appendChild(el); document.documentElement.classList.add('nf-paying');
   var choice = '';
   function close(){ el.remove(); document.documentElement.classList.remove('nf-paying'); document.removeEventListener('keydown', key); }
@@ -17655,6 +17670,22 @@ function openPay(){
   }); });
   var go = el.querySelector('.nf-go'), err = el.querySelector('.nf-go-err');
   el.querySelector('.nf-go-bar button').addEventListener('click', function(){ go.click(); });
+  function repaint(){
+    F = payFigures(); give = F.give; sub = F.sub; del = F.del; be = F.be;
+    el.querySelector('.nf-sum').innerHTML = paySummary(F);
+    el.querySelector('.nf-pay-ask h3').textContent = 'Where should your ' + CUR() + money(F.give) + ' go?';
+    el.querySelector('.nf-go-bar small').textContent = F.be ? 'First payment' : 'Total';
+    el.querySelector('.nf-go-bar b').textContent = CUR() + money(F.sub + F.del);
+    renderCart();
+  }
+  el.querySelector('.nf-sum').addEventListener('click', function(e){
+    var s1 = e.target.closest('[data-s]'), f1 = e.target.closest('[data-f]'), all = e.target.closest('[data-all]');
+    if(s1){ var l = cart[+s1.getAttribute('data-i')]; l.every = s1.getAttribute('data-s') === '1' ? (basketEvery() || window.__nfPlan.last || 2) : 0; }
+    else if(f1) setBasketEvery(parseInt(f1.getAttribute('data-f'), 10));
+    else if(all){ var n = window.__nfPlan.last || 2; cart.forEach(function(l){ l.every = n; }); }
+    else return;
+    repaint();
+  });
   go.addEventListener('click', function(){
     go.disabled = true; go.textContent = 'Opening secure payment…'; err.hidden = true;
     fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'},
@@ -27244,19 +27275,27 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 #shop .nf-imp-sub{display:none}
 #shop .nf-sub-on .cx-imp-amt{display:none}
 #shop .nf-sub-on .nf-imp-sub{display:inline}
-.cart .csub{display:inline-grid;grid-template-columns:auto auto;gap:2px;margin:7px 0 0;padding:2px;border-radius:999px;background:rgba(26,24,21,.07)}
-.cart .csub button{height:24px;padding:0 9px;border:0;border-radius:999px;background:transparent;font:600 11px var(--body,sans-serif);color:rgba(26,24,21,.6);cursor:pointer;white-space:nowrap}
-.cart .csub [aria-checked="true"]{background:#fff;color:#1A1815;box-shadow:0 1px 2px rgba(26,24,21,.12)}
-.cart .csub [data-s="1"][aria-checked="true"]{background:#1F6F5C;color:#fff}
+.cart .csub,.nf-pay .csub{display:inline-grid;grid-template-columns:auto auto;gap:2px;margin:7px 0 0;padding:2px;border-radius:999px;background:rgba(26,24,21,.07)}
+.cart .csub button,.nf-pay .csub button{height:24px;padding:0 9px;border:0;border-radius:999px;background:transparent;font:600 11px var(--body,sans-serif);color:rgba(26,24,21,.6);cursor:pointer;white-space:nowrap}
+.cart .csub [aria-checked="true"],.nf-pay .csub [aria-checked="true"]{background:#fff;color:#1A1815;box-shadow:0 1px 2px rgba(26,24,21,.12)}
+.cart .csub [data-s="1"][aria-checked="true"],.nf-pay .csub [data-s="1"][aria-checked="true"]{background:#1F6F5C;color:#fff}
 .cart .cs s{opacity:.5}
 .cart .ci > .cn{white-space:nowrap}
-.cart-plan{margin:14px 0 4px;padding:14px;border-radius:14px;background:#FBFAF8;border:1px solid rgba(26,24,21,.1);font:13.5px var(--body,sans-serif);color:#1A1815}
+.cart-plan{margin:0;padding:12px 14px;border-radius:14px;background:#FBFAF8;border:1px solid rgba(26,24,21,.1);font:13.5px var(--body,sans-serif);color:#1A1815}
 .cart-plan .cp-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 10px}
 .cart-plan .cp-h span{font-size:12.5px;font-weight:600;color:#1F6F5C}
 .cart-plan .cp-f{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
 .cart-plan .cp-f button{height:32px;border-radius:999px;border:1.5px solid rgba(26,24,21,.15);background:#fff;font:600 12px var(--body,sans-serif);color:#1A1815;cursor:pointer}
 .cart-plan .cp-f [aria-checked="true"]{background:#1A1815;border-color:#1A1815;color:#F4F2EE}
 .cart-plan small{display:block;margin-top:9px;font-size:12px;color:rgba(26,24,21,.6)}
+@media(max-height:820px){
+  .cart .cart-film video{aspect-ratio:16/5}
+  .cart .cart-film figcaption{padding-top:22px}
+  .cart-plan{padding:10px 12px}
+  .cart-plan .cp-h{margin-bottom:8px}
+  .cart-plan small{display:none}
+  .cart-ft{gap:9px;padding:12px 16px}
+}
 .cart-del{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px;margin:-4px 2px 0;font:13px var(--body,sans-serif);color:rgba(26,24,21,.75)}
 .cart-del b{font-weight:600;color:#1A1815}
 .cart-del small{flex-basis:100%;font-size:12px;color:#1F6F5C;font-weight:600}
@@ -27284,12 +27323,23 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-sum-r{display:flex;justify-content:space-between;padding:8px 0 0;font-size:14px;color:rgba(26,24,21,.7)}
 .nf-sum-t{padding-top:12px;margin-top:6px;border-top:1px solid rgba(26,24,21,.12);font-size:16px;font-weight:700;color:#1A1815}
 .nf-sum-n{margin:10px 0 0;font-size:13px;line-height:1.5;color:rgba(26,24,21,.65)}
+.nf-sum-l .nf-sum-s{display:grid;width:max-content;margin-top:7px}
+.nf-sum-l small{display:block}
+.nf-sum-l s{font-size:12.5px;color:rgba(26,24,21,.45)}
+.nf-sum-f{padding:12px 0 4px;border-bottom:1px solid rgba(26,24,21,.08)}
+.nf-sum-f>span{display:block;font-size:12.5px;color:rgba(26,24,21,.6);margin:0 0 8px}
+.nf-sum-f div{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.nf-sum-f button{height:36px;border-radius:999px;border:1.5px solid rgba(26,24,21,.15);background:#fff;font:600 12px var(--body,sans-serif);color:#1A1815;cursor:pointer;padding:0 4px}
+.nf-sum-f [aria-checked="true"]{background:#1A1815;border-color:#1A1815;color:#F4F2EE}
+.nf-sum-up{width:100%;margin:12px 0 2px;padding:11px 12px;border-radius:12px;border:1.5px dashed rgba(31,111,92,.5);background:rgba(31,111,92,.06);color:#1F6F5C;font:600 13.5px var(--body,sans-serif);cursor:pointer;text-align:center}
+.nf-sum-free{color:#1F6F5C;font-weight:600}
 .nf-go{width:100%;height:54px;margin-top:20px;border:0;border-radius:12px;background:#EE4D17;color:#fff;font:600 16px var(--body,sans-serif);cursor:pointer}
 .nf-go:hover{filter:brightness(1.06)}
 .nf-go[disabled]{opacity:.7;cursor:default}
 .nf-go-n{margin:10px 0 0;text-align:center;font-size:12.5px;color:rgba(26,24,21,.55)}
 .nf-go-bar{display:none}
 @media(max-width:860px){
+  .nf-pay{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
   .nf-pay-form{padding-bottom:96px}
   .nf-go-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:4101;align-items:center;justify-content:space-between;gap:12px;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:#F4F2EE;border-top:1px solid rgba(26,24,21,.12);box-shadow:0 -10px 30px -12px rgba(26,24,21,.25)}
   .nf-go-bar span{display:grid;font:700 17px var(--body,sans-serif);color:#1A1815}
