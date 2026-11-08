@@ -109,6 +109,6 @@ def project(s,rel):
 if __name__=='__main__':
     root=Path(sys.argv[1]);count=0
     for p in sorted(root.rglob('*.html')):
-        if p.name=='404.html' or 'assets' in p.parts or 'faqs' in p.parts:continue
+        if p.name=='404.html' or 'assets' in p.parts or 'faqs' in p.parts or 'subscription-terms' in p.parts:continue  # standalone pages (152)
         p.write_text(project(p.read_text(),p.relative_to(root).as_posix()));count+=1
     print('Projected',count,'route-specific pages')

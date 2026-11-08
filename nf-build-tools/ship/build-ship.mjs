@@ -269,6 +269,8 @@ for (const rel of pages) {
     if (f === before) { console.error('404.html: no nf-ship stamp to rewrite'); process.exit(1); }
     writeFileSync(outPath, f); continue;
   }
+  // standalone pages that are not variants of the site page (the shop's subscription terms, 152): verbatim
+  if (rel === 'subscription-terms/index.html') { writeFileSync(outPath, readFileSync(join(TPL, rel), 'utf8')); continue; }
   const tplPage = readFileSync(join(TPL, rel), 'utf8');
   const edits = opcodes(tplIndex, tplPage);
   let page = index;
