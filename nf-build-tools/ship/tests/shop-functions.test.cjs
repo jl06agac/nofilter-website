@@ -367,3 +367,15 @@ test('order emails: signed Stripe events only; the customer gets the receipt wit
  assert.doesNotMatch(cust.body.html,/8123|phone/i);
  assert.match(desk.body.text,/1 x Arakan Mountains, 250 g/);assert.match(desk.body.text,/1 Raffles Place/);
 });
+
+test('code check for the basket: percentage and whether it applies to subscriptions, nothing else',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';
+ const promo={id:'promo_1',active:true,promotion:{type:'coupon',coupon:'co_1'}};
+ const run=async(c,code='TEST10')=>{mockStripe(u=>u.includes('promotion_codes')?{body:{data:c?[promo]:[]}}:u.includes('/v1/coupons/')?{body:c}:{body:{}});
+  const r=await checkout.handler({httpMethod:'GET',queryStringParameters:{code}});return {s:r.statusCode,b:JSON.parse(r.body)};};
+ let r=await run({id:'co_1',percent_off:10,duration:'forever',valid:true});assert.equal(r.s,200);assert.deepEqual(r.b,{code:'TEST10',pct:0.1,subscriptions:true});
+ r=await run({id:'co_1',percent_off:10,duration:'once',valid:true});assert.deepEqual(r.b,{code:'TEST10',pct:0.1,subscriptions:false});
+ r=await run(null);assert.equal(r.s,404);
+ r=await run({id:'co_1',amount_off:500,valid:true});assert.equal(r.s,404,'a fixed-amount code is left to Stripe');
+ r=await run(null,'');assert.equal(r.s,400);
+});

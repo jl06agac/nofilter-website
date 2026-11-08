@@ -17220,7 +17220,30 @@ var cart = [];   /* in-memory only — no localStorage / sessionStorage */
    Stripe allows one frequency per subscription, so all subscription lines in the basket share it. */
 var SUB_OFF = window.__nfSubOff = 0.05, DELIVERY = 4, FREE_FROM = 50, EVERY_LAB = { 1:'every week', 2:'every 2 weeks', 3:'every 3 weeks', 4:'every 4 weeks' };
 window.__nfPlan = window.__nfPlan || { every:0, last:2 };
-function unitPrice(l){ return l.every ? Math.round(l.price * (1 - SUB_OFF) * 100) / 100 : l.price; }
+/* 166 · a client code's worth, from checkout.js (GET ?code=), so the basket shows what will be charged.
+   The same rules as payment: a subscription takes the better of 5% and the code if the code may apply to
+   subscriptions (one-off lines in it take the code then, otherwise nothing); an order with no subscription
+   takes the code. null until known; { pct, subs } once known; false if the code is not one we can price. */
+var CODE_INFO = null;
+function offFor(l){
+  var c = CODE_INFO || null, be = basketEvery();
+  if(be) return l.every ? Math.max(SUB_OFF, c && c.subs ? c.pct : 0) : (c && c.subs ? c.pct : 0);
+  return c ? c.pct : 0;
+}
+function unitPrice(l){ var off = offFor(l); return off ? Math.round(l.price * (1 - off) * 100) / 100 : l.price; }
+function codeNote(){
+  if(!SHOP_CODE) return '';
+  if(CODE_INFO === null) return 'Code ' + SHOP_CODE + ' is applied at checkout.';
+  if(CODE_INFO === false) return 'Code ' + SHOP_CODE + ' is checked on the payment page.';
+  var pc = Math.round(CODE_INFO.pct * 100) + '%';
+  if(basketEvery() && !CODE_INFO.subs) return 'Code ' + SHOP_CODE + ' (' + pc + ') is for one-off orders, so subscriptions keep their 5%.';
+  return 'Code ' + SHOP_CODE + ': ' + pc + ' off, included above.';
+}
+if(SHOP_CODE && typeof fetch === 'function'){
+  fetch('/.netlify/functions/checkout?code=' + encodeURIComponent(SHOP_CODE)).then(function(r){
+    if(r.status === 404) return false; if(!r.ok) return null; return r.json().then(function(j){ return { pct: +j.pct || 0, subs: !!j.subscriptions }; });
+  }).then(function(v){ CODE_INFO = v; try{ renderCart(); }catch(e){} }).catch(function(){});
+}
 function lineTotal(l){ return unitPrice(l) * l.qty; }
 function basketEvery(){ var e = 0; cart.forEach(function(l){ if(l.every) e = l.every; }); return e; }
 function setBasketEvery(n){ cart.forEach(function(l){ if(l.every) l.every = n; }); window.__nfPlan.last = n; }
@@ -17519,7 +17542,7 @@ function renderCart(){
     row.className = 'ci';
     var oo = ORIGINS.filter(function(x){ return x.name === li.name; })[0];
     row.innerHTML = '<img class="cimg" src="' + (oo ? oo.bag : '') + '" alt="">' + '<div><div class="cn">' + li.name + '</div><div class="cs">' + li.size.toUpperCase() +
-      ' · ' + CUR() + money(unitPrice(li)) + (li.every ? ' <s>' + money(li.price) + '</s>' : '') + '</div>' +
+      ' · ' + CUR() + money(unitPrice(li)) + (unitPrice(li) < li.price ? ' <s>' + money(li.price) + '</s>' : '') + '</div>' +
       '<span class="csub" role="radiogroup" aria-label="How to buy"><button type="button" data-s="0" aria-checked="' + !li.every + '">One-time</button><button type="button" data-s="1" aria-checked="' + !!li.every + '">Subscribe \u22125%</button></span>' +
       '<div class="cq"><button type="button" data-d="-1" aria-label="One fewer">−</button><span>' + li.qty + '</span><button type="button" data-d="1" aria-label="One more">+</button></div></div>' +
       '<div class="cn">' + CUR() + money(lineTotal(li)) + '</div>' +
@@ -17587,7 +17610,7 @@ function renderCart(){
     r.innerHTML = '<span>' + by[k].name + (by[k].ngo ? ' <small>' + by[k].ngo + '</small>' : '') + '</span><span>' + CUR() + money(by[k].v) + '</span>';
     byEl.appendChild(r); }); }
   var cn = $('#checkoutNote'); if(cn && !$('#checkoutBtn').disabled){ cn.style.display = 'none'; }
-  var cc = $('#cartCode'); if(cc){ cc.hidden = !SHOP_CODE; cc.textContent = SHOP_CODE ? 'Code ' + SHOP_CODE + ' is applied at checkout.' : ''; }
+  var cc = $('#cartCode'); if(cc){ cc.hidden = !SHOP_CODE; cc.textContent = codeNote(); }
   $('#cartCount').textContent = String(n);
   $('#cartBtn').classList.toggle('hot', n > 0);
 }
@@ -17632,14 +17655,14 @@ function paySummary(F){
   return cart.map(function(l, i){ var b = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
       return '<div class="nf-sum-l"><img src="' + (b ? b.bag : '') + '" alt=""><span><b>' + l.name + '</b><small>' + l.size.toUpperCase() + ' \u00d7 ' + l.qty + '</small>' +
         '<span class="csub nf-sum-s" role="radiogroup" aria-label="How to buy"><button type="button" data-i="' + i + '" data-s="0" aria-checked="' + !l.every + '">One-time</button><button type="button" data-i="' + i + '" data-s="1" aria-checked="' + !!l.every + '">Subscribe \u22125%</button></span></span>' +
-        '<span>' + (l.every ? '<s>' + money(l.price * l.qty) + '</s> ' : '') + CUR() + money(lineTotal(l)) + '</span></div>'; }).join('') +
+        '<span>' + (unitPrice(l) < l.price ? '<s>' + money(l.price * l.qty) + '</s> ' : '') + CUR() + money(lineTotal(l)) + '</span></div>'; }).join('') +
     (F.be ? '<div class="nf-sum-f"><span>How often</span><div role="radiogroup" aria-label="How often">' + [1,2,3,4].map(function(n){ return '<button type="button" data-f="' + n + '" aria-checked="' + (n === F.be) + '">' + { 1:'Weekly', 2:'2 weeks', 3:'3 weeks', 4:'4 weeks' }[n] + '</button>'; }).join('') + '</div></div>'
       : '<button type="button" class="nf-sum-up" data-all="1">Subscribe to all and save 5% \u00b7 ' + CUR() + money(F.sub * SUB_OFF) + ' off each delivery</button>') +
     '<div class="nf-sum-r"><span>Delivery' + (F.be ? ', each delivery' : '') + '</span><span>' + (F.del ? CUR() + money(F.del) : 'Free') + '</span></div>' +
     '<div class="nf-sum-r nf-sum-t"><span>' + (F.be ? 'First payment' : 'Total') + '</span><span>' + CUR() + money(F.sub + F.del) + '</span></div>' +
     (F.be ? '<p class="nf-sum-n">Then ' + CUR() + money(F.repeat) + ' ' + EVERY_LAB[F.be] + ', until you cancel. Swap coffees, skip a delivery or cancel any time.</p>' : '') +
     (F.del ? '<p class="nf-sum-n nf-sum-free">Free delivery from ' + CUR() + FREE_FROM + (F.be ? ' a delivery' : '') + '.</p>' : '') +
-    (SHOP_CODE ? '<p class="nf-sum-n">Code ' + SHOP_CODE + ' is applied on the next page.</p>' : '');
+    (SHOP_CODE ? '<p class="nf-sum-n">' + codeNote() + '</p>' : '');
 }
 function openPay(){
   var F = payFigures(), give = F.give, sub = F.sub, del = F.del, be = F.be;

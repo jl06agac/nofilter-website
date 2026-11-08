@@ -91,9 +91,32 @@ function subscriptionCodeOk(promo, c) {
   return true;
 }
 
+// A client code: its promotion id, percentage, and whether it may be built into subscription prices.
+// No expand on the list: Stripe's current API holds the coupon as an ID under promotion.coupon (older
+// versions put it at coupon), and an expand path the account's version doesn't have fails the whole call.
+async function lookupCode(code, KEY) {
+  const found = await stripe('promotion_codes?active=true&limit=1&code=' + encodeURIComponent(code), KEY, null, 'GET');
+  const promo = found.ok && found.data && Array.isArray(found.data.data) ? found.data.data[0] : null;
+  if (!promo || !promo.id) return null;
+  const ref = promo.coupon || (promo.promotion && promo.promotion.coupon);
+  const cid = typeof ref === 'string' ? ref : ref && ref.id;
+  const cr = cid ? await stripe('coupons/' + encodeURIComponent(cid) + '?expand[]=applies_to', KEY, null, 'GET') : null;
+  const coupon = cr && cr.ok ? cr.data : null;
+  return { promoId: promo.id, pct: coupon && coupon.percent_off ? coupon.percent_off / 100 : 0, subOk: !!(coupon && subscriptionCodeOk(promo, coupon)) };
+}
+
 exports.handler = async function (event) {
-  if (event.httpMethod !== 'POST') return reply(405, { error: 'POST only' });
   const KEY = process.env.STRIPE_SECRET_KEY;
+  // 166: the basket asks what a client code is worth, so it can show the price that will be charged.
+  // Answers only the percentage and whether it applies to subscriptions; nothing about the customer.
+  if (event.httpMethod === 'GET') {
+    if (!KEY) return reply(503, { error: 'payments not configured' });
+    const code = String((event.queryStringParameters || {}).code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 24);
+    if (!code) return reply(400, { error: 'no code' });
+    const c = await lookupCode(code, KEY);
+    return reply(c && c.pct ? 200 : 404, c && c.pct ? { code, pct: c.pct, subscriptions: c.subOk } : { error: 'unknown code' });
+  }
+  if (event.httpMethod !== 'POST') return reply(405, { error: 'POST only' });
   if (!KEY) return reply(503, { error: 'payments not configured' });
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch (e) { return reply(400, { error: 'bad request' }); }
@@ -160,20 +183,8 @@ exports.handler = async function (event) {
   // applied to the prices here, since a Stripe code would apply to every future delivery too.
   let codePct = 0, promoId = null;
   if (code) {
-    // No expand on the list: Stripe's current API holds the coupon as an ID under promotion.coupon (older
-    // versions put it at coupon), and an expand path the account's version doesn't have fails the whole call.
-    const found = await stripe('promotion_codes?active=true&limit=1&code=' + encodeURIComponent(code), KEY, null, 'GET');
-    const promo = found.ok && found.data && Array.isArray(found.data.data) ? found.data.data[0] : null;
-    if (promo && promo.id) {
-      promoId = promo.id;
-      if (every) {
-        const ref = promo.coupon || (promo.promotion && promo.promotion.coupon);
-        const cid = typeof ref === 'string' ? ref : ref && ref.id;
-        const cr = cid ? await stripe('coupons/' + encodeURIComponent(cid) + '?expand[]=applies_to', KEY, null, 'GET') : null;
-        const coupon = cr && cr.ok ? cr.data : null;
-        if (coupon && subscriptionCodeOk(promo, coupon)) codePct = (+coupon.percent_off || 0) / 100;
-      }
-    }
+    const c = await lookupCode(code, KEY);
+    if (c) { promoId = c.promoId; if (every && c.subOk) codePct = c.pct; }
     form.set('metadata[code]', code);
   }
   const unit = l => { const base = l.size === '250g' ? P250 : P1KG;
