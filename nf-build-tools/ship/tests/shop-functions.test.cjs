@@ -442,3 +442,30 @@ test('order emails: a 409 is not a send, and an unrecorded send is not acknowled
  const n=mails;r=await fire({...sess,id:'cs_test_xxxxxxxxxxxxxxxx',payment_intent:null});
  assert.equal(r.statusCode,500,'nothing to record on: nothing sent');assert.equal(mails,n);
 });
+
+test('order emails: a retry after the customer changes the subscription carries the same email',async()=>{
+ const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
+ const sess={id:'cs_test_wwwwwwwwwwwwwwww',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_9',created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
+  amount_subtotal:2160,amount_total:2560,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-CCCCCC',delivery_cents:'400'},customer_details:{email:'pat@example.com',name:'Pat'}};
+ const item=(id,name,origin,amt,every)=>({id,quantity:1,current_period_end:1795000000,price:{unit_amount:amt,recurring:{interval:'week',interval_count:every},product:{name,metadata:{origin,partner:'OIC'}}}});
+ let sub={id:'sub_9',status:'active',metadata:{every_weeks:'1',off_pct:'10'},default_payment_method:{type:'card',card:{brand:'visa',last4:'4242'}},items:{data:[item('si_1','Gayo Lues coffee, 250 g','gayo',2160,1),{...item('si_d','Delivery','delivery',400,1),price:{unit_amount:400,recurring:{interval:'week',interval_count:1},product:{name:'Delivery',metadata:{kind:'delivery'}}}}]}};
+ let metaFail=true;const cust=[];
+ mockStripe((u,o)=>{
+  if(u.startsWith('https://api.resend.com')){const b=JSON.parse(o.body);if(b.to[0]==='pat@example.com')cust.push({key:o.headers['Idempotency-Key'],body:o.body});return {body:{id:'em'}};}
+  if(u.includes('/v1/subscriptions/sub_9')){if(o&&o.method==='POST'){if(metaFail)return {ok:false,status:500,body:{}};for(const [k,v] of new URLSearchParams(o.body))sub.metadata[k.slice(9,-1)]=v;}return {body:sub};}
+  if(u.includes('/line_items'))return {body:{data:[{description:'Gayo Lues coffee, 250 g',quantity:1,amount_total:2160,price:{recurring:{interval:'week',interval_count:1},product:{metadata:{origin:'gayo',partner:'OIC'}}}},{description:'Delivery',quantity:1,amount_total:400,price:{recurring:{interval:'week',interval_count:1},product:{name:'Delivery',metadata:{kind:'delivery'}}}}]}};
+  if(u.includes('checkout/sessions?customer='))return {body:{data:[]}};
+  if(u.includes('invoices?'))return {body:{data:[]}};
+  if(u.includes('/v1/checkout/sessions/'))return {body:sess};
+  return {body:{}};});
+ const sign=b=>{const t=Math.floor(Date.now()/1000);return 't='+t+',v1='+crypto.createHmac('sha256','whsec_test').update(t+'.'+b).digest('hex');};
+ const fire=async()=>{const b=JSON.stringify({type:'checkout.session.completed',data:{object:sess}});return wh.handler({httpMethod:'POST',headers:{'stripe-signature':sign(b)},body:b});};
+ assert.equal((await fire()).statusCode,500,'sent, marker not saved');
+ // the customer swaps to 1 kg every 4 weeks, and changes card, before Stripe retries
+ sub.items.data=[item('si_1','Batang Toru coffee, 1 kg','toru',6750,4)];sub.default_payment_method={type:'card',card:{brand:'mastercard',last4:'1111'}};sub.items.data[0].current_period_end=1797000000;
+ metaFail=false;assert.equal((await fire()).body,'sent');
+ assert.equal(cust.length,2);assert.equal(cust[0].key,cust[1].key);assert.equal(cust[0].body,cust[1].body,'identical content under the same key');
+ assert.match(cust[0].body,/SGD 25\.60 every week/);assert.doesNotMatch(cust[0].body,/1111|4242/,'no card line on a subscription email');
+ assert.equal(sub.metadata.nf_mail_customer,'sent');
+});

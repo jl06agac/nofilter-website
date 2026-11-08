@@ -85,6 +85,22 @@ function deskEmail(d, sessionId, when = Date.now()) {
 // days later, past Resend's 24-hour idempotency window, never sends one twice. Emails are built from the
 // order's creation time, so a retry inside the window sends the same content under the same key.
 const EVENTS = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'];
+// 173 (Codex): the emails are built only from what was fixed at purchase (the checkout session and its line
+// items), never the live subscription, which the customer may have changed since. A retry then carries the
+// same content under the same key, so Resend answers with the original send instead of a 409. The repeat
+// charge comes from the recurring lines bought, the next charge is purchase time plus the frequency, and the
+// card is left out for subscriptions (it can be changed afterwards; Stripe's own receipt carries it).
+function frozen(d, createdSec) {
+  const o = { ...(d.order || {}) };
+  const rec = (o.items || []).filter(it => it.every);
+  let subscription = null;
+  if (rec.length) {
+    const every = rec[0].every;
+    subscription = { every, items: rec.map(it => ({ amount: it.amount })), delivery: o.delivery || 0, nextCharge: createdSec + every * 7 * 86400 };
+    o.paidWith = null;
+  }
+  return { order: o, subscription, contribution: d.contribution, byPartner: d.byPartner, code: d.code, currency: d.currency };
+}
 async function stripeCall(path, key, form) {
   const res = await fetch('https://api.stripe.com/v1/' + path, { method: form ? 'POST' : 'GET',
     headers: { Authorization: 'Bearer ' + key, ...(form ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}) }, body: form ? form.toString() : undefined });
@@ -125,10 +141,11 @@ exports.handler = async function (event) {
 
   const r = await summary.handler({ httpMethod: 'GET', queryStringParameters: { order: s.id } });
   if (r.statusCode !== 200) return { statusCode: 500, body: 'order not readable' };   // Stripe retries
-  const d = JSON.parse(r.body);
+  const createdSec = s.created || Math.floor(Date.now() / 1000);
+  const d = frozen(JSON.parse(r.body), createdSec);
   let origin = 'https://nofilter.sg';
   try { origin = new URL(s.success_url).origin; } catch (e) {}
-  const when = (s.created || Math.floor(Date.now() / 1000)) * 1000;
+  const when = createdSec * 1000;
   const send = (payload, key) => fetch('https://api.resend.com/emails', { method: 'POST',
     headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify(payload) });
   const desk = process.env.ORDERS_TO || process.env.QUOTE_TO || 'hello@nofilter.sg';
@@ -160,4 +177,4 @@ exports.handler = async function (event) {
   return { statusCode: 200, body: 'sent' };
 };
 
-exports._test = { verify, customerEmail, deskEmail, roastAfter, category };
+exports._test = { verify, customerEmail, deskEmail, roastAfter, category, frozen };
