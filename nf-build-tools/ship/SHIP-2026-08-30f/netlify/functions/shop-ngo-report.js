@@ -6,6 +6,9 @@
    amount after discounts is grouped by the coffee's origin and partner (stamped on the line
    by checkout.js), and the contribution is that amount times the order's contribution_rate.
    byChoice splits the same amounts by the project the customer chose (where-needed if none).
+   Subscription deliveries after the first (invoices with billing_reason subscription_cycle, from
+   subscriptions the shop created) are counted too: each line's amount, grouped by its product's origin
+   and partner, times the subscription's contribution_rate; the choice is the subscription's.
    Delivery charges are not coffee and carry no contribution. Refunds are not netted off:
    a refunded order is listed under `refunded` so it can be excluded by hand.
    Dates are Singapore dates, inclusive. Amounts are in cents (SGD). */
@@ -50,7 +53,7 @@ exports.handler = async function (event) {
   if (!(gte <= lte)) return reply(400, { error: 'from is after to' });
 
   const totals = {}, refunded = [], byChoice = {};
-  let orders = 0, after = '';
+  let orders = 0, renewals = 0, after = '';
   try {
     for (;;) {
       const page = await get(`checkout/sessions?status=complete&limit=100&created[gte]=${gte}&created[lte]=${lte}&expand[]=data.payment_intent.latest_charge${after ? '&starting_after=' + after : ''}`, KEY);
@@ -75,8 +78,39 @@ exports.handler = async function (event) {
     }
   } catch (e) { return reply(502, { error: e.message }); }
 
+  // Subscription renewals
+  try {
+    const products = {};
+    const product = async id => { if (!id) return {}; if (!products[id]) products[id] = (await get('products/' + id, KEY)).metadata || {}; return products[id]; };
+    let iafter = '';
+    for (;;) {
+      const page = await get(`invoices?status=paid&limit=100&created[gte]=${gte}&created[lte]=${lte}${iafter ? '&starting_after=' + iafter : ''}`, KEY);
+      for (const inv of page.data) {
+        if (inv.billing_reason !== 'subscription_cycle') continue;
+        const meta = (inv.parent && inv.parent.subscription_details && inv.parent.subscription_details.metadata) || (inv.subscription_details && inv.subscription_details.metadata) || {};
+        if (meta.source !== 'website-shop') continue;
+        const rate = parseFloat(meta.contribution_rate || '0.10'), choice = meta.choice || 'where-needed';
+        orders++; renewals++;
+        for (const l of (inv.lines && inv.lines.data) || []) {
+          const pid = (l.price && (typeof l.price.product === 'string' ? l.price.product : l.price.product && l.price.product.id)) || (l.pricing && l.pricing.price_details && l.pricing.price_details.product);
+          const m = await product(pid);
+          const v = contributions([{ amount_total: l.amount || 0, quantity: l.quantity || 0, price: { product: { metadata: m } } }], rate);
+          for (const [k, x] of Object.entries(v)) {
+            if (!totals[k]) totals[k] = { origin: x.origin, partner: x.partner, sales: 0, contribution: 0, bags: 0 };
+            totals[k].sales += x.sales; totals[k].contribution += x.contribution; totals[k].bags += x.bags;
+            const ck = choice + '|' + k;
+            if (!byChoice[ck]) byChoice[ck] = { choice, origin: x.origin, partner: x.partner, contribution: 0 };
+            byChoice[ck].contribution += x.contribution;
+          }
+        }
+      }
+      if (!page.has_more || !page.data.length) break;
+      iafter = page.data[page.data.length - 1].id;
+    }
+  } catch (e) { return reply(502, { error: e.message }); }
+
   const byPartner = Object.values(totals).sort((a, b) => b.contribution - a.contribution);
-  return reply(200, { from: q.from, to: q.to, currency: 'sgd', orders, byPartner, byChoice: Object.values(byChoice),
+  return reply(200, { from: q.from, to: q.to, currency: 'sgd', orders, renewals, byPartner, byChoice: Object.values(byChoice),
     contribution: byPartner.reduce((n, v) => n + v.contribution, 0), refunded });
 };
 

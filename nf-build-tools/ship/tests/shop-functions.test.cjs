@@ -12,7 +12,8 @@ test('only the four coffees in 250 g or 1 kg; quantities merged and capped',()=>
  assert.equal(c([{name:'Free coffee',size:'1kg',qty:1}]),null);
  assert.equal(c([{name:'Gayo Lues',size:'5kg',qty:1}]),null);
  assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:0}]),null);
- assert.deepEqual(c([{name:'Gayo Lues',size:'1 KG',qty:15},{name:'Gayo Lues',size:'1kg',qty:9}]),[{name:'Gayo Lues',size:'1kg',qty:20}]);
+ assert.deepEqual(c([{name:'Gayo Lues',size:'1 KG',qty:15},{name:'Gayo Lues',size:'1kg',qty:9}]),[{name:'Gayo Lues',size:'1kg',qty:20,every:0}]);
+ assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:1,every:5}]),null,'every 1-4 weeks only');
 });
 
 test('prices are set here, every line carries its origin and partner, delivery in Singapore',async()=>{
@@ -80,7 +81,7 @@ test('order summary: only paid shop orders; order details for the confirmation p
  assert.equal(r.bags,3);assert.equal(r.contribution,1280);assert.deepEqual(r.byPartner.map(x=>[x.name,x.partner,x.contribution]),[['Batang Gadis','SRI',800],['Gayo Lues','OIC',480]]);
  assert.equal(r.order.ref,'NF-7K2Q9M');assert.equal(r.order.email,'a@b.c');assert.equal(r.order.firstName,'Alex');
  assert.deepEqual(r.order.address,['Alex Clark','1 Raffles Place','#20-01','Singapore 048616']);
- assert.deepEqual(r.order.items[0],{name:'Batang Gadis',size:'1 kg',qty:1,amount:8000});
+ assert.deepEqual(r.order.items[0],{name:'Batang Gadis',size:'1 kg',qty:1,amount:8000,every:0});
  assert.equal(r.order.total,11520);assert.equal(r.order.discount,1280);assert.deepEqual(r.order.paidWith,{brand:'visa',last4:'4242',wallet:'apple_pay'});
  const out=JSON.stringify(r);for(const x of ['+6590000000','BILLING','fp_secret','2030'])assert(!out.includes(x),'never returned: '+x);
  mockStripe(()=>({body:{payment_status:'unpaid',metadata:{source:'website-shop'}}}));
@@ -110,4 +111,78 @@ test('every order gets a quotable number, on the order and its payment',async()=
  const f=new URLSearchParams(calls[0].opt.body),ref=f.get('metadata[order_ref]');
  assert.match(ref,/^NF-[2-9A-HJKMNP-Z]{6}$/);
  assert.equal(f.get('payment_intent_data[metadata][order_ref]'),ref);assert.equal(f.get('payment_intent_data[description]'),'NoFilter order '+ref);
+});
+
+test('subscriptions: weekly-based recurring prices at 10% off; one frequency; one-offs ride along',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';delete process.env.PRICE_BAG_1KG;delete process.env.PRICE_BAG_250G;
+ const calls=mockStripe(()=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:2,every:2},{name:'Batang Gadis',size:'1kg',qty:1,every:4},{name:'Batang Toru',size:'1kg',qty:1}]}));
+ const f=new URLSearchParams(calls[0].opt.body);
+ assert.equal(f.get('mode'),'subscription');
+ assert.equal(f.get('line_items[0][price_data][unit_amount]'),'2160');assert.equal(f.get('line_items[0][price_data][recurring][interval]'),'week');assert.equal(f.get('line_items[0][price_data][recurring][interval_count]'),'2');
+ assert.equal(f.get('line_items[1][price_data][recurring][interval_count]'),'2','the basket shares one frequency');
+ assert.equal(f.get('line_items[2][price_data][unit_amount]'),'8000');assert.equal(f.get('line_items[2][price_data][recurring][interval]'),null,'one-off rides along');
+ assert.equal(f.get('subscription_data[metadata][source]'),'website-shop');assert.equal(f.get('subscription_data[metadata][every_weeks]'),'2');
+ assert.equal(f.get('shipping_options[0][shipping_rate_data][type]'),null);assert.equal(f.get('allow_promotion_codes'),null,'no code box on subscriptions');
+ assert.match(f.get('custom_text[submit][message]'),/every 2 weeks.*until you cancel.*\/subscription-terms\//);
+ const one=mockStripe(()=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}));
+ const g=new URLSearchParams(one[0].opt.body);assert.equal(g.get('mode'),'payment');assert.equal(g.get('customer_creation'),'always');
+});
+
+test('subscriptions with a client code: the better of the two, never both',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';
+ const promo=pct=>(u,o)=>u.includes('promotion_codes')?{body:{data:[{id:'promo_1',coupon:{percent_off:pct}}]}}:{body:{client_secret:'x',id:'cs_test_9'}};
+ let calls=mockStripe(promo(10));
+ let r=JSON.parse((await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1},{name:'Batang Toru',size:'250g',qty:1}],code:'SPRINKLR10'}))).body);
+ let f=new URLSearchParams(calls[1].opt.body);
+ assert.equal(f.get('line_items[0][price_data][unit_amount]'),'2160','10% sub vs 10% code: 10%');
+ assert.equal(f.get('line_items[1][price_data][unit_amount]'),'2160','one-off gets the code');
+ assert.equal(f.get('discounts[0][promotion_code]'),null,'not stacked by Stripe');assert.equal(r.code,'SPRINKLR10');
+ calls=mockStripe(promo(15));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:1}],code:'BIG15'}));
+ assert.equal(new URLSearchParams(calls[1].opt.body).get('line_items[0][price_data][unit_amount]'),'2040','a bigger code wins');
+ calls=mockStripe(promo(10));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}],code:'SPRINKLR10'}));
+ assert.equal(new URLSearchParams(calls[1].opt.body).get('discounts[0][promotion_code]'),'promo_1','one-off orders: Stripe applies the code');
+});
+
+test('order summary: subscription, running total, choices and the manage link',async()=>{
+ const sum=require(path.join(F,'order-summary.js'));process.env.STRIPE_SECRET_KEY='sk_test_x';
+ const session={payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',amount_subtotal:2160,amount_total:2160,total_details:{amount_shipping:0},
+  metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-ABCDEF',choice:'protect-forests'},customer_details:{email:'a@b.c',name:'Alex Clark'},
+  subscription:{id:'sub_1',status:'active',metadata:{every_weeks:'2'},items:{data:[{current_period_end:1795000000,price:{recurring:{interval:'week',interval_count:2}}}]},default_payment_method:{type:'card',card:{brand:'visa',last4:'4242'}}}};
+ const calls=mockStripe((u,o)=>{
+  if(u.includes('/line_items'))return {body:{data:[{description:'Gayo Lues coffee, 250 g',quantity:1,amount_total:2160,price:{recurring:{interval:'week',interval_count:2},product:{metadata:{origin:'gayo',partner:'OIC'}}}}]}};
+  if(u.includes('checkout/sessions?customer='))return {body:{data:[{payment_status:'paid',amount_total:2160,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10'}},{payment_status:'paid',amount_total:8000,total_details:{amount_shipping:0},metadata:{source:'website-shop'}}]}};
+  if(u.includes('invoices?'))return {body:{data:[{billing_reason:'subscription_cycle',amount_paid:2160,parent:{subscription_details:{metadata:{source:'website-shop',contribution_rate:'0.10'}}}},{billing_reason:'subscription_create',amount_paid:2160,parent:{subscription_details:{metadata:{source:'website-shop'}}}}]}};
+  if(u.includes('billing_portal'))return {body:{url:'https://billing.stripe.com/p/session/x'}};
+  if(u.includes('customers/')||u.includes('subscriptions/'))return {body:{}};
+  return {body:session};});
+ const r=JSON.parse((await sum.handler({queryStringParameters:{order:'cs_test_abcdefghijklmnop'}})).body);
+ assert.deepEqual(r.subscription,{every:2,nextCharge:1795000000,status:'active',managed:true});
+ assert.equal(r.order.items[0].every,2);assert.deepEqual(r.order.paidWith,{brand:'visa',last4:'4242',wallet:null});
+ assert.deepEqual(r.given,{total:216+800+216,orders:3},'two paid orders plus one renewal; the first subscription invoice is the order itself');
+ assert(calls.some(c=>c.url.endsWith('subscriptions/sub_1')&&new URLSearchParams(c.opt.body).get('metadata[choice]')==='protect-forests'),'choice carried to the subscription');
+ const m=await sum.handler({queryStringParameters:{order:'cs_test_abcdefghijklmnop',manage:'1'},headers:{host:'nofilter.sg'}});
+ assert.equal(m.statusCode,303);assert.equal(m.headers.Location,'https://billing.stripe.com/p/session/x');
+ const p=await sum.handler({httpMethod:'POST',body:JSON.stringify({order:'cs_test_abcdefghijklmnop',reportBack:true,news:false})});
+ assert.equal(p.statusCode,200);const pc=calls.filter(c=>c.url.endsWith('customers/cus_1')).pop();
+ const pf=new URLSearchParams(pc.opt.body);assert.equal(pf.get('metadata[report_back]'),'yes');assert.equal(pf.get('metadata[news]'),'no');
+});
+
+test('report: subscription deliveries after the first are counted, by product origin and the subscription choice',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.REPORT_KEY='secret';
+ mockStripe(u=>{
+  if(u.startsWith('https://api.stripe.com/v1/checkout/sessions?'))return {body:{has_more:false,data:[]}};
+  if(u.includes('products/prod_gayo'))return {body:{metadata:{origin:'gayo',partner:'OIC'}}};
+  if(u.includes('invoices?'))return {body:{has_more:false,data:[
+   {id:'in_1',billing_reason:'subscription_cycle',parent:{subscription_details:{metadata:{source:'website-shop',contribution_rate:'0.10',choice:'protect-forests'}}},lines:{data:[{amount:4320,quantity:2,pricing:{price_details:{product:'prod_gayo'}}}]}},
+   {id:'in_2',billing_reason:'subscription_create',parent:{subscription_details:{metadata:{source:'website-shop'}}},lines:{data:[{amount:9999,quantity:1}]}},
+   {id:'in_3',billing_reason:'subscription_cycle',parent:{subscription_details:{metadata:{source:'other'}}},lines:{data:[{amount:9999,quantity:1}]}}]}};
+  return {body:{}};});
+ const r=JSON.parse((await report.handler({headers:{'x-report-key':'secret'},queryStringParameters:{from:'2026-11-01',to:'2026-11-30'}})).body);
+ assert.equal(r.renewals,1);assert.equal(r.contribution,432);
+ assert.deepEqual(r.byPartner.map(x=>[x.origin,x.partner,x.bags,x.contribution]),[['gayo','OIC',2,432]]);
+ assert.deepEqual(r.byChoice,[{choice:'protect-forests',origin:'gayo',partner:'OIC',contribution:432}]);
 });

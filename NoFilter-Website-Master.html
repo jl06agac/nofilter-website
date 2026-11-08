@@ -17216,6 +17216,14 @@ $$('.org .org-hd').forEach(function(btn){
    kept for this visit, shown in the cart, applied by Stripe if it knows it */
 var SHOP_CODE = (function(){ try { return (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,24); } catch(e){ return ''; } })();
 var cart = [];   /* in-memory only — no localStorage / sessionStorage */
+/* 152 · subscriptions: a line with every = 1-4 is delivered every that many weeks at 10% off; 0 is one-off.
+   Stripe allows one frequency per subscription, so all subscription lines in the basket share it. */
+var SUB_OFF = 0.10, EVERY_LAB = { 1:'every week', 2:'every 2 weeks', 3:'every 3 weeks', 4:'every 4 weeks' };
+window.__nfPlan = window.__nfPlan || { every:0, last:2 };
+function unitPrice(l){ return l.every ? Math.round(l.price * (1 - SUB_OFF) * 100) / 100 : l.price; }
+function lineTotal(l){ return unitPrice(l) * l.qty; }
+function basketEvery(){ var e = 0; cart.forEach(function(l){ if(l.every) e = l.every; }); return e; }
+function setBasketEvery(n){ cart.forEach(function(l){ if(l.every) l.every = n; }); window.__nfPlan.last = n; }
 var shopGrid = $('#shopGrid');
 /* 113: absent whenever the shop section is not on this page */
 if (shopGrid) ORIGINS.forEach(function(o, i){
@@ -17281,13 +17289,17 @@ window.__nfCartSet = function(id, qty, meta){
   var i, found = -1;
   for(i=0;i<cart.length;i++){ if((cart[i].id||(cart[i].k+'|'+cart[i].size)) === id){ found=i; break; } }
   if(qty <= 0){ if(found>=0) cart.splice(found,1); }
-  else if(found>=0){ cart[found].qty = qty; }
+  else if(found>=0){ cart[found].qty = qty;
+    if(window.__nfPlanArm){ var ev2 = window.__nfPlan.every || 0; window.__nfPlanArm = false;
+      if(ev2 && basketEvery() && basketEvery() !== ev2) setBasketEvery(ev2); cart[found].every = ev2; } }
   else {
     /* price comes from MARKETS, not from the picker's own hardcoded card, so the
        SG / UAE toggle still governs what the shop charges */
     var size = (meta.size||'').toLowerCase();
+    var ev = window.__nfPlanArm ? (window.__nfPlan.every || 0) : 0; window.__nfPlanArm = false;
+    if(ev && basketEvery() && basketEvery() !== ev) setBasketEvery(ev);
     cart.push({ k:id, id:id, name:meta.name||'Coffee', size:meta.size||'1kg',
-      price: (size.indexOf('250') >= 0 ? P250 : P1KG), qty:qty, color:meta.color });
+      price: (size.indexOf('250') >= 0 ? P250 : P1KG), qty:qty, color:meta.color, every:ev });
   }
   renderCart();
   /* deliberately NOT opening the drawer here. Adding from the shop grid is a
@@ -17502,25 +17514,36 @@ function renderCart(){
     body.appendChild(e);
   }
   cart.forEach(function(li, i){
-    sub += li.price * li.qty; n += li.qty;
+    sub += lineTotal(li); n += li.qty;
     var row = document.createElement('div');
     row.className = 'ci';
     var oo = ORIGINS.filter(function(x){ return x.name === li.name; })[0];
     row.innerHTML = '<img class="cimg" src="' + (oo ? oo.bag : '') + '" alt="">' + '<div><div class="cn">' + li.name + '</div><div class="cs">' + li.size.toUpperCase() +
-      ' · ' + CUR() + money(li.price) + '</div>' +
+      ' · ' + CUR() + money(unitPrice(li)) + (li.every ? ' <s>' + money(li.price) + '</s>' : '') + '</div>' +
+      '<label class="csub"><input type="checkbox"' + (li.every ? ' checked' : '') + '> Subscribe &amp; save 10%</label>' +
       '<div class="cq"><button type="button" data-d="-1" aria-label="One fewer">−</button><span>' + li.qty + '</span><button type="button" data-d="1" aria-label="One more">+</button></div></div>' +
-      '<div class="cn">' + CUR() + money(li.price * li.qty) + '</div>' +
+      '<div class="cn">' + CUR() + money(lineTotal(li)) + '</div>' +
       '<button class="cx" aria-label="Remove">✕</button>';
     $('.cx', row).addEventListener('click', function(){ cart.splice(i,1); renderCart(); });
+    $('.csub input', row).addEventListener('change', function(e){ li.every = e.target.checked ? (basketEvery() || window.__nfPlan.last || 2) : 0; renderCart(); });
     $$('.cq button', row).forEach(function(b){ b.addEventListener('click', function(){
       li.qty = Math.min(20, li.qty + parseInt(b.getAttribute('data-d'), 10));
       if(li.qty < 1) cart.splice(i,1);
       renderCart(); }); });
     body.appendChild(row);
   });
+  /* 152 · one frequency for the subscription bags, changeable here */
+  var be = basketEvery();
+  if(be){
+    var pl = document.createElement('div'); pl.className = 'cart-plan';
+    pl.innerHTML = '<span>Subscription bags arrive</span><select aria-label="How often">' + [1,2,3,4].map(function(n){ return '<option value="' + n + '"' + (n === be ? ' selected' : '') + '>' + EVERY_LAB[n] + '</option>'; }).join('') +
+      '</select><small>from each Wednesday roast. Skip, pause or cancel any time.</small>';
+    pl.querySelector('select').addEventListener('change', function(e){ setBasketEvery(parseInt(e.target.value, 10)); renderCart(); });
+    body.appendChild(pl);
+  }
   /* 142 · the empty space under the lines plays the landscape most of the basket comes from */
   if(cart.length){
-    var tally = {}, lead = null; cart.forEach(function(l){ tally[l.name] = (tally[l.name] || 0) + l.price * l.qty; });
+    var tally = {}, lead = null; cart.forEach(function(l){ tally[l.name] = (tally[l.name] || 0) + lineTotal(l); });
     Object.keys(tally).forEach(function(n){ if(!lead || tally[n] > tally[lead]) lead = n; });
     var lo = ORIGINS.filter(function(x){ return x.name === lead; })[0];
     if(lo && typeof PAY_FILMS !== 'undefined'){
@@ -17539,7 +17562,7 @@ function renderCart(){
   cart.forEach(function(li){
     var o = ORIGINS.filter(function(x){ return x.name === li.name; })[0];
     var k = li.name; if(!by[k]) by[k] = { name: li.name, ngo: o ? o.ngo : '', v: 0 };
-    by[k].v += li.price * li.qty * 0.10;
+    by[k].v += lineTotal(li) * 0.10;
   });
   /* 143 · one coffee: the film's caption already names its partner, so the split only shows from two */
   if(byEl){ byEl.textContent = ''; if(Object.keys(by).length > 1) Object.keys(by).forEach(function(k){
@@ -17567,7 +17590,7 @@ $('#checkoutBtn').addEventListener('click', function(){
   if(MKT.cur !== 'SGD'){ say('Retail bags ship within Singapore for now.'); return; }
   btn.disabled = true; say('Opening secure checkout…');
   fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty }; }), code: SHOP_CODE }) })
+    body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty, every:l.every || 0 }; }), code: SHOP_CODE }) })
     .then(function(r){ return r.json().then(function(d){ return { ok:r.ok, status:r.status, d:d }; }); })
     .then(function(x){
       if(x.ok && x.d.clientSecret){ btn.disabled = false; note.style.display = 'none'; openPay(x.d); return; }
@@ -17595,7 +17618,7 @@ function loadStripeJs(){ return window.Stripe ? Promise.resolve(window.Stripe) :
   var sc = document.createElement('script'); sc.src = 'https://js.stripe.com/endive/stripe.js'; /* 151 · Stripe's current release for embedded_page checkout */ sc.onload = function(){ ok(window.Stripe); }; sc.onerror = no; document.head.appendChild(sc); }); }
 function openPay(d){
   var give = 0, top = null, by = {};
-  cart.forEach(function(l){ var v = l.price * l.qty * 0.10; give += v; by[l.name] = (by[l.name] || 0) + v; });
+  cart.forEach(function(l){ var v = lineTotal(l) * 0.10; give += v; by[l.name] = (by[l.name] || 0) + v; });
   Object.keys(by).forEach(function(n){ if(!top || by[n] > by[top]) top = n; });
   var o = ORIGINS.filter(function(x){ return x.name === top; })[0] || ORIGINS[0];
   var el = document.createElement('div'); el.className = 'nf-pay'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Checkout');
@@ -17621,22 +17644,22 @@ function openPay(d){
     if(!d.preview) fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'choose', session:d.session, choice:choice }) }).catch(function(){});
   }); });
   if(d.preview){
-    var sub = 0; cart.forEach(function(l){ sub += l.price * l.qty; });
+    var sub = 0; cart.forEach(function(l){ sub += lineTotal(l); });
     var f = el.querySelector('#nfPayForm');
     f.innerHTML = '<div class="nf-pv">' +
       '<div class="nf-pv-x"><span>Apple Pay</span><span>Google Pay</span><span>PayNow</span></div>' +
       '<div class="nf-pv-or"><span>or pay by card</span></div>' +
       '<div class="nf-pv-f">Email</div><div class="nf-pv-f">Card number</div><div class="nf-pv-f">Delivery address, Singapore</div>' +
-      cart.map(function(l){ return '<div class="nf-pv-l"><span>' + l.name + ' · ' + l.size + ' × ' + l.qty + '</span><span>' + CUR() + money(l.price * l.qty) + '</span></div>'; }).join('') +
+      cart.map(function(l){ return '<div class="nf-pv-l"><span>' + l.name + ' · ' + l.size + ' × ' + l.qty + '</span><span>' + CUR() + money(lineTotal(l)) + '</span></div>'; }).join('') +
       '<div class="nf-pv-l nf-pv-t"><span>Total</span><span>' + CUR() + money(sub) + '</span></div>' +
       '<button type="button" class="nf-pv-pay">Pay ' + CUR() + money(sub) + '</button>' +
       '<p class="nf-pv-k">Draft preview. Stripe’s own form sits here on nofilter.sg; nothing is charged.</p></div>';
     f.querySelector('.nf-pv-pay').addEventListener('click', function(){
       var parts = {}; cart.forEach(function(l){ var o = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
-        if(!parts[l.name]) parts[l.name] = { name:l.name, partner: o ? o.ngo : '', contribution:0 }; parts[l.name].contribution += Math.round(l.price * l.qty * 10); });
+        if(!parts[l.name]) parts[l.name] = { name:l.name, partner: o ? o.ngo : '', contribution:0 }; parts[l.name].contribution += Math.round(lineTotal(l) * 10); });
       var list = Object.keys(parts).map(function(k){ return parts[k]; });
       var d2 = { currency: MKT.cur, contribution: list.reduce(function(n, p){ return n + p.contribution; }, 0), byPartner: list, choice: choice,
-        order: { ref: 'NF-PREVIEW', items: cart.map(function(l){ return { name: l.name, size: l.size === '1KG' || l.size === '1kg' ? '1 kg' : '250 g', qty: l.qty, amount: Math.round(l.price * l.qty * 100) }; }),
+        order: { ref: 'NF-PREVIEW', items: cart.map(function(l){ return { name: l.name, size: l.size === '1KG' || l.size === '1kg' ? '1 kg' : '250 g', qty: l.qty, every: l.every || 0, amount: Math.round(lineTotal(l) * 100) }; }),
           subtotal: Math.round(sub * 100), discount: 0, delivery: 0, total: Math.round(sub * 100) } };
       close(); cart.length = 0; renderCart(); openCart(false); paidPanel().fill(d2);
     });
@@ -17652,12 +17675,15 @@ function openPay(d){
    Wednesday), the order itself (number, bags, total, card, address, where the confirmation was emailed),
    the conservation share as a calm second section, and where to get help. Opened on the return from Stripe
    (?paid=1&order=cs_…, kept in the address so a refresh still shows it) or by the draft preview. */
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function sgDate(unix){ var d = new Date(unix * 1000 + 8 * 36e5); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; }
+function roastOnOrAfter(unix){ var d = new Date(unix * 1000 + 8 * 36e5), add = (3 - d.getUTCDay() + 7) % 7; var w = new Date(d.getTime() + add * 864e5); return 'Wednesday ' + w.getUTCDate() + ' ' + MONTHS[w.getUTCMonth()]; }
 function nextRoast(){
   var sg = new Date(Date.now() + 8 * 36e5), add = (3 - sg.getUTCDay() + 7) % 7 || 7;
   var w = new Date(sg.getTime() + add * 864e5);
   return 'Wednesday ' + w.getUTCDate() + ' ' + ['January','February','March','April','May','June','July','August','September','October','November','December'][w.getUTCMonth()];
 }
-function paidPanel(){
+function paidPanel(panelOrder){
   var el = document.createElement('div');
   el.className = 'nf-ty'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Order confirmed');
   el.innerHTML = '<header class="nf-ty-bar"><span class="nf-ty-brand">NOFILTER</span><button type="button" class="nf-ty-back" data-close>Back to the shop</button></header>' +
@@ -17669,10 +17695,15 @@ function paidPanel(){
         '<li class="on"><b>Ordered</b><span>Today</span></li>' +
         '<li><b>Roasted</b><span>' + nextRoast() + '</span></li>' +
         '<li><b>Dispatched</b><span>Shortly after</span></li></ol>' +
+      '<section class="nf-ty-card nf-ty-sub" hidden><h3>Your subscription</h3><p class="nf-ty-sub-p"></p><a class="nf-ty-manage" href="#">Skip, pause or change it</a></section>' +
       '<section class="nf-ty-card nf-ty-order" hidden><h3>Your order</h3><div class="nf-ty-items"></div><div class="nf-ty-sums"></div><div class="nf-ty-meta"></div></section>' +
       '<section class="nf-ty-card nf-ty-give" hidden><h3>Your 10% to conservation</h3>' +
         '<div class="nf-ty-v"><span class="nf-ty-cur">SGD</span> <span class="nf-ty-n">0.00</span></div>' +
-        '<p class="nf-ty-l">goes back to the landscapes your coffee comes from.</p><div class="nf-ty-by"></div><div class="nf-ty-next"></div></section>' +
+        '<p class="nf-ty-l">goes back to the landscapes your coffee comes from.</p><div class="nf-ty-by"></div><div class="nf-ty-next"></div><p class="nf-ty-given" hidden></p></section>' +
+      '<section class="nf-ty-card nf-ty-keep" hidden><h3>See where it goes</h3>' +
+        '<label><input type="checkbox" name="rb"><span><b>Email me when our partners report back</b>, with photos of what this funded.</span></label>' +
+        '<label><input type="checkbox" name="nw"><span><b>News and offers from NoFilter</b>, now and then. Never shared.</span></label>' +
+        '<button type="button" class="nf-ty-save">Save</button><span class="nf-ty-saved" hidden>Saved. Thank you.</span></section>' +
       '<p class="nf-ty-help">Questions about your order? Write to <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a><span class="nf-ty-help-ref"></span>.</p>' +
       '<button type="button" class="nf-ty-cta" data-close>Back to the coffee</button>' +
     '</main>';
@@ -17693,7 +17724,7 @@ function paidPanel(){
     if(o.items && o.items.length){
       el.querySelector('.nf-ty-items').innerHTML = o.items.map(function(it){
         var b = ORIGINS.filter(function(x){ return x.name === it.name; })[0];
-        return '<div class="nf-ty-it">' + (b ? '<img src="' + b.bag + '" alt="">' : '<i></i>') + '<span><b>' + esc(it.name) + '</b><small>' + esc(it.size) + ' × ' + it.qty + '</small></span><span>' + m(it.amount) + '</span></div>'; }).join('');
+        return '<div class="nf-ty-it">' + (b ? '<img src="' + b.bag + '" alt="">' : '<i></i>') + '<span><b>' + esc(it.name) + '</b><small>' + esc(it.size) + ' × ' + it.qty + (it.every ? ' \u00b7 ' + EVERY_LAB[it.every] : '') + '</small></span><span>' + m(it.amount) + '</span></div>'; }).join('');
       var rows = [['Subtotal', m(o.subtotal)]];
       if(o.discount) rows.push(['Discount' + (d.code ? ' (' + esc(d.code) + ')' : ''), '−' + m(o.discount)]);
       rows.push(['Delivery', o.delivery ? m(o.delivery) : 'Free']);
@@ -17706,6 +17737,28 @@ function paidPanel(){
         meta += '<div><h4>Paid with</h4><p>' + (wal ? wal + '<br>' : '') + esc(brand) + (pw.last4 ? ' •••• ' + esc(pw.last4) : '') + '</p></div>'; }
       el.querySelector('.nf-ty-meta').innerHTML = meta;
       el.querySelector('.nf-ty-order').hidden = false;
+    }
+    var sb = d.subscription;
+    if(sb && sb.every){
+      var lab = EVERY_LAB[sb.every];
+      el.querySelector('.nf-ty-sub-p').innerHTML = 'Your coffee comes <b>' + lab + '</b>, at 10% off.' + (sb.nextCharge ? ' The next one is charged on <b>' + sgDate(sb.nextCharge) + '</b> and roasted on ' + roastOnOrAfter(sb.nextCharge) + '.' : '') + ' Each delivery sends 10% of what you pay to conservation.';
+      var mg = el.querySelector('.nf-ty-manage');
+      if(sb.managed && panelOrder) mg.href = '/.netlify/functions/order-summary?order=' + encodeURIComponent(panelOrder) + '&manage=1'; else mg.hidden = true;
+      el.querySelector('.nf-ty-sub').hidden = false;
+      var st = el.querySelectorAll('.nf-ty-steps li span'); if(st[2]) st[2].textContent = 'Shortly after, then ' + lab;
+    }
+    var gv = d.given, gp = el.querySelector('.nf-ty-given');
+    if(gv && gv.orders > 1){ gp.innerHTML = 'Your orders with us have now sent <b>' + m(gv.total) + '</b> to conservation.'; gp.hidden = false; }
+    else if(gv){ gp.textContent = 'Your first order with us. We\u2019ll keep count.'; gp.hidden = false; }
+    if(panelOrder && o.email){
+      var kp = el.querySelector('.nf-ty-keep'); kp.hidden = false;
+      kp.querySelector('.nf-ty-save').addEventListener('click', function(){
+        var btn = this; btn.disabled = true;
+        fetch('/.netlify/functions/order-summary', { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ order: panelOrder, reportBack: kp.querySelector('[name=rb]').checked, news: kp.querySelector('[name=nw]').checked }) })
+          .then(function(r){ if(!r.ok) throw 0; kp.querySelector('.nf-ty-saved').hidden = false; btn.hidden = true; })
+          .catch(function(){ btn.disabled = false; btn.textContent = 'Try again'; });
+      });
     }
     if(d.contribution){
       var box = el.querySelector('.nf-ty-give'), n = el.querySelector('.nf-ty-n'), to = d.contribution / 100;
@@ -17724,7 +17777,7 @@ function paidPanel(){
   var q; try { q = new URLSearchParams(location.search); } catch(e){ return; }
   if(q.get('paid') !== '1') return;
   var order = q.get('order') || '';
-  var panel = paidPanel();
+  var panel = paidPanel(/^cs_(test|live)_/.test(order) ? order : '');
   if(!/^cs_(test|live)_/.test(order)) return;
   fetch('/.netlify/functions/order-summary?order=' + encodeURIComponent(order)).then(function(r){ return r.ok ? r.json() : null; }).then(panel.fill).catch(function(){});
 })();
@@ -27085,6 +27138,37 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty-cta{margin:20px 0 0;width:100%;height:52px;border:0;border-radius:12px;background:#EE4D17;color:#fff;font:600 15px var(--body,sans-serif);cursor:pointer}
 .nf-ty-cta:hover{filter:brightness(1.06)}
 @media(max-width:520px){.nf-ty-steps b{font-size:13px}.nf-ty-steps span{font-size:12px}}
+.nf-ty-sub-p{margin:0;font-size:15px;line-height:1.6;color:rgba(26,24,21,.8)}
+.nf-ty-sub-p b{color:#1A1815;font-weight:600}
+.nf-ty-manage{display:inline-block;margin-top:14px;padding:9px 16px;border-radius:999px;border:1px solid rgba(26,24,21,.2);color:#1A1815;font-size:14px;font-weight:500;text-decoration:none}
+.nf-ty-manage:hover{border-color:#1A1815}
+.nf-ty-given{margin:16px 0 0;padding-top:14px;border-top:1px solid rgba(26,24,21,.08);font-size:14px;color:rgba(26,24,21,.75)}
+.nf-ty-given b{color:#C2410C;font-weight:700}
+.nf-ty-keep label{display:flex;gap:12px;align-items:flex-start;padding:8px 0;font-size:14px;line-height:1.5;color:rgba(26,24,21,.75);cursor:pointer}
+.nf-ty-keep label b{color:#1A1815;font-weight:600}
+.nf-ty-keep input{accent-color:#1A1815;width:18px;height:18px;margin:2px 0 0;flex:none}
+.nf-ty-save{margin-top:10px;height:42px;padding:0 22px;border-radius:10px;border:1px solid #1A1815;background:#1A1815;color:#F4F2EE;font:600 14px var(--body,sans-serif);cursor:pointer}
+.nf-ty-saved{display:inline-block;margin-top:12px;font-size:14px;color:#1F6F5C;font-weight:600}
+.nf-ty [hidden]{display:none!important}
+/* 152 · subscribe & save on the coffee page, and in the basket */
+#shop .nf-plan{display:grid;gap:8px;margin:14px 0 4px}
+#shop .nf-plan [data-p]{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(26,24,21,.16);background:rgba(255,255,255,.55);font:500 15px var(--font-b,sans-serif);color:#1A1815;text-align:left;cursor:pointer}
+#shop .nf-plan [data-p] i{width:18px;height:18px;border-radius:50%;border:2px solid rgba(26,24,21,.4);display:block}
+#shop .nf-plan [data-p] em{font-style:normal;font-weight:700}
+#shop .nf-plan [aria-checked="true"]{border-color:#1A1815;background:#fff}
+#shop .nf-plan [aria-checked="true"] i{border-color:#1A1815;background:radial-gradient(#1A1815 0 4px,transparent 5px)}
+#shop .nf-plan-f{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:12px;border:1.5px solid #1A1815;background:#fff;font:500 14px var(--font-b,sans-serif);color:rgba(26,24,21,.7)}
+#shop .nf-plan-f select{border:0;background:none;font:600 14px var(--font-b,sans-serif);color:#1A1815;cursor:pointer}
+#shop .nf-plan-note{margin:2px 2px 0;font:13px var(--font-b,sans-serif);color:rgba(244,242,238,.85)}
+#shop .nf-imp-sub{display:none}
+#shop .nf-sub-on .cx-imp-amt{display:none}
+#shop .nf-sub-on .nf-imp-sub{display:inline}
+.cart .csub{display:inline-flex;align-items:center;gap:6px;margin:6px 0 0;font:12.5px var(--body,sans-serif);color:rgba(26,24,21,.75);cursor:pointer}
+.cart .csub input{accent-color:#1A1815;width:15px;height:15px;margin:0}
+.cart .cs s{opacity:.55}
+.cart-plan{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:14px 0 4px;padding:12px 14px;border-radius:12px;background:#FBFAF8;border:1px solid rgba(26,24,21,.1);font:13.5px var(--body,sans-serif);color:#1A1815}
+.cart-plan select{font:600 13.5px var(--body,sans-serif);border:1px solid rgba(26,24,21,.2);border-radius:8px;padding:5px 8px;background:#fff;color:#1A1815}
+.cart-plan small{flex-basis:100%;font-size:12px;color:rgba(26,24,21,.6)}
 /* 147 · the shop's panels are cream, not black (Alex: "it's ominous"). The basket re-points the site's
    colour tokens; the thank-you card is restyled in its own scope; the checkout panel's rules were recoloured. */
 .cart{--panel:#F4F2EE;--cream:#1A1815;--dim:rgba(26,24,21,.58);--dimmer:rgba(26,24,21,.42);--line:rgba(26,24,21,.12);--line2:rgba(26,24,21,.14);color:#1A1815}
@@ -27407,6 +27491,52 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
   var _set = window.__nfCartSet;
   window.__nfCartSet = function(){ open(); };
   window.__nfShopSoonRestore = function(){ window.__nfCartSet = _set; };
+})();
+</script>
+<script>
+/* 152 · Subscribe & save on each coffee's own page (the dossier), as Common Man does: two options with
+   both prices, then "How often?". One shared choice (window.__nfPlan) across every coffee page; it applies
+   to bags added from a coffee page (the Add button arms it), not to quick-adds from the grid. The seal's
+   "This order gives" follows the subscription price. Inserted beside the picker, not inside it, so the
+   picker component stays as shop.html wrote it. */
+(function(){
+  var shop = document.getElementById('shop'); if(!shop) return;
+  var LAB = { 1:'Every week', 2:'Every 2 weeks', 3:'Every 3 weeks', 4:'Every 4 weeks' };
+  var plan = window.__nfPlan || (window.__nfPlan = { every:0, last:2 });
+  function money(v){ return (Math.round(v * 100) % 100 === 0) ? String(Math.round(v)) : v.toFixed(2); }
+  function paint(box){
+    var w = box.querySelector('.nf-plan'), pn = box.querySelector('.cx-price-n'); if(!w || !pn) return;
+    var total = parseFloat(pn.textContent) || 0, cur = (box.querySelector('.cx-price') || {}).textContent || '';
+    cur = (cur.match(/[A-Z]{3}/) || ['SGD'])[0];
+    w.querySelector('[data-p="0"] em').textContent = cur + ' ' + money(total);
+    w.querySelector('[data-p="1"] em').textContent = cur + ' ' + money(total * 0.9);
+    w.querySelectorAll('[data-p]').forEach(function(b){ b.setAttribute('aria-checked', String((b.getAttribute('data-p') === '1') === !!plan.every)); });
+    var f = w.querySelector('.nf-plan-f'); f.hidden = !plan.every; f.querySelector('select').value = String(plan.every || plan.last || 2);
+    var amt = box.querySelector('.cx-imp-amt'), sub = box.querySelector('.nf-imp-sub');
+    if(amt && !sub){ sub = document.createElement('span'); sub.className = 'nf-imp-sub'; amt.parentNode.insertBefore(sub, amt.nextSibling); }
+    if(sub){ sub.textContent = money(total * 0.9 * 0.10); box.classList.toggle('nf-sub-on', !!plan.every); }
+  }
+  function paintAll(){ shop.querySelectorAll('.cx-db-buy').forEach(paint); }
+  function mount(box){
+    if(box.querySelector('.nf-plan')) return;
+    var row = box.querySelector('.cx-price-row'); if(!row) return;
+    var w = document.createElement('div'); w.className = 'nf-plan'; w.setAttribute('role','radiogroup'); w.setAttribute('aria-label','How to buy');
+    w.innerHTML = '<button type="button" role="radio" data-p="0"><i></i><span>One-time purchase</span><em></em></button>' +
+      '<button type="button" role="radio" data-p="1"><i></i><span>Subscribe &amp; save 10%</span><em></em></button>' +
+      '<label class="nf-plan-f" hidden><span>How often would you like it?</span><select>' + [1,2,3,4].map(function(n){ return '<option value="' + n + '">' + LAB[n] + '</option>'; }).join('') + '</select></label>' +
+      '<p class="nf-plan-note">Roasted every Wednesday. Skip, pause or cancel any time.</p>';
+    row.parentNode.insertBefore(w, row.nextSibling);
+    w.addEventListener('click', function(e){ var b = e.target.closest('[data-p]'); if(!b) return; e.stopPropagation();
+      plan.every = b.getAttribute('data-p') === '1' ? (plan.last || 2) : 0; paintAll(); });
+    w.querySelector('select').addEventListener('change', function(e){ plan.every = plan.last = parseInt(e.target.value, 10); paintAll(); });
+    w.querySelector('select').addEventListener('click', function(e){ e.stopPropagation(); });
+    var pn = box.querySelector('.cx-price-n'); if(pn) new MutationObserver(function(){ paint(box); }).observe(pn, { childList:true, characterData:true, subtree:true });
+    paint(box);
+  }
+  /* the Add button on a coffee page arms the plan for the line it is about to add */
+  document.addEventListener('click', function(e){ if(e.target.closest('#shop .cx-db-add')) window.__nfPlanArm = true; }, true);
+  new MutationObserver(function(){ shop.querySelectorAll('.cx-db-buy').forEach(mount); }).observe(shop, { childList:true, subtree:true });
+  shop.querySelectorAll('.cx-db-buy').forEach(mount);
 })();
 </script>
 </body>

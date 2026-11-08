@@ -44,7 +44,11 @@ async function stripe(path, key, form, method = 'POST') {
   return { ok: res.ok, data: await res.json() };
 }
 
-// One line per coffee and size; quantities merged, capped at 20 bags a line.
+// Subscriptions: a line with `every` 1-4 is delivered every that many weeks at SUB_OFF off. Stripe allows
+// one frequency per subscription, so the basket's subscription lines share one (the page enforces it;
+// here the first one wins). One-off lines in the same basket are charged once, on the first payment.
+const SUB_OFF = 0.10;
+// One line per coffee, size and plan; quantities merged, capped at 20 bags a line.
 function cleanLines(lines) {
   if (!Array.isArray(lines) || !lines.length || lines.length > 20) return null;
   const merged = new Map();
@@ -52,11 +56,14 @@ function cleanLines(lines) {
     const name = COFFEES.find(c => c === String(l && l.name || '').trim());
     const size = String(l && l.size || '').toLowerCase().replace(/\s+/g, '');
     const qty = parseInt(l && l.qty, 10);
-    if (!name || !['250g', '1kg'].includes(size) || !Number.isInteger(qty) || qty < 1) return null;
-    const k = name + '|' + size;
+    const every = parseInt(l && l.every, 10) || 0;
+    if (!name || !['250g', '1kg'].includes(size) || !Number.isInteger(qty) || qty < 1 || every < 0 || every > 4) return null;
+    const k = name + '|' + size + '|' + every;
     merged.set(k, Math.min(20, (merged.get(k) || 0) + qty));
   }
-  return [...merged].map(([k, qty]) => { const [name, size] = k.split('|'); return { name, size, qty }; });
+  const out = [...merged].map(([k, qty]) => { const [name, size, every] = k.split('|'); return { name, size, qty, every: +every }; });
+  const first = (out.find(l => l.every) || {}).every || 0;
+  return out.map(l => (l.every ? { ...l, every: first } : l));
 }
 
 exports.handler = async function (event) {
@@ -87,44 +94,66 @@ exports.handler = async function (event) {
   const origin = (event.headers && event.headers.origin) || (host ? 'https://' + host : '');
   if (!/^https?:\/\//.test(origin)) return reply(400, { error: 'bad origin' });
 
+  const every = (lines.find(l => l.every) || {}).every || 0;
   const form = new URLSearchParams();
-  form.set('mode', 'payment');
+  form.set('mode', every ? 'subscription' : 'payment');
   form.set('locale', 'en-GB');
   form.set('ui_mode', 'embedded_page'); // Stripe's current name for the embedded form (was 'embedded')
   form.set('return_url', origin + '/shop/?paid=1&order={CHECKOUT_SESSION_ID}');
   form.set('shipping_address_collection[allowed_countries][0]', 'SG');
   form.set('phone_number_collection[enabled]', 'true');
+  if (!every) {
+  form.set('customer_creation', 'always'); // so a customer's orders can be totalled on the confirmation page
   form.set('shipping_options[0][shipping_rate_data][type]', 'fixed_amount');
   // The roast-day promise, shown on the delivery line before they pay (as on the confirmation page).
   form.set('shipping_options[0][shipping_rate_data][display_name]', (DELIVERY ? 'Delivery' : 'Free delivery') + ' within Singapore \u00b7 roasted Wednesday, dispatched shortly after');
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', String(Math.max(0, DELIVERY)));
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'sgd');
+  }
   const ref = orderRef();
   form.set('metadata[source]', 'website-shop');
   form.set('metadata[order_ref]', ref);
-  form.set('payment_intent_data[description]', 'NoFilter order ' + ref);
-  form.set('payment_intent_data[metadata][order_ref]', ref);
+  if (every) {
+    form.set('subscription_data[description]', 'NoFilter coffee every ' + (every === 1 ? 'week' : every + ' weeks') + ' (' + ref + ')');
+    form.set('subscription_data[metadata][source]', 'website-shop');
+    form.set('subscription_data[metadata][contribution_rate]', CONTRIBUTION_RATE);
+    form.set('subscription_data[metadata][order_ref]', ref);
+    form.set('subscription_data[metadata][every_weeks]', String(every));
+    form.set('custom_text[submit][message]', 'Delivered every ' + (every === 1 ? 'week' : every + ' weeks') + ' from that Wednesday\u2019s roast, charged each time until you cancel. Skip, pause or cancel any time from the link in your confirmation. Terms: ' + origin + '/subscription-terms/');
+  } else {
+    form.set('payment_intent_data[description]', 'NoFilter order ' + ref);
+    form.set('payment_intent_data[metadata][order_ref]', ref);
+  }
   form.set('metadata[contribution_rate]', CONTRIBUTION_RATE);
   form.set('metadata[choice]', body.choice in CHOICES ? body.choice : '');
+  // A client code: in a one-off order Stripe applies it. In a subscription order the customer gets the
+  // better of the two, never both: subscription lines take max(SUB_OFF, code), one-off lines take the code;
+  // applied to the prices here, since a Stripe code would apply to every future delivery too.
+  let codePct = 0, promoId = null;
+  if (code) {
+    const found = await stripe('promotion_codes?active=true&limit=1&expand[]=data.coupon&code=' + encodeURIComponent(code), KEY, null, 'GET');
+    const promo = found.ok && found.data && Array.isArray(found.data.data) ? found.data.data[0] : null;
+    if (promo && promo.id) { promoId = promo.id; const c = promo.coupon || (promo.promotion && promo.promotion.coupon) || {}; codePct = (+c.percent_off || 0) / 100; }
+    form.set('metadata[code]', code);
+  }
+  const unit = l => { const base = l.size === '250g' ? P250 : P1KG;
+    const off = every ? (l.every ? Math.max(SUB_OFF, codePct) : codePct) : 0; return Math.round(base * (1 - off)); };
   lines.forEach((l, i) => {
     form.set(`line_items[${i}][quantity]`, String(l.qty));
     form.set(`line_items[${i}][price_data][currency]`, 'sgd');
-    form.set(`line_items[${i}][price_data][unit_amount]`, String(l.size === '250g' ? P250 : P1KG));
+    form.set(`line_items[${i}][price_data][unit_amount]`, String(unit(l)));
+    if (l.every) { form.set(`line_items[${i}][price_data][recurring][interval]`, 'week'); form.set(`line_items[${i}][price_data][recurring][interval_count]`, String(l.every)); }
     form.set(`line_items[${i}][price_data][product_data][name]`, `${l.name} coffee, ${l.size === '250g' ? '250 g' : '1 kg'}`);
     form.set(`line_items[${i}][price_data][product_data][metadata][origin]`, ORIGINS[l.name].origin);
     form.set(`line_items[${i}][price_data][product_data][metadata][partner]`, ORIGINS[l.name].partner);
     form.set(`line_items[${i}][price_data][product_data][images][0]`, CDN + BAGS[l.name]);
   });
 
-  // A client code is applied for them when Stripe knows it; otherwise they can type one in.
+  // One-off order: a known client code is applied by Stripe; otherwise they can type one in.
+  // Subscription order: the code is already in the prices above, so no code box (it would stack).
   let applied = false;
-  if (code) {
-    const found = await stripe('promotion_codes?active=true&limit=1&code=' + encodeURIComponent(code), KEY, null, 'GET');
-    const promo = found.ok && found.data && Array.isArray(found.data.data) ? found.data.data[0] : null;
-    if (promo && promo.id) { form.set('discounts[0][promotion_code]', promo.id); applied = true; }
-    form.set('metadata[code]', code);
-  }
-  if (!applied) form.set('allow_promotion_codes', 'true');
+  if (!every) { if (promoId) { form.set('discounts[0][promotion_code]', promoId); applied = true; } else form.set('allow_promotion_codes', 'true'); }
+  else applied = codePct > 0;
 
   const { ok, data } = await stripe('checkout/sessions', KEY, form);
   // Stripe's own message (a sentence about a parameter, never a key or customer detail) so a refusal can be diagnosed.
@@ -132,4 +161,4 @@ exports.handler = async function (event) {
   return reply(200, { clientSecret: data.client_secret, session: data.id, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY, code: applied ? code : null });
 };
 
-exports._test = { cleanLines, COFFEES, ORIGINS, CHOICES };
+exports._test = { cleanLines, COFFEES, ORIGINS, CHOICES, SUB_OFF };

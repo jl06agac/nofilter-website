@@ -62,6 +62,16 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
 9. **Stripe API change**: embedded checkout is now `ui_mode: embedded_page`, mounted with
    `createEmbeddedCheckoutPage` from `js.stripe.com/endive/stripe.js` (falls back to `initEmbeddedCheckout`).
 
+10. **Subscriptions** (152): Subscribe & save 10% on each coffee page (a widget beside the picker, shared
+   choice `window.__nfPlan`, armed only by the coffee page's Add button) and a switch on each basket line.
+   Every 1-4 weeks; one frequency per basket (Stripe's rule). `checkout.js` switches to `mode: subscription`
+   with weekly recurring price_data at 10% off; one-off lines ride along. With a client code: the better of the
+   two, applied to the prices (a Stripe code would apply to every future delivery). `order-summary.js` returns the
+   subscription (frequency, next charge), a running total of the customer's paid orders and renewals, opens
+   Stripe's customer portal (`&manage=1`, needs the portal saved once in the Stripe dashboard) and records
+   report-back / news consent on the Stripe customer (POST). The NGO report counts renewal invoices
+   (`billing_reason: subscription_cycle`). Terms page: `/subscription-terms/` (draft for Alex to approve).
+
 ## Known gaps (not bugs)
 
 - Retail ships within Singapore only; other markets get a message instead of checkout.
