@@ -17635,7 +17635,9 @@ function openPay(d){
       var parts = {}; cart.forEach(function(l){ var o = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
         if(!parts[l.name]) parts[l.name] = { name:l.name, partner: o ? o.ngo : '', contribution:0 }; parts[l.name].contribution += Math.round(l.price * l.qty * 10); });
       var list = Object.keys(parts).map(function(k){ return parts[k]; });
-      var d2 = { currency: MKT.cur, contribution: list.reduce(function(n, p){ return n + p.contribution; }, 0), byPartner: list, choice: choice };
+      var d2 = { currency: MKT.cur, contribution: list.reduce(function(n, p){ return n + p.contribution; }, 0), byPartner: list, choice: choice,
+        order: { ref: 'NF-PREVIEW', items: cart.map(function(l){ return { name: l.name, size: l.size === '1KG' || l.size === '1kg' ? '1 kg' : '250 g', qty: l.qty, amount: Math.round(l.price * l.qty * 100) }; }),
+          subtotal: Math.round(sub * 100), discount: 0, delivery: 0, total: Math.round(sub * 100) } };
       close(); cart.length = 0; renderCart(); openCart(false); paidPanel().fill(d2);
     });
     return;
@@ -17645,47 +17647,83 @@ function openPay(d){
     .catch(function(){ el.querySelector('#nfPayForm').innerHTML = '<p class="nf-pay-wait">Secure checkout could not load. Please check your connection and try again.</p>'; });
 }
 
-/* 139 · the thank-you after paying: what this order put towards conservation, which partner it goes
-   to, and the project chosen. Built on the dispatch card's styles. paidPanel() opens it; fill(d) puts
-   in the order's figures. Opened on the return from Stripe (?paid=1&order=cs_…), or by the preview
-   checkout on draft links. */
+/* 148 · the order confirmation: a page of its own after paying, not a pop-up (Alex: "not a very
+   professional post-payment screen"). Thanks first, then when it's roasted and dispatched (we roast every
+   Wednesday), the order itself (number, bags, total, card, address, where the confirmation was emailed),
+   the conservation share as a calm second section, and where to get help. Opened on the return from Stripe
+   (?paid=1&order=cs_…, kept in the address so a refresh still shows it) or by the draft preview. */
+function nextRoast(){
+  var sg = new Date(Date.now() + 8 * 36e5), add = (3 - sg.getUTCDay() + 7) % 7 || 7;
+  var w = new Date(sg.getTime() + add * 864e5);
+  return 'Wednesday ' + w.getUTCDate() + ' ' + ['January','February','March','April','May','June','July','August','September','October','November','December'][w.getUTCMonth()];
+}
 function paidPanel(){
   var el = document.createElement('div');
-  el.className = 'nf-soon nf-paid'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Order received');
-  el.innerHTML = '<div class="nf-soon-scrim" data-close></div><div class="nf-soon-card">' +
-    '<button class="nf-soon-x" type="button" data-close aria-label="Close">CLOSE ✕</button>' +
-    '<span class="nf-soon-k">[ Order received ]</span>' +
-    '<h2 class="nf-soon-h">Thank you.</h2>' +
-    '<p class="nf-soon-p">Your coffee is on its way. The receipt is in your inbox.</p>' +
-    '<div class="nf-paid-give" hidden><div class="nf-paid-v"><span class="nf-paid-cur">SGD</span> <span class="nf-paid-n">0.00</span></div>' +
-      '<div class="nf-paid-l">from this order to conservation, where your coffee grows</div><div class="nf-paid-by"></div></div>' +
-    '<div class="nf-paid-next" hidden></div>' +
-    '<div class="nf-soon-a"><button class="nf-soon-b pri" type="button" data-close>Back to the coffee →</button></div></div>';
-  document.body.appendChild(el);
-  function close(){ el.removeAttribute('data-in'); setTimeout(function(){ el.remove(); }, 280); document.removeEventListener('keydown', key); }
+  el.className = 'nf-ty'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Order confirmed');
+  el.innerHTML = '<header class="nf-ty-bar"><span class="nf-ty-brand">NOFILTER</span><button type="button" class="nf-ty-back" data-close>Back to the shop</button></header>' +
+    '<main class="nf-ty-in" tabindex="-1">' +
+      '<p class="nf-ty-ref"><span class="nf-ty-dot" aria-hidden="true"></span><span class="nf-ty-refv">Order confirmed</span></p>' +
+      '<h1 class="nf-ty-h">Thanks so much<span class="nf-ty-name"></span>.</h1>' +
+      '<p class="nf-ty-lead">We roast every Wednesday, and your coffee is dispatched shortly after, fresh from that week’s roast. <span class="nf-ty-mail">We’ve emailed your confirmation.</span></p>' +
+      '<ol class="nf-ty-steps">' +
+        '<li class="on"><b>Ordered</b><span>Today</span></li>' +
+        '<li><b>Roasted</b><span>' + nextRoast() + '</span></li>' +
+        '<li><b>Dispatched</b><span>Shortly after</span></li></ol>' +
+      '<section class="nf-ty-card nf-ty-order" hidden><h2>Your order</h2><div class="nf-ty-items"></div><div class="nf-ty-sums"></div><div class="nf-ty-meta"></div></section>' +
+      '<section class="nf-ty-card nf-ty-give" hidden><h2>Your 10% to conservation</h2>' +
+        '<div class="nf-ty-v"><span class="nf-ty-cur">SGD</span> <span class="nf-ty-n">0.00</span></div>' +
+        '<p class="nf-ty-l">goes back to the landscapes your coffee comes from.</p><div class="nf-ty-by"></div><div class="nf-ty-next"></div></section>' +
+      '<p class="nf-ty-help">Questions about your order? Write to <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a><span class="nf-ty-help-ref"></span>.</p>' +
+      '<button type="button" class="nf-ty-cta" data-close>Back to the coffee</button>' +
+    '</main>';
+  document.body.appendChild(el); document.documentElement.classList.add('nf-paying');
+  function close(){ el.removeAttribute('data-in'); document.documentElement.classList.remove('nf-paying'); setTimeout(function(){ el.remove(); }, 280); document.removeEventListener('keydown', key);
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){} }
   function key(e){ if(e.key === 'Escape') close(); }
   el.addEventListener('click', function(e){ if(e.target.closest('[data-close]')) close(); });
   document.addEventListener('keydown', key);
-  el.setAttribute('data-open',''); requestAnimationFrame(function(){ el.setAttribute('data-in',''); var cd = el.querySelector('.nf-soon-card'); cd.setAttribute('tabindex','-1'); cd.focus({preventScroll:true}); });
+  requestAnimationFrame(function(){ el.setAttribute('data-in',''); el.querySelector('.nf-ty-in').focus({ preventScroll:true }); });
+  function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); }
   return { el: el, fill: function(d){
-    if(!d || !d.contribution) return;
-    var cur = String(d.currency || 'sgd').toUpperCase(), box = el.querySelector('.nf-paid-give'), n = el.querySelector('.nf-paid-n'), to = d.contribution / 100;
-    el.querySelector('.nf-paid-cur').textContent = cur;
-    el.querySelector('.nf-paid-by').innerHTML = d.byPartner.map(function(p){
-      return '<div class="cb"><span>' + p.name + (p.partner ? ' · ' + p.partner : '') + '</span><span>' + cur + ' ' + money(p.contribution / 100) + '</span></div>'; }).join('');
-    box.hidden = false;
-    var ch = (window.__nfPayChoices || []).filter(function(c){ return c.id === d.choice; })[0], nx = el.querySelector('.nf-paid-next');
-    nx.innerHTML = ch ? '<img src="' + ch.img + '" alt=""><span>You chose <b>' + ch.title + '</b>.</span>' : '<span>Your partners will put it where it’s needed most.</span>';
-    nx.hidden = false;
-    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, t0 = performance.now();
-    (function tick(t){ var k = reduce ? 1 : Math.min(1, ((t || performance.now()) - t0) / 1100); n.textContent = money(to * (1 - Math.pow(1 - k, 3))); if(k < 1) requestAnimationFrame(tick); })();
+    if(!d) return;
+    var cur = String(d.currency || 'sgd').toUpperCase(), o = d.order || {}, m = function(c){ return cur + ' ' + money(c / 100); };
+    if(o.ref){ el.querySelector('.nf-ty-refv').textContent = 'Order ' + o.ref + ' · confirmed'; el.querySelector('.nf-ty-help-ref').textContent = ', quoting ' + o.ref; }
+    if(o.firstName) el.querySelector('.nf-ty-name').textContent = ', ' + o.firstName;
+    if(o.email) el.querySelector('.nf-ty-mail').innerHTML = 'We’ve emailed your confirmation to <b>' + esc(o.email) + '</b>.';
+    if(o.items && o.items.length){
+      el.querySelector('.nf-ty-items').innerHTML = o.items.map(function(it){
+        var b = ORIGINS.filter(function(x){ return x.name === it.name; })[0];
+        return '<div class="nf-ty-it">' + (b ? '<img src="' + b.bag + '" alt="">' : '<i></i>') + '<span><b>' + esc(it.name) + '</b><small>' + esc(it.size) + ' × ' + it.qty + '</small></span><span>' + m(it.amount) + '</span></div>'; }).join('');
+      var rows = [['Subtotal', m(o.subtotal)]];
+      if(o.discount) rows.push(['Discount' + (d.code ? ' (' + esc(d.code) + ')' : ''), '−' + m(o.discount)]);
+      rows.push(['Delivery', o.delivery ? m(o.delivery) : 'Free']);
+      el.querySelector('.nf-ty-sums').innerHTML = rows.map(function(r){ return '<div><span>' + r[0] + '</span><span>' + r[1] + '</span></div>'; }).join('') +
+        '<div class="tot"><span>Total paid</span><span>' + m(o.total) + '</span></div>';
+      var meta = '';
+      if(o.address && o.address.length) meta += '<div><h3>Delivering to</h3><p>' + o.address.map(esc).join('<br>') + '</p></div>';
+      if(o.paidWith){ var pw = o.paidWith, wal = { apple_pay:'Apple Pay', google_pay:'Google Pay' }[pw.wallet] || '';
+        var brand = String(pw.brand || '').replace(/^./, function(c){ return c.toUpperCase(); }).replace('Paynow','PayNow');
+        meta += '<div><h3>Paid with</h3><p>' + (wal ? wal + '<br>' : '') + esc(brand) + (pw.last4 ? ' •••• ' + esc(pw.last4) : '') + '</p></div>'; }
+      el.querySelector('.nf-ty-meta').innerHTML = meta;
+      el.querySelector('.nf-ty-order').hidden = false;
+    }
+    if(d.contribution){
+      var box = el.querySelector('.nf-ty-give'), n = el.querySelector('.nf-ty-n'), to = d.contribution / 100;
+      el.querySelector('.nf-ty-cur').textContent = cur;
+      el.querySelector('.nf-ty-by').innerHTML = d.byPartner.map(function(p){
+        return '<div><span>' + esc(p.name) + (p.partner ? ' <small>' + esc(p.partner) + '</small>' : '') + '</span><span>' + m(p.contribution) + '</span></div>'; }).join('');
+      var ch = (window.__nfPayChoices || []).filter(function(c){ return c.id === d.choice; })[0];
+      el.querySelector('.nf-ty-next').innerHTML = ch ? '<img src="' + ch.img + '" alt=""><span>You chose <b>' + ch.title + '</b>.</span>' : '<span>Our partners will put it where it’s needed most.</span>';
+      box.hidden = false;
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, t0 = performance.now();
+      (function tick(t){ var k = reduce ? 1 : Math.min(1, ((t || performance.now()) - t0) / 1100); n.textContent = money(to * (1 - Math.pow(1 - k, 3))); if(k < 1) requestAnimationFrame(tick); })();
+    }
   } };
 }
 (function(){
   var q; try { q = new URLSearchParams(location.search); } catch(e){ return; }
   if(q.get('paid') !== '1') return;
   var order = q.get('order') || '';
-  try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
   var panel = paidPanel();
   if(!/^cs_(test|live)_/.test(order)) return;
   fetch('/.netlify/functions/order-summary?order=' + encodeURIComponent(order)).then(function(r){ return r.ok ? r.json() : null; }).then(panel.fill).catch(function(){});
@@ -26999,27 +27037,61 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 /* 146 · softer shop: rounded figures box and checkout button in the basket; the thank-you card to match */
 .cart-ft .readout{border-radius:12px;overflow:hidden}
 .cart-ft #checkoutBtn{border-radius:12px}
-.nf-paid .nf-soon-card{border-radius:18px}
-.nf-paid .nf-soon-card:focus{outline:none}
-.nf-paid .nf-soon-k{border-radius:999px}
-.nf-paid .nf-soon-b{border-radius:12px}
-.nf-paid .nf-soon-x{border-radius:999px}
-.nf-paid .nf-paid-next img{border-radius:10px}
+.nf-ty{position:fixed;inset:0;z-index:4200;background:#F4F2EE;color:#1A1815;overflow:auto;opacity:0;transition:opacity .3s ease;font-family:var(--body,sans-serif)}
+.nf-ty[data-in]{opacity:1}
+.nf-ty-bar{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:16px max(20px,calc((100vw - 760px)/2));background:rgba(244,242,238,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(26,24,21,.08)}
+.nf-ty-brand{font-family:var(--disp,sans-serif);font-weight:900;font-size:20px;letter-spacing:.02em;color:#1A1815}
+.nf-ty-back{background:none;border:1px solid rgba(26,24,21,.18);border-radius:999px;padding:8px 14px;font:500 13px var(--body,sans-serif);color:#1A1815;cursor:pointer}
+.nf-ty-back:hover{border-color:#1A1815}
+.nf-ty-in{max-width:680px;margin:0 auto;padding:clamp(28px,6vw,64px) 20px 72px;outline:none}
+.nf-ty-ref{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(26,24,21,.6);margin:0}
+.nf-ty-dot{width:8px;height:8px;border-radius:50%;background:#1F8A70}
+.nf-ty-h{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(38px,6vw,58px);line-height:.98;letter-spacing:-.01em;margin:14px 0 0;color:#1A1815;text-wrap:balance}
+.nf-ty-lead{font-size:clamp(16px,1.9vw,18px);line-height:1.6;color:rgba(26,24,21,.75);margin:16px 0 0;max-width:58ch}
+.nf-ty-lead b{color:#1A1815;font-weight:600}
+.nf-ty-steps{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:0;counter-reset:s}
+.nf-ty-steps li{position:relative;padding:18px 10px 0 0;border-top:2px solid rgba(26,24,21,.12);display:grid;gap:3px}
+.nf-ty-steps li::before{content:"";position:absolute;top:-7px;left:0;width:12px;height:12px;border-radius:50%;background:#F4F2EE;border:2px solid rgba(26,24,21,.25)}
+.nf-ty-steps li.on{border-top-color:#1F8A70}
+.nf-ty-steps li.on::before{background:#1F8A70;border-color:#1F8A70}
+.nf-ty-steps b{font-size:14px;font-weight:600}
+.nf-ty-steps span{font-size:13px;color:rgba(26,24,21,.6)}
+.nf-ty-card{margin:28px 0 0;padding:clamp(18px,3vw,26px);background:#FBFAF8;border:1px solid rgba(26,24,21,.08);border-radius:18px}
+.nf-ty-card h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.6);margin:0 0 14px}
+.nf-ty-it{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(26,24,21,.07)}
+.nf-ty-it img,.nf-ty-it i{width:52px;height:52px;border-radius:10px;object-fit:cover;background:rgba(26,24,21,.05)}
+.nf-ty-it b{display:block;font-weight:600;font-size:15px}
+.nf-ty-it small{font-size:13px;color:rgba(26,24,21,.6)}
+.nf-ty-it>span:last-child{font-size:15px;white-space:nowrap}
+.nf-ty-sums{display:grid;gap:6px;padding:14px 0 0;font-size:14px;color:rgba(26,24,21,.7)}
+.nf-ty-sums div{display:flex;justify-content:space-between;gap:12px}
+.nf-ty-sums .tot{margin-top:6px;padding-top:12px;border-top:1px solid rgba(26,24,21,.1);font-size:16px;font-weight:700;color:#1A1815}
+.nf-ty-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:18px}
+.nf-ty-meta:empty{display:none}
+.nf-ty-meta h3{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.55);margin:0 0 6px}
+.nf-ty-meta p{margin:0;font-size:14px;line-height:1.55}
+.nf-ty-v{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(36px,5vw,48px);line-height:1;color:#C2410C}
+.nf-ty-cur{font-size:.42em;letter-spacing:.06em;vertical-align:.5em}
+.nf-ty-l{font-size:14px;color:rgba(26,24,21,.7);margin:8px 0 14px}
+.nf-ty-by{display:grid;gap:6px;font-size:14px}
+.nf-ty-by div{display:flex;justify-content:space-between;gap:12px}
+.nf-ty-by small{font-size:inherit;color:rgba(26,24,21,.55)}
+.nf-ty-by div>span:last-child{white-space:nowrap}
+.nf-ty-next{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(26,24,21,.08);font-size:14px;color:rgba(26,24,21,.75)}
+.nf-ty-next img{width:52px;height:52px;border-radius:10px;object-fit:cover}
+.nf-ty-next b{color:#1A1815;font-weight:600}
+.nf-ty-help{font-size:14px;color:rgba(26,24,21,.65);margin:28px 0 0}
+.nf-ty-help a{color:#1A1815;text-decoration:underline;text-underline-offset:3px}
+.nf-ty-cta{margin:20px 0 0;width:100%;height:52px;border:0;border-radius:12px;background:#EE4D17;color:#fff;font:600 15px var(--body,sans-serif);cursor:pointer}
+.nf-ty-cta:hover{filter:brightness(1.06)}
+@media(max-width:520px){.nf-ty-steps b{font-size:13px}.nf-ty-steps span{font-size:12px}}
 /* 147 · the shop's panels are cream, not black (Alex: "it's ominous"). The basket re-points the site's
    colour tokens; the thank-you card is restyled in its own scope; the checkout panel's rules were recoloured. */
 .cart{--panel:#F4F2EE;--cream:#1A1815;--dim:rgba(26,24,21,.58);--dimmer:rgba(26,24,21,.42);--line:rgba(26,24,21,.12);--line2:rgba(26,24,21,.14);color:#1A1815}
 .cart .readout .ro{background:#FBFAF8}
 .cart .readout .ro .v.sig,.cart-by .cb>span:last-child{color:#C2410C}
-.nf-paid .nf-soon-scrim{background:rgba(26,24,21,.55)}
-.nf-paid .nf-soon-card{background:#F4F2EE;border-color:rgba(26,24,21,.1);box-shadow:0 40px 90px -40px rgba(26,24,21,.6)}
-.nf-paid .nf-soon-h{color:#1A1815}
-.nf-paid .nf-soon-p{color:rgba(26,24,21,.72)}
-.nf-paid .nf-soon-x{color:rgba(26,24,21,.55)}
-.nf-paid .nf-soon-x:hover{color:#1A1815}
-.nf-paid .nf-soon-k{color:#C2410C;background:rgba(238,77,23,.08);border-color:rgba(238,77,23,.25)}
-.nf-paid .nf-paid-v{color:#D2400F}
-.cart-by .cb>span:first-child,.nf-paid-by .cb>span:first-child{min-width:0}
-.cart-by .cb>span:last-child,.nf-paid-by .cb>span:last-child{white-space:nowrap}
+.cart-by .cb>span:first-child{min-width:0}
+.cart-by .cb>span:last-child{white-space:nowrap}
 /* 142 · bag photos on the lines; the landscape film in the space beneath */
 .cart .ci{grid-template-columns:48px 1fr auto auto}
 .cart .ci .cimg{width:48px;height:48px;object-fit:cover;border-radius:8px;background:rgba(26,24,21,.06)}
@@ -27047,15 +27119,7 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .cart .cq span{min-width:22px;text-align:center;font-family:var(--mono);font-size:11px;color:#1A1815}
 .cart-note{font-family:var(--body,sans-serif);font-size:13px;line-height:1.5;color:rgba(26,24,21,.66);text-align:center}
 .cart-code{font-family:var(--body,sans-serif);font-size:13px;color:rgba(26,24,21,.8)}
-.cart-by .cb,.nf-paid-by .cb{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:rgba(26,24,21,.62)}
-.nf-paid-give{margin:20px 0 0;padding:16px 0 0;border-top:1px solid rgba(26,24,21,.12)}
-.nf-paid-v{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(34px,4vw,46px);line-height:1;color:var(--signal,#EE4D17)}
-.nf-paid-cur{font-size:.42em;letter-spacing:.06em;vertical-align:.5em}
-.nf-paid-l{font-family:var(--body,sans-serif);font-size:13px;color:rgba(26,24,21,.7);margin:6px 0 12px}
-.nf-paid-by{display:grid;gap:5px}
-.nf-paid-next{display:flex;align-items:center;gap:12px;margin:16px 0 0;font-family:var(--body,sans-serif);font-size:13px;color:rgba(26,24,21,.78)}
-.nf-paid-next img{width:52px;height:52px;object-fit:cover;border-radius:2px}
-.nf-paid-next b{color:#1A1815;font-weight:600}
+.cart-by .cb{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:rgba(26,24,21,.62)}
 /* 141 · the checkout panel */
 .nf-paying body{overflow:hidden}
 .nf-pay{position:fixed;inset:0;z-index:4100;background:rgba(26,24,21,.55);backdrop-filter:blur(6px);overflow:auto;padding:clamp(0px,3vw,40px);display:grid;place-items:start center}

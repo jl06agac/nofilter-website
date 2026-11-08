@@ -30,6 +30,9 @@ const CDN = 'https://nofilter-shared.netlify.app/';
 // The three things a customer can point their 10% at, as on the impact counter. No choice means
 // where the partner needs it most. Recorded on the order (metadata.choice) and totalled in the report.
 const CHOICES = { 'protect-forests': 'Protect wild forests', 'orangutans-in-danger': 'Help orangutans in danger', 'coffee-with-forest': 'Grow coffee with the forest' };
+// A short order number the customer can quote (NF-7K2Q9M): on the order, its payment, and the confirmation page.
+const crypto = require('crypto');
+const orderRef = () => 'NF-' + Array.from(crypto.randomBytes(6), b => '23456789ABCDEFGHJKMNPQRSTUVWXYZ'[b % 31]).join('');
 const reply = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(body) });
 
 async function stripe(path, key, form, method = 'POST') {
@@ -95,7 +98,11 @@ exports.handler = async function (event) {
   form.set('shipping_options[0][shipping_rate_data][display_name]', DELIVERY ? 'Delivery within Singapore' : 'Free delivery within Singapore');
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', String(Math.max(0, DELIVERY)));
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'sgd');
+  const ref = orderRef();
   form.set('metadata[source]', 'website-shop');
+  form.set('metadata[order_ref]', ref);
+  form.set('payment_intent_data[description]', 'NoFilter order ' + ref);
+  form.set('payment_intent_data[metadata][order_ref]', ref);
   form.set('metadata[contribution_rate]', CONTRIBUTION_RATE);
   form.set('metadata[choice]', body.choice in CHOICES ? body.choice : '');
   lines.forEach((l, i) => {

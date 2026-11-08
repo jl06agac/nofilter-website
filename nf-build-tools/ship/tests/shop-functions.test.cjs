@@ -71,14 +71,18 @@ test('report: key required; totals across orders; other Stripe sessions ignored;
  assert.equal(report._test.sgDay('2026-11-01',false),Math.floor(Date.parse('2026-10-31T16:00:00Z')/1000),'Singapore dates');
 });
 
-test('order summary: only paid shop orders; contribution by partner; nothing personal',async()=>{
+test('order summary: only paid shop orders; order details for the confirmation page; no phone, billing address or card details beyond the last four',async()=>{
  const sum=require(path.join(F,'order-summary.js'));process.env.STRIPE_SECRET_KEY='sk_test_x';
  assert.equal((await sum.handler({queryStringParameters:{order:'../../etc'}})).statusCode,400);
  mockStripe(u=>u.includes('/line_items')?{body:{data:[{description:'Batang Gadis coffee, 1 kg',quantity:1,amount_total:8000,price:{product:{metadata:{origin:'gadis',partner:'SRI'}}}},{description:'Gayo Lues coffee, 250 g',quantity:2,amount_total:4800,price:{product:{metadata:{origin:'gayo',partner:'OIC'}}}}]}}
-  :{body:{payment_status:'paid',currency:'sgd',metadata:{source:'website-shop',contribution_rate:'0.10',code:'SPRINKLR10'},customer_details:{email:'a@b.c',name:'X'}}});
+  :{body:{payment_status:'paid',currency:'sgd',created:1794100000,amount_subtotal:12800,amount_total:11520,total_details:{amount_discount:1280,amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',code:'SPRINKLR10',order_ref:'NF-7K2Q9M'},customer_details:{email:'a@b.c',name:'Alex Clark',phone:'+6590000000',address:{line1:'BILLING ST'}},collected_information:{shipping_details:{name:'Alex Clark',address:{line1:'1 Raffles Place',line2:'#20-01',city:'Singapore',postal_code:'048616',country:'SG'}}},payment_intent:{latest_charge:{payment_method_details:{type:'card',card:{brand:'visa',last4:'4242',exp_month:12,exp_year:2030,fingerprint:'fp_secret',wallet:{type:'apple_pay'}}}}}}});
  const r=JSON.parse((await sum.handler({queryStringParameters:{order:'cs_test_abcdefghijklmnop'}})).body);
  assert.equal(r.bags,3);assert.equal(r.contribution,1280);assert.deepEqual(r.byPartner.map(x=>[x.name,x.partner,x.contribution]),[['Batang Gadis','SRI',800],['Gayo Lues','OIC',480]]);
- assert(!JSON.stringify(r).includes('a@b.c'),'no personal details');
+ assert.equal(r.order.ref,'NF-7K2Q9M');assert.equal(r.order.email,'a@b.c');assert.equal(r.order.firstName,'Alex');
+ assert.deepEqual(r.order.address,['Alex Clark','1 Raffles Place','#20-01','Singapore 048616']);
+ assert.deepEqual(r.order.items[0],{name:'Batang Gadis',size:'1 kg',qty:1,amount:8000});
+ assert.equal(r.order.total,11520);assert.equal(r.order.discount,1280);assert.deepEqual(r.order.paidWith,{brand:'visa',last4:'4242',wallet:'apple_pay'});
+ const out=JSON.stringify(r);for(const x of ['+6590000000','BILLING','fp_secret','2030'])assert(!out.includes(x),'never returned: '+x);
  mockStripe(()=>({body:{payment_status:'unpaid',metadata:{source:'website-shop'}}}));
  assert.equal((await sum.handler({queryStringParameters:{order:'cs_test_abcdefghijklmnop'}})).statusCode,404);
 });
@@ -97,4 +101,13 @@ test('the chosen project is recorded on the open order, and only one of the thre
  assert.equal((await checkout.handler(ev({action:'choose',session:'cs_test_abcdefghijkl',choice:'nope'}))).statusCode,400);
  mockStripe((u,o)=>({body:{status:'complete',metadata:{source:'website-shop'}}}));
  assert.equal((await checkout.handler(ev({action:'choose',session:'cs_test_abcdefghijkl',choice:'protect-forests'}))).statusCode,409,'a paid order cannot be changed');
+});
+
+test('every order gets a quotable number, on the order and its payment',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';
+ const calls=mockStripe(()=>({body:{client_secret:'x',id:'cs_test_9'}}));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}));
+ const f=new URLSearchParams(calls[0].opt.body),ref=f.get('metadata[order_ref]');
+ assert.match(ref,/^NF-[2-9A-HJKMNP-Z]{6}$/);
+ assert.equal(f.get('payment_intent_data[metadata][order_ref]'),ref);assert.equal(f.get('payment_intent_data[description]'),'NoFilter order '+ref);
 });

@@ -13,8 +13,11 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
    sets prices, refuses anything off its list, and creates a Stripe **embedded** Checkout Session. The Stripe
    form is mounted inside our own panel (`openPay`), beside the film and three projects the customer can point
    their 10% at (same three as the counter). A choice is written to the open session (`action: 'choose'`).
-3. **Thank-you**: Stripe returns to `/shop/?paid=1&order=cs_…`; `order-summary.js` returns the order's
-   contribution by partner and the choice (no personal data); the panel counts it up.
+3. **Order confirmation page** (148): Stripe returns to `/shop/?paid=1&order=cs_…`; a full page (not a pop-up)
+   thanks the customer by first name, says we roast every Wednesday and dispatch shortly after, shows the
+   order number (`NF-XXXXXX`, set in `checkout.js` on the order and its payment), bags, discount, total paid,
+   delivery address, card brand and last four, where the confirmation was emailed, the conservation share by
+   partner and the chosen project, and hello@nofilter.sg for help. Data from `order-summary.js`.
 4. **What each NGO is owed**: `shop-ngo-report.js` (GET, `x-report-key` header) totals 10% of each paid
    line's amount after discounts, by origin and partner, and by choice, for a date range. Stripe is the record;
    nothing is stored. Refunded orders are listed, not netted off.
@@ -43,7 +46,9 @@ Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the
 1. **Price and cart integrity**: can the page influence an amount? (`cleanLines`, env prices, 20-bag cap)
 2. **`action: 'choose'`**: only open, shop-created sessions; choice whitelisted. Anyone holding a session id
    could change the choice; the id is only in the payer's browser. Acceptable?
-3. **`order-summary.js`**: paid shop orders only; confirm it leaks nothing personal (email, address, phone)
+3. **`order-summary.js`**: paid shop orders only. It now returns the email, first name, delivery address and
+   card last four for the confirmation page (as Stripe's return-page guidance does; the session id is long,
+   random and only in the payer's browser). Confirm it never returns the phone, billing address or other card details
 4. **Report**: timing-safe key check; pagination; `amount_total` per line is after discounts; refunds listed
 5. **Preview path**: confirm it can never run on production, and that the preview figures (cart prices, before
    any discount) are not mistaken for real ones anywhere
