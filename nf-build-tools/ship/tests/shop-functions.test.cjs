@@ -373,8 +373,9 @@ test('code check for the basket: percentage and whether it applies to subscripti
  const promo={id:'promo_1',active:true,promotion:{type:'coupon',coupon:'co_1'}};
  const run=async(c,code='TEST10')=>{mockStripe(u=>u.includes('promotion_codes')?{body:{data:c?[promo]:[]}}:u.includes('/v1/coupons/')?{body:c}:{body:{}});
   const r=await checkout.handler({httpMethod:'GET',queryStringParameters:{code}});return {s:r.statusCode,b:JSON.parse(r.body)};};
- let r=await run({id:'co_1',percent_off:10,duration:'forever',valid:true});assert.equal(r.s,200);assert.deepEqual(r.b,{code:'TEST10',pct:0.1,subscriptions:true});
- r=await run({id:'co_1',percent_off:10,duration:'once',valid:true});assert.deepEqual(r.b,{code:'TEST10',pct:0.1,subscriptions:false});
+ let r=await run({id:'co_1',percent_off:10,duration:'forever',valid:true});assert.equal(r.s,200);assert.deepEqual(r.b,{code:'TEST10',pct:0.1,subscriptions:true,oneOff:true});
+ r=await run({id:'co_1',percent_off:10,duration:'once',valid:true});assert.deepEqual(r.b,{code:'TEST10',pct:0.1,subscriptions:false,oneOff:true},'once-only: fine on a one-off order');
+ promo.restrictions={first_time_transaction:true};r=await run({id:'co_1',percent_off:10,duration:'forever',valid:true});assert.deepEqual(r.b,{code:'TEST10',pct:0.1,subscriptions:false,oneOff:false},'first order only: left to Stripe');delete promo.restrictions;
  r=await run(null);assert.equal(r.s,404);
  r=await run({id:'co_1',amount_off:500,valid:true});assert.equal(r.s,404,'a fixed-amount code is left to Stripe');
  r=await run(null,'');assert.equal(r.s,400);
