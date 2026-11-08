@@ -84,7 +84,7 @@ exports.handler = async function (event) {
         return reply(200, { skipped: body.action === 'skip' });
       }
       const DEL = parseInt(process.env.DELIVERY_CENTS || '400', 10), FREE_FROM = parseInt(process.env.FREE_FROM_CENTS || '5000', 10);
-      const P = { '250g': parseInt(process.env.PRICE_BAG_250G || '2400', 10), '1kg': parseInt(process.env.PRICE_BAG_1KG || '8000', 10), delivery: DEL };
+      const P = { '250g': parseInt(process.env.PRICE_BAG_250G || '2400', 10), '1kg': parseInt(process.env.PRICE_BAG_1KG || '7500', 10), delivery: DEL };
       const off = Math.max(SUB_OFF, (+((sub.metadata || {}).off_pct) || Math.round(SUB_OFF * 100)) / 100);
       const cat = await ensureCatalogue(KEY, ORIGINS, P, off);
       const all = (sub.items && sub.items.data) || [];

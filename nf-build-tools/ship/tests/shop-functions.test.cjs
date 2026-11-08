@@ -31,7 +31,7 @@ test('prices are set here, every line carries its origin and partner, delivery i
  const r=await checkout.handler(ev({lines:[{name:'Batang Gadis',size:'1kg',qty:2,price:0.01},{name:'Batang Toru',size:'250g',qty:1}]}));
  assert.equal(r.statusCode,200);const out=JSON.parse(r.body);assert.equal(out.url,'https://checkout.stripe.com/c/pay/cs_test_1_secret_x');assert.equal(out.session,'cs_test_1');
  const f=new URLSearchParams(calls[0].opt.body);
- assert.equal(f.get('line_items[0][price_data][unit_amount]'),'8000','the page cannot set a price');
+ assert.equal(f.get('line_items[0][price_data][unit_amount]'),'7500','the page cannot set a price');
  assert.equal(f.get('line_items[1][price_data][unit_amount]'),'2400');
  assert.equal(f.get('line_items[0][price_data][product_data][metadata][origin]'),'gadis');
  assert.equal(f.get('line_items[0][price_data][product_data][metadata][partner]'),'SRI');
@@ -138,7 +138,7 @@ test('subscriptions: the range at 5% off; one frequency; one-offs ride along; de
  const small=mockStripe(stripeWithCatalogue(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}})));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:2}]}));
  const sf=sessionCall(small);assert.equal(sf.get('line_items[1][price]'),'price_nf-del-w2','one 250 g bag a delivery pays SGD 4 delivery');assert.equal(sf.get('metadata[delivery_cents]'),'400');
- assert.equal(f.get('line_items[2][price_data][unit_amount]'),'8000');assert.equal(f.get('line_items[2][price_data][recurring][interval]'),null,'one-off rides along');
+ assert.equal(f.get('line_items[2][price_data][unit_amount]'),'7500');assert.equal(f.get('line_items[2][price_data][recurring][interval]'),null,'one-off rides along');
  assert.equal(f.get('subscription_data[metadata][source]'),'website-shop');assert.equal(f.get('subscription_data[metadata][every_weeks]'),'2');
  assert.equal(f.get('shipping_options[0][shipping_rate_data][type]'),null);assert.equal(f.get('allow_promotion_codes'),null,'no code box on subscriptions');
  assert.match(f.get('custom_text[submit][message]'),/every 2 weeks.*until you cancel.*\[Subscription terms\]\(https:\/\/nofilter.sg\/subscription-terms\/\)/);

@@ -7,7 +7,7 @@
      STRIPE_SECRET_KEY        sk_test_... to rehearse, sk_live_... to go live (without it: 503)
      (STRIPE_PUBLISHABLE_KEY is no longer needed: the hosted page needs no key on our side)
      PRICE_BAG_250G      unit amount in cents (default 2400 = SGD 24.00, MARKETS.SG.bag250)
-     PRICE_BAG_1KG       unit amount in cents (default 8000 = SGD 80.00, MARKETS.SG.bag1kg)
+     PRICE_BAG_1KG       unit amount in cents (default 7500 = SGD 75.00, MARKETS.SG.bag1kg)
      DELIVERY_CENTS      delivery charge per order in cents (default 0: retail prices include delivery)
    Payment methods (cards, Apple Pay, Google Pay, PayNow) are switched on in the Stripe
    dashboard; this function does not name them, so the dashboard decides.
@@ -91,7 +91,7 @@ exports.handler = async function (event) {
   const code = String(body.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 24);
 
   const P250 = parseInt(process.env.PRICE_BAG_250G || '2400', 10);
-  const P1KG = parseInt(process.env.PRICE_BAG_1KG || '8000', 10);
+  const P1KG = parseInt(process.env.PRICE_BAG_1KG || '7500', 10);
   const DELIVERY = parseInt(process.env.DELIVERY_CENTS || '400', 10);
   const FREE_FROM = parseInt(process.env.FREE_FROM_CENTS || '5000', 10);
   const host = event.headers && event.headers.host;
