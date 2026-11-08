@@ -304,3 +304,18 @@ test('quote enquiry: a failed internal copy is retried once and logged, never si
   r=await q.handler(ev2);assert.equal(r.body,'sent');assert.equal(calls.length,2,'customer and desk, no retry');
  }finally{console.error=orig;}
 });
+
+test('trade access: the rate-limited wrappers pass requests through unchanged',async()=>{
+ process.env.ACCESS_SECRET='s3cret';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';
+ const v=await import(path.join(F,'access-verify.mjs')),q=await import(path.join(F,'access-request.mjs'));
+ assert.equal(v.config.path,'/api/access-verify');assert.equal(q.config.path,'/api/access-request');
+ assert.ok(v.config.rateLimit.windowLimit<=10&&q.config.rateLimit.windowLimit<=5);
+ const post=(m,b)=>m.default(new Request('https://nofilter.sg'+m.config.path,{method:'POST',body:JSON.stringify(b)}));
+ assert.equal((await v.default(new Request('https://nofilter.sg/api/access-verify'))).status,405,'GET refused as before');
+ const no=await post(v,{email:'pat@acme.com',code:'TAPIRBASIN000'});assert.equal(no.status,401);assert.deepEqual(await no.json(),{ok:false});
+ assert.equal((await post(q,{email:'pat@gmail.com',company:'Acme'})).status,403,'personal inbox refused as before');
+ const sent=[];global.fetch=async(u,o)=>{sent.push(JSON.parse(o.body));return {ok:true,status:200,json:async()=>({id:'em'}),text:async()=>''};};
+ const ok=await post(q,{email:'pat@acme.com',company:'Acme',name:'Pat Lee'});assert.equal(ok.status,200);
+ const mine=sent.find(m=>m.to&&m.to[0]==='pat@acme.com')||{};const code=(mine.html||'').match(/\b[A-Z]{4,}[A-Z]{4,}\d{3}\b/);assert.ok(code,'a code went out');
+ const yes=await post(v,{email:'pat@acme.com',code:code[0]});assert.equal(yes.status,200,'the emailed code opens the rates');
+});

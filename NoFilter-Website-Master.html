@@ -24211,11 +24211,12 @@ window.__nfRoller(
 
     var go = form.querySelector('.acc-go'), goHtml = go ? go.innerHTML : '';
     if(go){ go.disabled = true; go.innerHTML = 'Sending&hellip;'; }
-    fetch('/.netlify/functions/access-request', {
+    fetch('/api/access-request', {   /* 163: rate-limited path */
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ email:email, company:co, name:name })
     }).then(function(r){
       if(r.status === 403) throw new Error('free');
+      if(r.status === 429) throw new Error('busy');   /* Netlify's rate limit (163) */
       if(!r.ok) throw new Error('http ' + r.status);
       var dest = $('#accDest'); if(dest) dest.textContent = email;
       /* block 101 — first name into the line, when the first word reads as one */
@@ -24231,6 +24232,8 @@ window.__nfRoller(
       if(e && e.message === 'free'){
         fail('That is a personal inbox. Trade pricing needs a company address — '
            + 'or buy a bag on the shop page, which needs no code at all.');
+      } else if(e && e.message === 'busy'){
+        fail('That was a few requests in a row. Wait a minute, then send it again.');
       } else {
         fail('We could not send the code just now. Email alex@nofilter.sg and we will open it by hand.');
       }
@@ -24878,10 +24881,10 @@ window.__nfRoller(
     }
   }
 
-  function deny(){
+  function deny(msg){
     inputEnabled = false;
     var d = addLine('sm'); d.style.color = '#ff6a3d';
-    type(d, 'ACCESS DENIED — CHECK YOUR CODE', 28).then(function(){
+    type(d, msg || 'ACCESS DENIED — CHECK YOUR CODE', 28).then(function(){
       setTimeout(function(){
         if(d.parentNode) d.remove();
         entry=''; inputEnabled=true;
@@ -24928,22 +24931,22 @@ window.__nfRoller(
     if(!typed) return;
     inputEnabled = false;
     var chk = addLine('sm'); chk.style.color = 'rgba(244,239,226,.55)'; chk.textContent = 'CHECKING\u2026';
-    fetch('/.netlify/functions/access-verify', {
+    fetch('/api/access-verify', {   /* 163: rate-limited path */
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ email: window.__nfAccEmail || '', code: typed })
-    }).then(function(r){ return r.ok ? r.json() : {ok:false}; })
+    }).then(function(r){ return r.ok ? r.json() : { ok:false, busy: r.status === 429 }; })   /* 429: Netlify's rate limit (163) */
       .then(function(j){
         /* 115: the ladder rides on the answer; merge it before the builder shows */
         if(j && j.ok && j.rates && typeof window.__nfMergeRates === 'function'){
           try{ window.__nfMergeRates(j.rates); }catch(e){}
         }
-        return !!(j && j.ok);
+        return j && j.ok ? true : (j && j.busy ? 'busy' : false);
       })
       .catch(function(){ return false; })
       .then(function(ok){
         if(chk.parentNode) chk.remove();
         inputEnabled = true;
-        if(ok){ unlock(); } else { deny(); }
+        if(ok === true){ unlock(); } else { deny(ok === 'busy' ? 'TOO MANY TRIES. WAIT A MINUTE' : ''); }
       });
   }
 

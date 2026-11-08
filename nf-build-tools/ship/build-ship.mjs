@@ -398,16 +398,16 @@ for (const rel of pages) {
 
 // ── 4b · the ladder goes into the access function (block 114) ─────────────
 {
-  const fn = join(OUT, 'netlify', 'functions', 'access-verify.js');
-  if (!existsSync(fn)) { console.error('access-verify.js missing from the bundle'); process.exit(1); }
+  const fn = join(OUT, 'netlify', 'functions', '_lib', 'access-verify-core.js');   /* 163: the logic moved under _lib; access-verify.mjs wraps it */
+  if (!existsSync(fn)) { console.error('_lib/access-verify-core.js missing from the bundle'); process.exit(1); }
   const before = readFileSync(fn, 'utf8');
   const marker = '/*NF_RATES*/null';
-  if (!before.includes(marker)) { console.error('access-verify.js: NF_RATES marker missing'); process.exit(1); }
+  if (!before.includes(marker)) { console.error('_lib/access-verify-core.js: NF_RATES marker missing'); process.exit(1); }
   writeFileSync(fn, before.replace(marker, JSON.stringify(RATES)));
   // the function must still parse, and the page must not carry the ladder
   const built = readFileSync(join(OUT, 'index.html'), 'utf8');
   if (/\br24\s*:\s*[1-9]/.test(built) || /var RATES\s*=/.test(built)) { console.error('built index.html still carries the ladder'); process.exit(1); }
-  console.log('access-verify.js: RATES written (' + JSON.stringify(RATES).length + ' chars)');
+  console.log('_lib/access-verify-core.js: RATES written (' + JSON.stringify(RATES).length + ' chars)');
 }
 
 // llms.txt: the partner names (block 98 — PRCF Indonesia; GJI in the roll-call)
