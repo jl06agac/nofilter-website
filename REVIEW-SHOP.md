@@ -1,115 +1,95 @@
-# Shop checkout: hand-over for review
+# Shop checkout: hand-over for review (pre-launch)
 
-Branch `shop-checkout` (commits 139 to 144). Built by Claude; for Codex to review before anything merges.
-Nothing here is on `main` or on nofilter.sg. `SHOP_LIVE` is still `false` in the master.
+Branch `shop-checkout` (commits 139 to 160). Built by Claude; for Codex to review before anything merges.
+Nothing here is on `main` or on nofilter.sg. In the master, `SHOP_LIVE` is `{ SG: false, AE: false, UK: false }`;
+launch flips `SG` to `true` only. Alex has asked to launch Singapore once this review is done, with the UAE and UK
+held as "coming soon".
 
-## What it does
+This file replaces the earlier version, which described the embedded Stripe form and the project picker. Both
+are gone.
 
-1. **Basket** (cart drawer in `NoFilter-Website-Master.html`): bag photo per line, quantity stepper, a muted
-   looping film of the landscape most of the basket comes from (captioned with its partner), subtotal, the 10%
-   to conservation, and the split by partner when there are two or more coffees. A client code arriving as
-   `?code=` (the impact counter's shop QR) is kept and shown.
-2. **Checkout**: the page posts names, sizes and quantities only to `netlify/functions/checkout.js`, which
-   sets prices, refuses anything off its list, and creates a Stripe **embedded** Checkout Session. The Stripe
-   form is mounted inside our own panel (`openPay`), beside the film and three projects the customer can point
-   their 10% at (same three as the counter). A choice is written to the open session (`action: 'choose'`).
-3. **Order confirmation page** (148): Stripe returns to `/shop/?paid=1&order=cs_…`; a full page (not a pop-up)
-   thanks the customer by first name, says we roast every Wednesday and dispatch shortly after, shows the
-   order number (`NF-XXXXXX`, set in `checkout.js` on the order and its payment), bags, discount, total paid,
-   delivery address, card brand and last four, where the confirmation was emailed, the conservation share by
-   partner and the chosen project, and hello@nofilter.sg for help. Data from `order-summary.js`.
-4. **What each NGO is owed**: `shop-ngo-report.js` (GET, `x-report-key` header) totals 10% of each paid
-   line's amount after discounts, by origin and partner, and by choice, for a date range. Stripe is the record;
-   nothing is stored. Refunded orders are listed, not netted off.
-5. **Draft preview** (commit 142): on draft links only (`…--nofilter-site.netlify.app`, `localhost`,
-   `127.0.0.1`) a 503 from checkout (no Stripe key) opens the same panel with a labelled stand-in form and a
-   "Pay (preview)" button that goes to the thank-you with figures computed from the cart. nofilter.sg and
-   `nofilter-site.netlify.app` never match the pattern and keep the plain "Checkout is not open yet" message.
+## What it does now
+
+1. **Shop and coffee pages**: 250 g SGD 24, 1 kg SGD 75 (`MARKETS.SG.bag250/bag1kg`; the functions' defaults
+   `PRICE_BAG_250G` 2400, `PRICE_BAG_1KG` 7500). Each coffee page has a Subscribe & save 5% widget (one-time or
+   subscribe, every 1 to 4 weeks), shared via `window.__nfPlan`, armed only by that page's Add button.
+2. **Basket** (`renderCart`): per-line One-time / Subscribe −5% switch, frequency chips (one frequency per basket,
+   Stripe's rule), delivery line (SGD 4 under SGD 50, free from SGD 50) with a free-delivery nudge, the 10% to
+   conservation and split by partner, landscape film. A client code arriving as `?code=` is kept.
+3. **Checkout panel** (`openPay`): left, the landscape film, "SGD X to conservation", one sentence on the 10%,
+   and each landscape's partner and share. No project picker (removed 158 until partners' projects are
+   confirmed; `checkout.js` still accepts and whitelists `choice`, the page sends `''`). Right, the live order
+   summary (per-line switch, frequency, delivery, first payment, "Then SGD X every N weeks"). "Continue to secure
+   payment" POSTs `{lines, code, choice}` to `checkout.js` and redirects to Stripe's hosted page. Payment note:
+   card, Apple Pay or Google Pay for subscriptions; adds PayNow and GrabPay for one-off orders.
+4. **`checkout.js`**: prices set server-side (page sends names, sizes, quantities, frequency only), 20-bag cap,
+   unknown items refused. One-off: `mode: payment`, shipping rate on the full-price subtotal. Any subscribed
+   line: `mode: subscription` with catalogue Prices (`_lib/catalogue.js`, lookup key
+   `nf-sub-{origin}-{size}-w{n}-p{pct}`, created on first use) at `max(5%, client code %)`, never both; one-off
+   lines ride along; a recurring Delivery line when a delivery's coffee is under SGD 50. Order number
+   `NF-XXXXXX` on the session and payment. Stripe error detail masked from the page.
+5. **Order confirmation** (`paidPanel`, `/shop/?paid=1&order=cs_…`): thanks by first name, roast Wednesday and
+   dispatch shortly after, order card, delivery address, card brand and last four, where the receipt went,
+   running total to conservation by partner, stay-in-touch tick boxes (stored on the Stripe customer).
+   Subscriptions: swap coffee or size, quantity, change frequency (from the end of the paid period, via
+   `trial_end`), skip the next delivery (`pause_collection: void`), and "Card, address or cancel" (Stripe
+   portal, config `metadata.nf = shop-v1`, cancel at period end). Data from `order-summary.js`.
+6. **What each NGO is owed**: `shop-ngo-report.js` (GET, `x-report-key`), 10% of each paid line after discounts,
+   by origin and partner, including renewal invoices; delivery lines excluded; refunds listed, not netted.
+7. **Markets** (160): the shop switch is per market and follows the price-board toggle live. In a market that is
+   off, Add opens the "Coming soon to the UAE / the UK" card (dispatch list sign-up) and nothing reaches the
+   cart (`__nfCartSet` wrapped). Checkout refuses any market but SG (`MKTK !== 'SG'`).
+8. **Draft preview**: on draft hosts only (`…--nofilter-site.netlify.app`, localhost), a 503 from checkout opens
+   a stand-in that lands on the confirmation page with figures from the cart. Never on nofilter.sg.
+9. **Terms**: `/subscription-terms/` (standalone, noindex), linked from Stripe's page via `custom_text`.
 
 ## Files
 
-- `NoFilter-Website-Master.html`: cart markup and CSS, `renderCart`, checkout handler, `openPay`,
-  `paidPanel` (blocks numbered 139 to 144)
-- `nf-build-tools/ship/SHIP-2026-08-30f/netlify/functions/checkout.js`, `order-summary.js`, `shop-ngo-report.js`
-- `nf-build-tools/ship/SHIP-2026-08-30f/assets/shop/*.webp` (the three project images)
-- `nf-build-tools/ship/tests/shop-functions.test.cjs` (8 tests)
+- `NoFilter-Website-Master.html`: basket, coffee-page widget, `openPay`, `paidPanel`, the pre-launch switch
+- `nf-build-tools/ship/SHIP-2026-08-30f/netlify/functions/checkout.js`, `order-summary.js`, `shop-ngo-report.js`,
+  `_lib/catalogue.js`
+- `nf-build-tools/ship/SHIP-2026-08-30f/subscription-terms/index.html` (exempted in `build-ship.mjs`,
+  `split-bundle.py`, `wire_links.py`)
+- `nf-build-tools/ship/tests/shop-functions.test.cjs` (14 tests)
 
 ## How it was checked
 
-- `node --test nf-build-tools/ship/tests/shop-functions.test.cjs`: 8 pass
-- Playwright, 1440 px and iPhone 13: full journey with a stubbed Stripe.js (real path) and with a 503
-  (preview path); no page errors; screens reviewed for layout at both sizes
-- Preview pattern tested against `nofilter.sg` (no), `nofilter-site.netlify.app` (no), a draft host (yes)
+- Unit tests: 14 pass
+- Playwright at 1440 px and iPhone 13: basket, subscription widget, checkout panel to a stubbed Stripe redirect,
+  the 503 preview path to the confirmation page, the confirmation page's subscription controls, and the market
+  switch (SG buys; AE and UK get the coming-soon card, cart untouched; all-off shows coming soon everywhere).
+  No page errors.
+- Live Stripe test mode on drafts: hosted checkout and a subscription payment went through. Swap, skip and
+  frequency change are covered by unit tests against a mocked Stripe; worth one live run before launch.
 
 ## Please look hard at
 
-1. **Price and cart integrity**: can the page influence an amount? (`cleanLines`, env prices, 20-bag cap)
-2. **`action: 'choose'`**: only open, shop-created sessions; choice whitelisted. Anyone holding a session id
-   could change the choice; the id is only in the payer's browser. Acceptable?
-3. **`order-summary.js`**: paid shop orders only. It now returns the email, first name, delivery address and
-   card last four for the confirmation page (as Stripe's return-page guidance does; the session id is long,
-   random and only in the payer's browser). Confirm it never returns the phone, billing address or other card details
-4. **Report**: timing-safe key check; pagination; `amount_total` per line is after discounts; refunds listed
-5. **Preview path**: confirm it can never run on production, and that the preview figures (cart prices, before
-   any discount) are not mistaken for real ones anywhere
-6. **Partner data**: Batang Toru was "PRCF Indonesia, SRI" in the site's coffee record; corrected to
-   "PRCF Indonesia, OIC" (matches the site's own fact box and Alex). Only the shop reads that field.
-7. **Accessibility**: dialog roles, focus on open, Escape to close, reduced motion on the count-up
-
-8. **Site headers** (`netlify.toml`, 151): `payment=()` became `payment=(self js.stripe.com checkout.stripe.com
-   pay.google.com)` so wallets work in Stripe's frame, and the opener policy became `same-origin-allow-popups` for
-   payment methods that confirm in a pop-up. Site-wide; check nothing else relied on the stricter values.
-9. **Stripe API change**: embedded checkout is now `ui_mode: embedded_page`, mounted with
-   `createEmbeddedCheckoutPage` from `js.stripe.com/endive/stripe.js` (falls back to `initEmbeddedCheckout`).
-
-10. **Subscriptions** (152): Subscribe & save 10% on each coffee page (a widget beside the picker, shared
-   choice `window.__nfPlan`, armed only by the coffee page's Add button) and a switch on each basket line.
-   Every 1-4 weeks; one frequency per basket (Stripe's rule). `checkout.js` switches to `mode: subscription`
-   with weekly recurring price_data at 10% off; one-off lines ride along. With a client code: the better of the
-   two, applied to the prices (a Stripe code would apply to every future delivery). `order-summary.js` returns the
-   subscription (frequency, next charge), a running total of the customer's paid orders and renewals, opens
-   Stripe's customer portal (`&manage=1`, needs the portal saved once in the Stripe dashboard) and records
-   report-back / news consent on the Stripe customer (POST). The NGO report counts renewal invoices
-   (`billing_reason: subscription_cycle`). Terms page: `/subscription-terms/` (draft for Alex to approve).
-
-11. **Swap, skip, change** (153): the range lives in Stripe as real Products (one per coffee and size, with
-   origin and partner) and weekly Prices (every 1-4 weeks, 10% off, by lookup key), created on first use by
-   `_lib/catalogue.js`. Subscription lines use them, so the order page can swap coffee, size or quantity
-   (`proration_behavior: none`, from the next delivery), change frequency (`trial_end` = end of the paid
-   period, so no charge today) and skip the next delivery (`pause_collection: void` until just after it).
-   Card, address, invoices and cancel (at period end) are Stripe's portal, with its own configuration
-   (`metadata.nf = shop-v1`). The portal can't swap: it only updates single-item subscriptions.
-   Worth checking: `trial_end` shows the subscription as trialing until then; skip on a past_due subscription.
-
-12. **5% and delivery** (155): subscriptions 5% off (`SUB_OFF`), a client code still the better of the two; each
-   discount level has its own price set (`-p5`, `-p10`, …, stored as `off_pct` on the subscription) so swaps
-   keep the rate. Delivery SGD 4 (`DELIVERY_CENTS`) under SGD 50 (`FREE_FROM_CENTS`): one-off orders via the
-   shipping rate on the full-price subtotal; subscriptions via a recurring Delivery line when a delivery's coffee
-   is under SGD 50, added or dropped by the order page's changes. Delivery is never in the 10% (report, order
-   summary, running total).
-
-13. **Hosted checkout** (156): Stripe's hosted page instead of the embedded form (Alex preferred its layout).
-   Our panel is step 1 (film, project choice, order summary with delivery and the subscription's repeat charge);
-   "Continue to secure payment" creates the session with the choice and redirects (`success_url` back to
-   `/shop/?paid=1&order=…`, `cancel_url` to `/shop/`). The 151 header changes (payment permission, opener policy)
-   were reverted: nothing of Stripe runs in our page now. `STRIPE_PUBLISHABLE_KEY` is no longer needed. The
-   `action: 'choose'` path in checkout.js is now unused (choice is set at creation).
+1. **Price integrity**: can the page influence any amount, discount level, delivery or frequency beyond the
+   whitelist? (`cleanLines`, env prices, `subOff`, the Delivery line)
+2. **Subscription changes** (`order-summary.js` POST): only the subscription belonging to that paid session;
+   swap keeps the discount tier; delivery added or dropped correctly across the SGD 50 line; skip on a past_due
+   subscription; `trial_end` shows the subscription as trialing.
+3. **Personal data**: `order-summary.js` returns first name, email, delivery address and card last four for the
+   session holder. Confirm nothing else (phone, billing address, other card details).
+4. **Report**: timing-safe key check, pagination, renewals counted once, delivery excluded.
+5. **Market switch**: no route into a paid order outside SG (cart model, checkout guard, server: `checkout.js`
+   is SGD-only).
+6. **Preview path** can never run on production.
+7. **Accessibility**: dialog roles, focus on open, Escape, reduced motion.
 
 ## Known gaps (not bugs)
 
-- Retail ships within Singapore only; other markets get a message instead of checkout.
-- Refunds are not netted off in the report; they are listed for manual exclusion.
-- The choice can only be made in the checkout panel, not after paying.
+- Refunds are not netted off in the report.
+- No order notification to NoFilter and no weekly roast list yet (Stripe dashboard is the record until then).
+- Customers can't pick a project for their 10% until partners' projects are confirmed.
 
-## Before launch (for Alex)
+## Launch steps (after review)
 
-1. Create the Stripe account (NoFilter Pte. Ltd.), then in Netlify, site `nofilter-site`, Environment
-   variables: `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` (test keys first, `sk_test_` / `pk_test_`),
-   and `REPORT_KEY` (any long random phrase; it unlocks the NGO report).
-2. In Stripe: switch on Apple Pay, Google Pay, PayNow and Link (Settings, Payment methods); switch on
-   receipts (Settings, Emails, Successful payments); verify the Apple Pay
-   domain `nofilter.sg`; Branding: background `#F4F2EE` (the shop's cream), accent `#EE4D17`, corners rounded, logo.
-3. Create the client promotion codes (10% off, e.g. `SPRINKLR10`, `EASTSPRING10`).
-4. Rehearse with test card 4242 4242 4242 4242 on a draft; then swap to live keys.
-5. Decide: does Arakan stay in the shop while Myanmar is phased out?
-6. Launch = merge this branch, flip `SHOP_LIVE` to `true`, build the bundle, deploy from the Mac.
+1. Alex runs "Set Stripe test keys.command" with **live** keys (the script needs its `sk_test_` check changed to
+   accept `sk_live_`; Claude does that on request). Claude never handles the keys.
+2. In Stripe (live mode): receipts on (Settings, Emails, Successful payments); Branding background `#F4F2EE`,
+   accent `#EE4D17`; Apple Pay domain `nofilter.sg`; client promotion codes if wanted.
+3. One real low-value order on a draft with live keys, then refund it.
+4. Merge `shop-checkout` to `main`, flip `SG` to `true`, build, deploy production from the Mac (Alex says go).
+5. Decisions still open with Alex: Arakan in the shop or not; terms wording; roast cut-off; courier cost per
+   parcel against the SGD 4 charge.

@@ -17602,7 +17602,7 @@ $('#checkoutBtn').addEventListener('click', function(){
   var note = $('#checkoutNote');
   function say(t){ note.textContent = t; note.style.display = 'block'; }
   if(!cart.length){ say('Add a bag first.'); return; }
-  if(MKT.cur !== 'SGD'){ say('Retail bags ship within Singapore for now.'); return; }
+  if(MKTK !== 'SG'){ say('Retail bags ship within Singapore for now.'); return; }
   note.style.display = 'none'; openCart(false); openPay();
 });
 /* 141/156 · the checkout panel, step 1 of 2: the landscape the coffee comes from, the customer's choice of
@@ -27451,19 +27451,23 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 <script>
 (function(){
   /* ── THE SWITCH ────────────────────────────────────────────────────────
-     false = retail bags are not orderable. Set to true on launch day and
-     every part of this block stands down together. */
-  var SHOP_LIVE = false;
-  if (SHOP_LIVE) return;
+     Per market (160, 8 Nov): true = retail bags orderable in that market.
+     Singapore launches first; the UAE and UK show "coming soon" until they
+     are switched on here. The block follows the market toggle live. */
+  var SHOP_LIVE = { SG: false, AE: false, UK: false };
 
   var doc = document.documentElement;
-  doc.setAttribute('data-shop', 'soon');
-
   /* the desks are real and market-aware; see DESKS in the contact dock */
   function mktKey(){
     var b = document.querySelector('#priceBoard [data-pbm][aria-pressed="true"]');
     return b ? b.getAttribute('data-pbm') : 'SG';
   }
+  function live(){ return !!SHOP_LIVE[mktKey()]; }
+  function mark(){ if (live()) doc.removeAttribute('data-shop'); else doc.setAttribute('data-shop', 'soon'); }
+  mark();
+  document.addEventListener('DOMContentLoaded', mark);
+  document.addEventListener('click', function(ev){ if (ev.target.closest && ev.target.closest('#priceBoard [data-pbm]')) setTimeout(mark, 0); });
+  function where(){ return mktKey() === 'AE' ? 'the UAE' : mktKey() === 'UK' ? 'the UK' : 'Singapore'; }
   function desk(){
     /* 27 Aug: hello@ is the live alias in both markets (pass130) */
     return mktKey() === 'AE' ? 'hello@nofilter.ae' : 'hello@nofilter.sg';
@@ -27486,10 +27490,8 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 
         /* ── state: intro ───────────────────────────────────────────── */
         '<div class="nf-soon-st" data-st="intro">' +
-          '<h2 class="nf-soon-h">Individual bags aren\u2019t live yet.</h2>' +
-          '<p class="nf-soon-p">Account-level coffee supply is running right now. Single ' +
-            '250g and 1kg bags for individual order are in production. Get on the dispatch ' +
-            'list below to know the exact minute the store opens to everyone.</p>' +
+          '<h2 class="nf-soon-h">Coming soon to <span data-soon-where>' + where() + '</span>.</h2>' +
+          '<p class="nf-soon-p" data-soon-p></p>' +
           '<div class="nf-soon-a">' +
             '<button class="nf-soon-b pri" type="button" data-go-form>Get launch dispatch \u2192</button>' +
             '<a class="nf-soon-b gho" href="#quote" data-close>Build a workplace quote \u2192</a>' +
@@ -27599,6 +27601,9 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
     lastFocus = document.activeElement;
     var n = build();
     if (n.__nfSetState) n.__nfSetState('intro');   /* always opens on the intro */
+    n.querySelectorAll('[data-soon-where]').forEach(function(x){ x.textContent = where(); });
+    var sp = n.querySelector('[data-soon-p]');
+    if (sp) sp.textContent = (SHOP_LIVE.SG && mktKey() !== 'SG' ? 'Single 250g and 1kg bags are on sale in Singapore now, and coming to ' + where() + ' soon.' : 'Single 250g and 1kg bags for individual order are on their way.') + ' Get on the dispatch list below to hear the minute the shop opens here.';
     n.setAttribute('data-open', '');
     /* one frame so the transition has a start state to run from */
     requestAnimationFrame(function(){ n.setAttribute('data-in', ''); });
@@ -27627,7 +27632,7 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
   if (shop) {
     shop.addEventListener('click', function(ev){
       var t = ev.target.closest(BUY);
-      if (!t) return;
+      if (!t || live()) return;
       ev.preventDefault();
       ev.stopPropagation();
       open();
@@ -27638,7 +27643,7 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
      found that the selectors above miss, nothing can actually be added. The
      quote builder does not use either of these. */
   var _set = window.__nfCartSet;
-  window.__nfCartSet = function(){ open(); };
+  window.__nfCartSet = function(){ if (live() && _set) return _set.apply(this, arguments); open(); };
   window.__nfShopSoonRestore = function(){ window.__nfCartSet = _set; };
 })();
 </script>
