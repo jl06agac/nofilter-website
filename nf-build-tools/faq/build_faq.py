@@ -126,7 +126,12 @@ def strip_html(frag):
     return re.sub(r'\s+', ' ', t).strip()
 
 
-def section_html():
+def cats(market="sg"):
+    """9 Nov · a category with "markets" appears only on those markets' pages."""
+    return [c for c in CATEGORIES if market in c.get("markets", (market,))]
+
+
+def section_html(market="sg"):
     """The markup, composed as a section record rather than a list.
 
     Each category is a [data-beat] element carrying a .beat-hd .sn folio. That
@@ -159,7 +164,8 @@ def section_html():
     # the index: one sheet of paper carrying the file line and the four
     # categories, separated by rules. The file line is stated once, here, and
     # the categories carry their own number and class instead of repeating it.
-    nq = sum(len(c["items"]) for c in CATEGORIES)
+    CATS = cats(market)
+    nq = sum(len(c["items"]) for c in CATS)
     a('<div class="faq-zone">')
     # the trail: decorative, aria-hidden, and outside the reading order
     a('<div class="faq-trail" aria-hidden="true"><i></i></div>')
@@ -168,9 +174,9 @@ def section_html():
     a('<div class="faq-strip">'
       '<span class="st-lead">FAQ file</span><span><b>%d</b> questions</span>'
       '<span><b>%02d</b> sections</span><span>Updated <b>%s</b></span></div>'
-      % (nq, len(CATEGORIES), STRIP_DATE))
+      % (nq, len(CATS), STRIP_DATE))
 
-    for ci, c in enumerate(CATEGORIES, 1):
+    for ci, c in enumerate(CATS, 1):
         n = len(c["items"])
         a('<details class="nf-faq-group" id="grp-%s" data-beat%s>'
           % (c["id"], " open" if c.get("open") else ""))
@@ -222,10 +228,10 @@ def section_html():
     return "\n".join(out)
 
 
-def jsonld(base="https://nofilter.sg/faqs"):
+def jsonld(base="https://nofilter.sg/faqs", market="sg"):
     # 7 Sep · base is the market's own /faqs URL; every question anchors under it
     qs = []
-    for c in CATEGORIES:
+    for c in cats(market):
         for q in c["items"]:
             qs.append({
                 "@type": "Question",
@@ -271,7 +277,7 @@ def build(src, out, market="sg"):
         off.append(off[-1] + len(l) + 1)
     end = start + off[p.end[0] - 1] + p.end[1] + len("</section>")
 
-    s = s[:start] + section_html() + s[end:]
+    s = s[:start] + section_html(market) + s[end:]
     s = re.sub(r'data-nf-page="[^"]*"', 'data-nf-page="faq"', s, count=1)
     prefix = {"uk": "/uk"}.get(market, "")  # 28 Oct: UAE links are bare; nofilter.ae rewrites them
     s = re.sub(r'href="/(?!/|assets/|(?:ae|uk)(?=/|["?#]))([^"#]*)', lambda m: 'href="' + prefix + "/" + m[1], s)
@@ -304,7 +310,7 @@ def build(src, out, market="sg"):
     s = re.sub(r'<link rel="alternate" hreflang="x-default" href="[^"]*"',
                '<link rel="alternate" hreflang="x-default" href="https://nofilter.sg/faqs"', s, count=1)
 
-    s = s.replace("</head>", CSS + jsonld(base) + "\n</head>", 1)
+    s = s.replace("</head>", CSS + jsonld(base, market) + "\n</head>", 1)
     s = s.replace("</body>", JS + "\n</body>", 1)
 
     # 3 · the router: register the route so the page knows what it is
@@ -316,8 +322,8 @@ def build(src, out, market="sg"):
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     io.open(out, "w", encoding="utf-8").write(s)
 
-    nq = sum(len(c["items"]) for c in CATEGORIES)
-    print("  %-46s %8d b | %d categories | %d questions" % (out, len(s), len(CATEGORIES), nq))
+    nq = sum(len(c["items"]) for c in cats(market))
+    print("  %-46s %8d b | %d categories | %d questions" % (out, len(s), len(cats(market)), nq))
 
 
 if __name__ == "__main__":

@@ -181,7 +181,7 @@ exports.handler = async function (event) {
     form.set('subscription_data[metadata][contribution_rate]', CONTRIBUTION_RATE);
     form.set('subscription_data[metadata][order_ref]', ref);
     form.set('subscription_data[metadata][every_weeks]', String(every));
-    form.set('custom_text[submit][message]', 'Delivered every ' + (every === 1 ? 'week' : every + ' weeks') + ' from that Wednesday\u2019s roast, charged each time until you cancel. Swap coffees, skip a delivery or cancel any time from your order page. [Subscription terms](' + origin + '/subscription-terms/)');
+    form.set('custom_text[submit][message]', 'Delivered every ' + (every === 1 ? 'week' : every + ' weeks') + ' from that Wednesday\u2019s roast, charged each time until you cancel. Swap coffees, skip a delivery or cancel any time from your order page. [Subscription FAQs](' + origin + '/faqs#grp-shop)');
   } else {
     form.set('payment_intent_data[description]', 'NoFilter order ' + ref);
     form.set('payment_intent_data[metadata][order_ref]', ref);

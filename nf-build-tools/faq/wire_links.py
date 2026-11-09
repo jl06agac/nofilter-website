@@ -79,7 +79,7 @@ def wire_site(bundle):
     n = 0
     for root, _, files in os.walk(bundle):
         for f in files:
-            if not f.endswith(".html") or f == "404.html" or "subscription-terms" in root:  # standalone (152)
+            if not f.endswith(".html") or f == "404.html":  # standalone (152)
                 continue
             path = os.path.join(root, f)
             rel = os.path.relpath(os.path.dirname(path), bundle)

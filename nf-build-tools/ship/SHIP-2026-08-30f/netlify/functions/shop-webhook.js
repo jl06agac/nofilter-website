@@ -65,7 +65,7 @@ ${d.contribution ? `<p style="margin:20px 0 0;padding-top:14px;border-top:1px so
 ${o.address && o.address.length ? `<td valign="top" style="padding-right:12px;font-size:13px;line-height:1.55;color:#4A443E"><span style="font:600 10px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#6B645C">Delivering to</span><br>${o.address.map(ESC).join('<br>')}</td>` : ''}
 ${pw ? `<td valign="top" style="font-size:13px;line-height:1.55;color:#4A443E"><span style="font:600 10px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#6B645C">Paid with</span><br>${pw}</td>` : ''}
 </tr></table>
-<p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:#6B645C">Questions? Reply to this email, quoting ${ESC(o.ref || 'your order number')}.${per ? ` <a href="${origin}/subscription-terms/" style="color:#6B645C">Subscription terms</a>.` : ''}</p>
+<p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:#6B645C">Questions? Reply to this email, quoting ${ESC(o.ref || 'your order number')}.${per ? ` <a href="${origin}/faqs#grp-shop" style="color:#6B645C">Subscription FAQs</a>.` : ''}</p>
 <p style="margin:18px 0 0;font-size:12px;color:#8A837A">NoFilter Pte. Ltd., Singapore</p>
 </td></tr></table></body></html>`;
   const text = [`Order ${o.ref} confirmed. Thanks${o.firstName ? ', ' + o.firstName : ''}.`, `Roasted ${roastAfter(when)}, dispatched shortly after.`, '',

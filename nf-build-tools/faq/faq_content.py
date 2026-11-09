@@ -257,6 +257,51 @@ CATEGORIES = [
             },
         ],
     },
+    # 9 Nov · the shop's subscription terms, moved here from the standalone
+    # /subscription-terms/ page (Alex: "why isn't this simply included in the
+    # FAQs"). Singapore only while the shop is: "markets" keeps it off the UAE
+    # and UK pages. Stripe's checkout and the order email link to #grp-shop.
+    {
+        "n": "05", "id": "shop", "cls": "The shop", "plate": "Retail beans · Singapore",
+        "title": "Beans for home",
+        "strap": "Subscriptions, roast days, delivery and changes.",
+        "markets": ["sg"],
+        "items": [
+            {
+                "id": "shop-roast-delivery",
+                "q": "When is my coffee roasted and delivered?",
+                "a": """
+<p>We roast every Wednesday. Orders and subscription charges by Monday 12:00 (Singapore time) go into that Wednesday's roast; later ones go into the following Wednesday's. Each delivery is dispatched shortly after its roast.</p>
+<p>Delivery within Singapore is SGD 4, and free when a delivery's coffee comes to SGD 50 or more. If a change to a subscription takes it over or under SGD 50, the delivery charge follows automatically.</p>
+""",
+            },
+            {
+                "id": "shop-subscription",
+                "q": "How does a coffee subscription work?",
+                "a": """
+<p>You choose your coffees, bag sizes and how often: every week, 2 weeks, 3 weeks or 4 weeks. Subscription prices are 5% below one-off prices; with a workplace code you get whichever discount is larger, not both.</p>
+<p>Your first delivery is charged when you subscribe, then each delivery is charged automatically until you cancel. Payments are handled by Stripe; we never see or store your full card details. If a payment fails, Stripe tries again and emails you, and deliveries resume once it goes through.</p>
+<p>Every delivery sends 10% of what you pay for the coffee to the conservation partners in the landscape it comes from.</p>
+""",
+            },
+            {
+                "id": "shop-changes",
+                "q": "Can I swap, skip or cancel?",
+                "a": """
+<p>Yes, whenever you like. There is no minimum term and no cancellation fee.</p>
+<p>From the link in your order email you can swap coffees, change bag size or quantity, change how often, or skip the next delivery. Card, delivery address and cancelling are under "Card, address or cancel". Or write to <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a>.</p>
+<p>Nothing is charged when you make a change. Changes made before a delivery is charged apply to that delivery; a new frequency starts after the delivery already paid for. If you cancel, the delivery already paid for still comes and nothing more is charged.</p>
+""",
+            },
+            {
+                "id": "shop-problem",
+                "q": "What if a bag arrives damaged or isn't what I ordered?",
+                "a": """
+<p>Write to <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a> within 7 days with your order number and we'll put it right.</p>
+""",
+            },
+        ],
+    },
 ]
 
 INTRO = ("NoFilter works with farmers and conservation partners around threatened "

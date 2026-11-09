@@ -147,7 +147,7 @@ test('subscriptions: the range at 5% off; one frequency; one-offs ride along; de
  assert.equal(f.get('line_items[2][price_data][unit_amount]'),'7500');assert.equal(f.get('line_items[2][price_data][recurring][interval]'),null,'one-off rides along');
  assert.equal(f.get('subscription_data[metadata][source]'),'website-shop');assert.equal(f.get('subscription_data[metadata][every_weeks]'),'2');
  assert.equal(f.get('shipping_options[0][shipping_rate_data][type]'),null);assert.equal(f.get('allow_promotion_codes'),null,'no code box on subscriptions');
- assert.match(f.get('custom_text[submit][message]'),/every 2 weeks.*until you cancel.*\[Subscription terms\]\(https:\/\/nofilter.sg\/subscription-terms\/\)/);
+ assert.match(f.get('custom_text[submit][message]'),/every 2 weeks.*until you cancel.*\[Subscription FAQs\]\(https:\/\/nofilter.sg\/faqs#grp-shop\)/);
  const one=mockStripe(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}}));
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}));
  const g=sessionCall(one);assert.equal(g.get('mode'),'payment');assert.equal(g.get('customer_creation'),'always');
