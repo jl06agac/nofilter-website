@@ -470,13 +470,28 @@ test('order emails: a retry after the customer changes the subscription carries 
  assert.equal(sub.metadata.nf_mail_customer,'sent');
 });
 
-test('order emails: nothing is sent outside Resend\'s 24-hour window',async()=>{
+test('order emails: past 23 hours the customer gets nothing more and NoFilter gets an Action needed alert',async()=>{
  const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
- process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';
- const sess={id:'cs_test_vvvvvvvvvvvvvvvv',payment_status:'paid',mode:'payment',payment_intent:'pi_3',created:1794151811,metadata:{source:'website-shop',order_ref:'NF-DDDDDD'},customer_details:{email:'pat@example.com'}};
- let mails=0;mockStripe(u=>{if(u.startsWith('https://api.resend.com')){mails++;return {body:{id:'em'}};}if(u.includes('/v1/payment_intents/pi_3'))return {body:{id:'pi_3',metadata:{nf_mail_customer:'sent'}}};return {body:{}};});
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
+ const sess={id:'cs_test_vvvvvvvvvvvvvvvv',payment_status:'paid',mode:'payment',payment_intent:'pi_3',created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
+  amount_subtotal:7500,amount_total:7500,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-DDDDDD'},customer_details:{email:'pat@example.com',name:'Pat'}};
+ let meta={nf_mail_desk:'sent'},mails=[],down=true;
+ mockStripe((u,o)=>{
+  if(u.startsWith('https://api.resend.com')){const b=JSON.parse(o.body);mails.push({b,key:o.headers['Idempotency-Key']});return down?{ok:false,status:503,body:{}}:{body:{id:'em'}};}
+  if(u.includes('/v1/payment_intents/pi_3')){if(o&&o.method==='POST'){for(const [k,v] of new URLSearchParams(o.body))meta[k.slice(9,-1)]=v;}return {body:{id:'pi_3',metadata:meta}};}
+  if(u.includes('/line_items'))return {body:{data:[{description:'Gayo Lues coffee, 1 kg',quantity:1,amount_total:7500,price:{product:{metadata:{origin:'gayo',partner:'OIC'}}}}]}};
+  if(u.includes('checkout/sessions?customer='))return {body:{data:[]}};
+  if(u.includes('invoices?'))return {body:{data:[]}};
+  if(u.includes('/v1/checkout/sessions/'))return {body:sess};
+  return {body:{}};});
  const orig=console.error;console.error=()=>{};
- try{const b=JSON.stringify({type:'checkout.session.completed',created:Math.floor(Date.now()/1000)-24*3600,data:{object:sess}});const t=Math.floor(Date.now()/1000);
-  const r=await wh.handler({httpMethod:'POST',headers:{'stripe-signature':'t='+t+',v1='+crypto.createHmac('sha256','whsec_test').update(t+'.'+b).digest('hex')},body:b});
-  assert.equal(r.statusCode,200);assert.equal(r.body,'too late to send safely');assert.equal(mails,0);}finally{console.error=orig;}
+ const fire=async()=>{const b=JSON.stringify({type:'checkout.session.completed',created:Math.floor(Date.now()/1000)-24*3600,data:{object:sess}});const t=Math.floor(Date.now()/1000);
+  return wh.handler({httpMethod:'POST',headers:{'stripe-signature':'t='+t+',v1='+crypto.createHmac('sha256','whsec_test').update(t+'.'+b).digest('hex')},body:b});};
+ try{
+  let r=await fire();assert.equal(r.statusCode,500,'alert could not be sent: Stripe keeps retrying');assert.match(r.body,/escalation failed: 503/);
+  down=false;r=await fire();assert.equal(r.body,'escalated');
+  assert.ok(mails.every(m=>m.b.to[0]==='hello@nofilter.sg'),'the customer is never emailed past the window');
+  const last=mails[mails.length-1];assert.match(last.b.subject,/^Action needed: Shop order NF-DDDDDD/);assert.match(last.b.text,/receipt could not be sent automatically/);assert.equal(last.key,'shop-late-cs_test_vvvvvvvvvvvvvvvv');
+  assert.equal(meta.nf_mail_late,'sent');const n=mails.length;assert.equal((await fire()).body,'already escalated');assert.equal(mails.length,n);
+ }finally{console.error=orig;}
 });

@@ -138,13 +138,13 @@ exports.handler = async function (event) {
   if (!anchor) return { statusCode: 500, body: 'order not readable' };
   try { sent = ((await stripeCall(anchor, SK)).metadata) || {}; } catch (e) { return { statusCode: 500, body: 'order not readable' }; }
   if (sent.nf_mail_customer === 'sent' && sent.nf_mail_desk === 'sent') return { statusCode: 200, body: 'already sent' };
-  // 174 (Codex): never send outside Resend's 24-hour idempotency window. Stripe retries the same event (same
-  // id and created time) for up to 3 days; past 23 hours a retry can't be told apart from a first send, so it
-  // sends nothing and logs instead. A missing email shows up in the log; a duplicate would reach the customer.
-  if (ev.created && Date.now() / 1000 - ev.created > 23 * 3600) {
-    console.error('shop-webhook: past the 23-hour send window, not sending for', (s.metadata || {}).order_ref, s.id, JSON.stringify(sent));
-    return { statusCode: 200, body: 'too late to send safely' };
-  }
+  // 174/177 (Codex): never send the CUSTOMER anything outside Resend's 24-hour idempotency window (Stripe
+  // retries the same event, same id and created time, for up to 3 days; past 23 hours a retry can't be told
+  // apart from a first send). Instead NoFilter gets an "Action needed" email with the order and what didn't
+  // go out, so a paid order is never left unseen. If even that can't be sent, answer 500 and Stripe keeps
+  // retrying (and emails the account about the failing endpoint). An extra internal alert does no harm.
+  const late = !!(ev.created && Date.now() / 1000 - ev.created > 23 * 3600);
+  if (late && sent.nf_mail_late === 'sent') return { statusCode: 200, body: 'already escalated' };
 
   const r = await summary.handler({ httpMethod: 'GET', queryStringParameters: { order: s.id } });
   if (r.statusCode !== 200) return { statusCode: 500, body: 'order not readable' };   // Stripe retries
@@ -156,6 +156,23 @@ exports.handler = async function (event) {
   const send = (payload, key) => fetch('https://api.resend.com/emails', { method: 'POST',
     headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify(payload) });
   const desk = process.env.ORDERS_TO || process.env.QUOTE_TO || 'hello@nofilter.sg';
+  if (late) {
+    const k = deskEmail(d, s.id, when);
+    const noReceipt = sent.nf_mail_customer !== 'sent';
+    const missing = [noReceipt ? 'the customer\'s receipt' : null, sent.nf_mail_desk !== 'sent' ? 'the order copy' : null].filter(Boolean).join(' and ');
+    const note = 'This order was paid over 23 hours ago and ' + missing + ' could not be sent automatically.'
+      + (noReceipt ? ' Please email the customer their confirmation by hand (reply to this email reaches them).' : '') + '\n\n';
+    const x = await send({ from: FROM, to: [desk], reply_to: (d.order && d.order.email) || desk, subject: 'Action needed: ' + k.subject, text: note + k.text }, 'shop-late-' + s.id);
+    if (!x.ok) {
+      let msg = ''; try { const j = await x.json(); msg = (j && (j.message || j.name)) || ''; } catch (e) {}
+      console.error('shop-webhook: escalation not sent for', (d.order || {}).ref, x.status);
+      return { statusCode: 500, body: 'escalation failed: ' + x.status + ' ' + category(x.status, msg) };
+    }
+    const f = new URLSearchParams(); f.set('metadata[nf_mail_late]', 'sent');
+    try { await stripeCall(anchor, SK, f); } catch (e) {}   // a repeat alert to NoFilter is harmless
+    console.error('shop-webhook: escalated to NoFilter (past 23 hours)', (d.order || {}).ref, s.id);
+    return { statusCode: 200, body: 'escalated' };
+  }
   const jobs = [];
   if (sent.nf_mail_customer !== 'sent' && d.order && d.order.email) {
     const m = customerEmail(d, origin, s.id, when);
