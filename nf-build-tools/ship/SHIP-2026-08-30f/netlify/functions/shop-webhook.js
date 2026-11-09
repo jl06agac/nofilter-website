@@ -19,8 +19,16 @@ const EVERY = { 1: 'every week', 2: 'every 2 weeks', 3: 'every 3 weeks', 4: 'eve
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const sgDay = (ms) => { const d = new Date(ms + 8 * 36e5); return { dow: d.getUTCDay(), date: d.getUTCDate(), month: MONTHS[d.getUTCMonth()] }; };
-// the Wednesday roast after a moment (the confirmation page's nextRoast, in Singapore time)
-function roastAfter(ms) { const d = sgDay(ms); const add = ((3 - d.dow + 7) % 7) || 7; const w = sgDay(ms + add * 864e5); return `Wednesday ${w.date} ${w.month}`; }
+// 178 · the roast an order or charge goes into: cut-off Monday 12:00 Singapore time for that Wednesday (Alex,
+// 9 Nov). +36 h turns Monday 12:00 into Wednesday 00:00, then round up to the next Wednesday midnight. Same
+// rule as roastFor() on the confirmation page.
+function roastAfter(ms) {
+  const t = ms + 8 * 36e5 + 36 * 36e5, day = new Date(t);
+  let add = (3 - day.getUTCDay() + 7) % 7;
+  if (add === 0 && t % 864e5 !== 0) add = 7;
+  const w = sgDay(t - 8 * 36e5 + add * 864e5);
+  return `Wednesday ${w.date} ${w.month}`;
+}
 const dateOf = sec => { const d = sgDay(sec * 1000); return `${d.date} ${d.month}`; };
 
 function verify(raw, header, secret, now = Date.now()) {

@@ -495,3 +495,12 @@ test('order emails: past 23 hours the customer gets nothing more and NoFilter ge
   assert.equal(meta.nf_mail_late,'sent');const n=mails.length;assert.equal((await fire()).body,'already escalated');assert.equal(mails.length,n);
  }finally{console.error=orig;}
 });
+
+test('roast cut-off: Monday 12:00 Singapore time for that Wednesday',()=>{
+ const r=require(path.join(F,'shop-webhook.js'))._test.roastAfter,sg=s=>Date.parse(s+'+08:00');
+ assert.equal(r(sg('2026-11-09T12:00:00')),'Wednesday 11 November','Monday noon: that week');
+ assert.equal(r(sg('2026-11-09T12:01:00')),'Wednesday 18 November','after noon: next week');
+ assert.equal(r(sg('2026-11-11T08:00:00')),'Wednesday 18 November','on the Wednesday itself: next week');
+ assert.equal(r(sg('2026-12-28T11:00:00')),'Wednesday 30 December');
+ assert.equal(r(sg('2026-12-29T09:00:00')),'Wednesday 6 January','across the year end');
+});

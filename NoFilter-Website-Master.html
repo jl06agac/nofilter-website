@@ -17750,12 +17750,15 @@ function openPay(){
    (?paid=1&order=cs_…, kept in the address so a refresh still shows it) or by the draft preview. */
 var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 function sgDate(unix){ var d = new Date(unix * 1000 + 8 * 36e5); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; }
-function roastOnOrAfter(unix){ var d = new Date(unix * 1000 + 8 * 36e5), add = (3 - d.getUTCDay() + 7) % 7; var w = new Date(d.getTime() + add * 864e5); return 'Wednesday ' + w.getUTCDate() + ' ' + MONTHS[w.getUTCMonth()]; }
-function nextRoast(){
-  var sg = new Date(Date.now() + 8 * 36e5), add = (3 - sg.getUTCDay() + 7) % 7 || 7;
-  var w = new Date(sg.getTime() + add * 864e5);
-  return 'Wednesday ' + w.getUTCDate() + ' ' + ['January','February','March','April','May','June','July','August','September','October','November','December'][w.getUTCMonth()];
+function roastFor(ms){   /* 178 · cut-off Monday 12:00 Singapore time for that Wednesday's roast (Alex, 9 Nov):
+     +36 h turns Monday 12:00 into Wednesday 00:00; then round up to the next Wednesday midnight */
+  var d = new Date(ms + 8 * 36e5 + 36 * 36e5), add = (3 - d.getUTCDay() + 7) % 7;
+  if(add === 0 && (d.getUTCHours() || d.getUTCMinutes() || d.getUTCSeconds() || d.getUTCMilliseconds())) add = 7;
+  var w = new Date(d.getTime() + add * 864e5);
+  return 'Wednesday ' + w.getUTCDate() + ' ' + MONTHS[w.getUTCMonth()];
 }
+function roastOnOrAfter(unix){ return roastFor(unix * 1000); }
+function nextRoast(){ return roastFor(Date.now()); }
 function paidPanel(panelOrder){
   var el = document.createElement('div');
   el.className = 'nf-ty'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Order confirmed');
