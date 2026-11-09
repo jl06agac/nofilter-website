@@ -11115,6 +11115,7 @@ addEventListener('error', function(e){
 .fbh-drawer .fbh-sub-eyebrow::before{content:"";width:28px;height:1px;background:var(--fbh-orange);display:inline-block}
 .fbh-drawer .fbh-sub-copy p{font-size:var(--fbh-t-body-lg);line-height:1.62;max-width:46ch;margin:0;
   color:var(--fbh-fg-2-dark)}
+.fbh-drawer .fbh-sub-copy p+p{margin-top:.85em}   /* 9 Nov: a second paragraph in the record (Batang Toru's payment line) */
 .fbh-rec{margin-top:clamp(20px,2.4vw,28px);display:grid;grid-template-columns:1fr 1fr;
   gap:1px;background:rgba(255,232,195,.16);border:1px solid rgba(255,232,195,.16)}
 @media(max-width:620px){.fbh-rec{grid-template-columns:1fr}}
@@ -11175,7 +11176,10 @@ addEventListener('error', function(e){
                than lost quietly. -->
           <!-- 6 Oct, Alex's copy (origins.html text, finally carried into the master). -->
           <h4>Coffee in orangutan country</h4>
-          <p>The Tapanuli orangutan is the rarest great ape on Earth, and every one of them lives in the Batang Toru forest. With <a href="https://prcfoundation.org/" target="_blank" rel="noopener">PRCF Indonesia</a>, NoFilter buys from smallholders farming the forest’s buffer in Tanjung Dolok. We’ve also equipped the village co-op with drying houses and a wet mill &mdash; helping raise coffee quality and farmer returns, without a single tree falling.</p>
+          <p>The Tapanuli orangutan is the rarest great ape on Earth, and every one of them lives in the Batang Toru forest. With <a href="https://prcfoundation.org/" target="_blank" rel="noopener">PRCF Indonesia</a>, NoFilter buys from smallholders farming the forest’s buffer in Tanjung Dolok. We’ve also funded a huller and four drying houses for the village farmer group, KUB Tanjung Dolok, helping raise coffee quality and farmer returns, without a single tree falling.</p>
+          <!-- 9 Nov, Alex confirmed: the equipment (a huller and four drying houses, not a wet mill) and that
+               the payment route can be published. -->
+          <p>Batang Toru’s share of every sale is set aside and paid twice a year to <a href="https://www.orangutancentre.org/" target="_blank" rel="noopener">OIC</a>, which shares it with PRCF Indonesia.</p>
           <div class="fbh-rec">
             <div><span>Coordinate &middot; on record</span><b>1&deg;38&prime;18&Prime;N &middot; 99&deg;15&prime;56&Prime;E</b></div>
             <div><span>Partner NGO</span><b>PRCF Indonesia, OIC</b></div>
@@ -14262,7 +14266,7 @@ h1.awx-eyebrow{font-weight:400;line-height:normal;}
           <div class="ncc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><g stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M13 11H8V37H13"/><path d="M35 11H40V37H35"/><path d="M16 19.5H31"/><path d="M27.5 16L31 19.5L27.5 23"/><path d="M16 16.5V22.5"/><path d="M32 28.5H17"/><path d="M20.5 25L17 28.5L20.5 32"/><path d="M32 25.5V31.5"/></g><g fill="currentColor"><circle cx="24" cy="24" r="1.6"/></g></svg></div>
           <h3 class="ncc-h">Three markets</h3>
           <!-- 9 Nov: who each market serves, as in the FAQ; one sentence per market tree -->
-          <p class="ncc-p"><span data-nf-market-copy="SG">Offices, hotels and caf&eacute;s across Singapore, priced in SGD before GST. AED and GBP rate cards for the UAE and the UK.</span><span data-nf-market-copy="AE" hidden>Workplaces in Dubai, and ready to serve Abu Dhabi, priced in AED before VAT. SGD and GBP rate cards for Singapore and the UK.</span><span data-nf-market-copy="UK" hidden>Now taking on clients in London and across the UK, priced in GBP. SGD and AED rate cards for Singapore and the UAE.</span></p>
+          <p class="ncc-p"><span data-nf-market-copy="SG">Offices, hotels and caf&eacute;s across Singapore, priced in SGD before GST; caf&eacute;s can buy beans alone from 5 kg. AED and GBP rate cards for the UAE and the UK.</span><span data-nf-market-copy="AE" hidden>Workplaces in Dubai, and ready to serve Abu Dhabi, priced in AED before VAT. SGD and GBP rate cards for Singapore and the UK.</span><span data-nf-market-copy="UK" hidden>Now taking on clients in London and across the UK, priced in GBP. SGD and AED rate cards for Singapore and the UAE.</span></p>
         </li>
       </ul>
 
