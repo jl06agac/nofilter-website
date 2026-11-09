@@ -537,6 +537,14 @@ p{margin:0 0 1em}
 
 /* line-masked reveal */
 .rl{display:block;overflow:hidden}
+/* 176 · shop headline: two lines; on wide screens with motion allowed, one at a time, alternating */
+.shop-flip .shop-flip-b > span{color:var(--signal,#EE4D17)}
+@media (min-width:900px) and (prefers-reduced-motion:no-preference){
+  .shop-flip{display:grid}
+  .shop-flip > .rl{grid-area:1/1;transition:opacity .5s ease,transform .5s ease}
+  .shop-flip[data-show="0"] > .shop-flip-b,.shop-flip[data-show="1"] > .rl:first-child{opacity:0;transform:translateY(12px)}
+  .shop-flip .shop-flip-b > span{transition-delay:0s}
+}
 /* one-line headline variant — the reveal still runs per .rl, they just sit side by side */
 .d2-inline{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .34em}
 .d2-inline .rl{display:inline-block;vertical-align:baseline}
@@ -11598,7 +11606,9 @@ addEventListener('error', function(e){
       <div class="beat-hd"><span class="sn">01</span><span class="st">Shop · four origins</span></div>
       <div class="shop-lead">
         <div class="shop-lead-a">
-          <h2 class="d2"><span class="rl"><span>Buy the boundary.</span></span></h2>
+          <!-- 176 · was "Buy the boundary." (Alex, 9 Nov). Desktop alternates the two lines; phones and
+               reduced motion show both, the second in orange. -->
+          <h2 class="d2 shop-flip"><span class="rl"><span>Buy the coffee.</span></span><span class="rl shop-flip-b"><span>Hold the line.</span></span></h2>
           <!-- shown only while SHOP_LIVE is false — see the pre-launch block
                at the foot of this file -->
           <div class="shop-soon"><span class="shop-soon-c">[ Retail shop &middot; pending launch ]</span>
@@ -27702,6 +27712,21 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
   document.addEventListener('click', function(e){ if(e.target.closest('#shop .cx-db-add')) window.__nfPlanArm = true; }, true);
   new MutationObserver(function(){ shop.querySelectorAll('.cx-db-buy').forEach(mount); }).observe(shop, { childList:true, subtree:true });
   shop.querySelectorAll('.cx-db-buy').forEach(mount);
+})();
+</script>
+<script>
+/* 176 · alternate the shop headline every 3.5 s on wide screens with motion allowed; paused when hidden */
+(function(){
+  var h = document.querySelector('.shop-flip'); if(!h || !window.matchMedia) return;
+  var mq = window.matchMedia('(min-width:900px) and (prefers-reduced-motion:no-preference)');
+  var t = null;
+  function run(){
+    clearInterval(t); t = null;
+    if(!mq.matches){ h.removeAttribute('data-show'); return; }
+    h.setAttribute('data-show', '0');
+    t = setInterval(function(){ if(document.hidden) return; h.setAttribute('data-show', h.getAttribute('data-show') === '0' ? '1' : '0'); }, 3500);
+  }
+  run(); if(mq.addEventListener) mq.addEventListener('change', run);
 })();
 </script>
 </body>
