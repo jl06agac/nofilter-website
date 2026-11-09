@@ -84,9 +84,11 @@ def project(s,rel):
     # Stable visible H1; preserve each heading's existing presentation classes.
     if route=='quote':
         s=s.replace('<span class="mani-slotc" id="qgSlotc"></span>','<span class="mani-slotc" id="qgSlotc">Office coffee</span>',1)
+    if route=='shop':   # 176: the shop headline rolls too; its first line is the crawlable H1
+        s=s.replace('<span class="mani-slotc" id="shopRollSlotc"></span>','<span class="mani-slotc" id="shopRollSlotc">Buy the coffee.</span>',1)
     if not re.search(r'<h1\b',s):
         a,b=route_spans(s)[route];seg=s[a:b]
-        h=next((m for m in re.finditer(r'<h2\b([^>]*)>(.*?)</h2>',seg,re.S) if len(re.sub('<[^>]+>','',m[2]).strip())>3 and (route=='quote' or 'mani-slot' not in m[2])),None)
+        h=next((m for m in re.finditer(r'<h2\b([^>]*)>(.*?)</h2>',seg,re.S) if len(re.sub('<[^>]+>','',m[2]).strip())>3 and (route in ('quote','shop') or 'mani-slot' not in m[2])),None)
         if not h:raise ValueError('No suitable H1 '+rel)
         seg=seg[:h.start()]+'<h1'+h[1]+'>'+h[2]+'</h1>'+seg[h.end():];s=s[:a]+seg+s[b:]
     if route=='shop':
