@@ -95,7 +95,9 @@ JS = """
     function spy() {
       spyPending = false;
       var on = 0;
-      secs.forEach(function (s, i) { if (s.getBoundingClientRect().top <= 180) on = i; });
+      /* the line is the anchor landing point (scroll-margin-top), so a jump from the index marks that section */
+      var line = (parseFloat(getComputedStyle(secs[0]).scrollMarginTop) || 134) + 24;
+      secs.forEach(function (s, i) { if (s.getBoundingClientRect().top <= line) on = i; });
       if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4 &&
           secs[secs.length - 1].getBoundingClientRect().top < innerHeight) on = secs.length - 1;
       links.forEach(function (l, i) {
