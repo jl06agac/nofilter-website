@@ -14235,8 +14235,9 @@ h1.awx-eyebrow{font-weight:400;line-height:normal;}
           <div class="ncc-t"><span class="ncc-id">SYS_05</span></div>
           <div class="ncc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><g stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 38H43"/><path d="M11 38V41M17 38V41M23 38V41M29 38V41M35 38V41M41 38V41"/><rect x="10" y="30" width="6" height="8"/><rect x="18" y="26" width="6" height="12"/><rect x="26" y="21" width="6" height="17"/><rect x="34" y="15" width="6" height="23"/><path d="M10 32H16M18 28H24M26 23H32M34 17H40"/></g></svg></div>
           <h3 class="ncc-h">Four sizes</h3>
-          <p class="ncc-p">Scaled to the venue, from 10 to 500 people a day. Buy the machine or
-            lease it &mdash; both are modelled in the builder.</p>
+          <!-- 9 Nov: the range named, from MACHINES and the rate cards, so the page answers "which machine?" -->
+          <p class="ncc-p">Caf&eacute;Matic 2 for teams of up to about 40, Caf&eacute;Matic 5 up to about 75,
+            Caf&eacute;Matic 6 and 8 for 100 or more. Lease with servicing included, or buy outright.</p>
         </li>
 
         <li class="ncc">
@@ -14251,16 +14252,17 @@ h1.awx-eyebrow{font-weight:400;line-height:normal;}
           <div class="ncc-t"><span class="ncc-id">SYS_07</span></div>
           <div class="ncc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><g stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="9.5"/><rect x="19" y="19" width="10" height="10"/><path d="M24 4V19M24 29V44M4 24H19M29 24H44"/></g><g fill="currentColor"><circle cx="24" cy="24" r="2.0"/></g></svg></div>
           <h3 class="ncc-h">36 months</h3>
-          <p class="ncc-p">Modelled end to end in the live quote builder, with every figure shown
-            as it is worked out. No hidden fees.</p>
+          <!-- 9 Nov: every machine has r24, r36 and buy rates; 36 is the lower of the two lease terms -->
+          <p class="ncc-p">The lower of two lease terms; 24 months and buying outright are priced too,
+            every figure worked out in the live quote builder. No hidden fees.</p>
         </li>
 
         <li class="ncc">
           <div class="ncc-t"><span class="ncc-id">SYS_08</span></div>
           <div class="ncc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><g stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M13 11H8V37H13"/><path d="M35 11H40V37H35"/><path d="M16 19.5H31"/><path d="M27.5 16L31 19.5L27.5 23"/><path d="M16 16.5V22.5"/><path d="M32 28.5H17"/><path d="M20.5 25L17 28.5L20.5 32"/><path d="M32 25.5V31.5"/></g><g fill="currentColor"><circle cx="24" cy="24" r="1.6"/></g></svg></div>
           <h3 class="ncc-h">Three markets</h3>
-          <p class="ncc-p">Priced transparently in SGD, AED or GBP, before tax, to fit the way your
-            finance and procurement teams already work.</p>
+          <!-- 9 Nov: who each market serves, as in the FAQ; one sentence per market tree -->
+          <p class="ncc-p"><span data-nf-market-copy="SG">Offices, hotels and caf&eacute;s across Singapore, priced in SGD before GST. AED and GBP rate cards for the UAE and the UK.</span><span data-nf-market-copy="AE" hidden>Workplaces in Dubai, and ready to serve Abu Dhabi, priced in AED before VAT. SGD and GBP rate cards for Singapore and the UK.</span><span data-nf-market-copy="UK" hidden>Now taking on clients in London and across the UK, priced in GBP. SGD and AED rate cards for Singapore and the UAE.</span></p>
         </li>
       </ul>
 
@@ -14271,6 +14273,11 @@ h1.awx-eyebrow{font-weight:400;line-height:normal;}
              raising it is what plants it. -->
         <span class="nw-close-n"><i class="nw-close-dot" aria-hidden="true"></i>Builder online
           &middot; takes about 60 seconds</span>
+        <!-- 9 Nov: a direct route for buyers who would rather talk than use the builder. Divs, not spans:
+             split-bundle cuts other markets' copy only from div/section blocks or tag-free spans. -->
+        <div class="nw-close-n nw-close-talk" data-nf-market-copy="SG">Prefer to talk? <a href="tel:+6587486814">+65 8748 6814</a> &middot; <a href="mailto:alex@nofilter.sg">alex@nofilter.sg</a></div>
+        <div class="nw-close-n nw-close-talk" data-nf-market-copy="AE" hidden>Prefer to talk? <a href="tel:+971569667026">+971 56 966 7026</a> &middot; <a href="mailto:alex@nofilter.ae">alex@nofilter.ae</a></div>
+        <div class="nw-close-n nw-close-talk" data-nf-market-copy="UK" hidden>Prefer to talk? <a href="mailto:alex@nofilter.sg">alex@nofilter.sg</a></div>
       </div>
     </div>
   </section>
@@ -14434,6 +14441,12 @@ h1.awx-eyebrow{font-weight:400;line-height:normal;}
 .nw-close-n{display:inline-flex;align-items:center;gap:9px;
   font-family:var(--nw-mono,monospace);font-size:9.5px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--nw-dim)}
+/* 9 Nov: the direct line; numbers and addresses stay in their own case */
+.nw-close-talk{display:block;line-height:2}   /* plain text, so it wraps between items, not inside them */
+.nw-close-talk a{color:inherit;text-transform:none;letter-spacing:.06em;text-decoration:none;white-space:nowrap;
+  border-bottom:1px solid currentColor;padding-bottom:1px}
+.nw-close-talk a:hover{color:var(--nw-acc)}
+.nw-close-talk[hidden]{display:none}   /* the split build removes the other markets' lines; the unsplit master hides them */
 /* the tool really is live and self-serve, so the dot is not decoration */
 .nw-close-dot{width:7px;height:7px;border-radius:50%;background:#22C55E;
   box-shadow:0 0 0 3px rgba(34,197,94,.18);flex:none;
