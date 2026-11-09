@@ -156,6 +156,10 @@ exports.handler = async function (event) {
   const every = (lines.find(l => l.every) || {}).every || 0;
   const form = new URLSearchParams();
   form.set('mode', every ? 'subscription' : 'payment');
+  // 184 (Codex): only methods that succeed or fail at checkout, as the shop page states (card covers Apple Pay
+  // and Google Pay). A delayed method (bank debits and the like) would leave an order unpaid past the Monday
+  // 12:00 cut-off, so the roast date and the paid-at time could not be stated at checkout.
+  (every ? ['card'] : ['card', 'paynow', 'grabpay']).forEach((m, i) => form.set('payment_method_types[' + i + ']', m));
   form.set('locale', 'en-GB');
   // Stripe's hosted checkout (156): the customer goes to checkout.stripe.com and comes back here
   form.set('success_url', origin + '/shop/?paid=1&order={CHECKOUT_SESSION_ID}');

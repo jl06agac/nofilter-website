@@ -158,7 +158,8 @@ exports.handler = async function (event) {
   if (r.statusCode !== 200) return { statusCode: 500, body: 'order not readable' };   // Stripe retries
   const body = JSON.parse(r.body);
   // 182 (Codex): the same paidAt the confirmation page uses, so the email and the page name the same roast
-  const createdSec = ((body.order || {}).paidAt) || s.created || Math.floor(Date.now() / 1000);
+  // the event itself is created when the payment succeeds, the next best thing if paidAt is missing
+  const createdSec = ((body.order || {}).paidAt) || ev.created || Math.floor(Date.now() / 1000);
   const d = frozen(body, createdSec);
   let origin = 'https://nofilter.sg';
   try { origin = new URL(s.success_url).origin; } catch (e) {}

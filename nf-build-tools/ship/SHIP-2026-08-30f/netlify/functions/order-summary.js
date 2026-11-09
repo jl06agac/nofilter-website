@@ -57,6 +57,13 @@ async function givenSoFar(customer, key) {
   return { total, orders };
 }
 
+function paidAtOf(s, ch) {
+  const inv = s.invoice && typeof s.invoice === 'object' ? s.invoice : null;
+  if (inv) return (inv.status === 'paid' && inv.status_transitions && inv.status_transitions.paid_at) || null;
+  if (s.mode === 'subscription') return null;
+  return (s.payment_status === 'paid' && ch && ch.status === 'succeeded' && ch.created) || null;
+}
+
 exports.handler = async function (event) {
   const KEY = process.env.STRIPE_SECRET_KEY;
   if (!KEY) return reply(503, { error: 'payments not configured' });
@@ -68,7 +75,7 @@ exports.handler = async function (event) {
   if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(id)) return reply(400, { error: 'bad order' });
   try {
     // Stripe expands at most 4 levels, so the subscription's items and products come in their own call
-    const s = await call('checkout/sessions/' + id + '?expand[]=payment_intent.latest_charge', KEY);
+    const s = await call('checkout/sessions/' + id + '?expand[]=payment_intent.latest_charge&expand[]=invoice', KEY);
     if (s.payment_status !== 'paid' || (s.metadata || {}).source !== 'website-shop') return reply(404, { error: 'no such order' });
     const customer = typeof s.customer === 'string' ? s.customer : (s.customer && s.customer.id) || null;
     const subId = typeof s.subscription === 'string' ? s.subscription : (s.subscription && s.subscription.id) || null;
@@ -187,10 +194,11 @@ exports.handler = async function (event) {
       delivery: shipOf(s) + delLines.reduce((n, l) => n + (l.amount_total || 0), 0), total: s.amount_total || 0,
       paidWith: card ? { brand: card.brand || '', last4: card.last4 || '', wallet: wallet || null } : ptype ? { brand: ptype } : null,
       placed: s.created || null,
-      // 182 (Codex): the moment the order counts for the Monday 12:00 cut-off, shared by the confirmation page
-      // and the order email so both name the same roast. The charge time for one-off orders; for subscriptions
-      // the subscription's creation, which Stripe does at payment; the session's creation only as a fallback.
-      paidAt: (ch && ch.created) || (sub && sub.created) || s.created || null };
+      // 182/184 (Codex): the moment the order counts for the Monday 12:00 cut-off, shared by the confirmation
+      // page and the order email so both name the same roast. Subscriptions: when the first invoice (the
+      // session's) was paid. One-off orders: the charge's time, once it has succeeded (checkout offers only
+      // methods that settle at checkout). Not paid yet: null, and no roast date is stated.
+      paidAt: paidAtOf(s, ch) };
 
     let subscription = null;
     if (sub) {

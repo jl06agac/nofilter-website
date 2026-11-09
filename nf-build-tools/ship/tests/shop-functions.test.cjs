@@ -505,16 +505,16 @@ test('roast cut-off: Monday 12:00 Singapore time for that Wednesday',()=>{
  assert.equal(r(sg('2026-12-29T09:00:00')),'Wednesday 6 January','across the year end');
 });
 
-test('roast date: page and email both follow when the order was paid, not when checkout opened (Codex 182)',async()=>{
+test('roast date: page and email both follow when the order was paid, not when checkout opened (Codex 182, 184)',async()=>{
  const wh=require(path.join(F,'shop-webhook.js')),summary=require(path.join(F,'order-summary.js')),crypto=require('crypto');
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
  const sg=x=>Math.floor(Date.parse(x+'+08:00')/1000);
  // checkout opened Monday 9 Nov 11:59, paid 12:05: past the cut-off, so the 18 November roast, not the 11th
  const opened=sg('2026-11-09T11:59:00'),paid=sg('2026-11-09T12:05:00');
- const sess={id:'cs_test_cutoff000000000',object:'checkout.session',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_9',created:opened,success_url:'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}',
+ const sess={id:'cs_test_cutoff000000000',object:'checkout.session',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_9',created:opened,invoice:{id:'in_1',status:'paid',status_transitions:{paid_at:paid}},success_url:'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}',
   amount_subtotal:2280,amount_total:2680,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-CUT000',delivery_cents:'400'},
   customer_details:{email:'pat@example.com',name:'Pat Lee'},shipping_details:{name:'Pat Lee',address:{line1:'1 Raffles Place',postal_code:'048616',country:'SG'}}};
- const sub={id:'sub_9',status:'active',created:paid,metadata:{every_weeks:'2',off_pct:'5'},items:{data:[
+ const sub={id:'sub_9',status:'active',created:opened,metadata:{every_weeks:'2',off_pct:'5'},items:{data:[
   {id:'si_1',quantity:1,current_period_end:paid+14*86400,price:{unit_amount:2280,recurring:{interval:'week',interval_count:2},product:{name:'Gayo Lues coffee, 250 g',metadata:{origin:'gayo-lues',partner:'OIC'}}}}]}};
  const mails=[];
  mockStripe((u,o)=>{
@@ -526,7 +526,7 @@ test('roast date: page and email both follow when the order was paid, not when c
   if(u.includes('/v1/checkout/sessions/'))return {body:sess};
   return {body:{}};});
  const page=JSON.parse((await summary.handler({httpMethod:'GET',queryStringParameters:{order:sess.id}})).body);
- assert.equal(page.order.paidAt,paid,'the confirmation page gets the payment time');
+ assert.equal(page.order.paidAt,paid,'the first invoice\'s paid time, not the subscription\'s creation');
  const raw=JSON.stringify({type:'checkout.session.completed',created:paid,data:{object:sess}});
  const t=Math.floor(Date.now()/1000),sig='t='+t+',v1='+crypto.createHmac('sha256','whsec_test').update(t+'.'+raw).digest('hex');
  assert.equal((await wh.handler({httpMethod:'POST',headers:{'stripe-signature':sig},body:raw})).statusCode,200);
@@ -534,4 +534,20 @@ test('roast date: page and email both follow when the order was paid, not when c
  assert.match(cust.html,/Wednesday 18 November/,'the email names the roast after the cut-off');
  assert.doesNotMatch(cust.html,/Wednesday 11 November/);
  assert.equal(wh._test.roastAfter(page.order.paidAt*1000),'Wednesday 18 November','page and email agree');
+ // unpaid states state no date: an open first invoice, or a one-off whose charge has not succeeded
+ const pa=async x=>{mockStripe(u=>u.includes('/line_items')||u.includes('?customer=')?{body:{data:[]}}:u.includes('/v1/checkout/sessions/')?{body:x}:{body:{data:[]}});
+  const r=await summary.handler({httpMethod:'GET',queryStringParameters:{order:'cs_test_x0000000000000000'}});const b=JSON.parse(r.body);return b.order?b.order.paidAt:null;};
+ const one={payment_status:'paid',mode:'payment',currency:'sgd',created:opened,metadata:{source:'website-shop',contribution_rate:'0.10'}};
+ assert.equal(await pa({...one,payment_intent:{latest_charge:{status:'succeeded',created:paid}}}),paid,'one-off: the charge time once it succeeded');
+ assert.equal(await pa({...one,payment_status:'unpaid',payment_intent:{latest_charge:{status:'pending',created:paid}}}),null,'pending: no paid time');
+});
+
+test('checkout offers only methods that settle at checkout (Codex 184)',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';let form;
+ mockStripe((u,o)=>{if(u.includes('/v1/checkout/sessions')&&o&&o.method==='POST'){form=new URLSearchParams(o.body);return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x'}};}
+  if(u.includes('/v1/prices')||u.includes('/v1/products'))return {body:{data:[{id:'price_1',lookup_key:'k',active:true}],id:'price_1'}};return {body:{data:[]}};});
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}));
+ assert.deepEqual([...form].filter(([k])=>k.startsWith('payment_method_types')).map(([,v])=>v),['card','paynow','grabpay']);
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:2}]}));
+ assert.deepEqual([...form].filter(([k])=>k.startsWith('payment_method_types')).map(([,v])=>v),['card']);
 });
