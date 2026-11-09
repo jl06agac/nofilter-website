@@ -23245,6 +23245,22 @@ window.__nfRoller = function(link, slot, slotc, WORDS, opts){
   reserve();
   window.addEventListener('resize', reserve);
   park(WORDS[0]);
+  /* 176c · OPT-IN REFIT. The shop headline shrinks into the pinned bar on scroll (#shop .shop-lead.is-stuck
+     sets .d2 to 21px), so letters measured at 90px overlapped in the bar and the slot stayed 21px wide back
+     at full size (Alex: "garbled as i scroll back up, squished together"). opts.refit names an element whose
+     size follows the type; when it changes, the word is re-measured and re-parked. Mid-roll it waits for
+     the roll to land, so a roll never writes into spans that were just replaced (the pass119 lesson). */
+  var rolling = false, dirty = false;
+  if(opts.refit && window.ResizeObserver){
+    var lastH = 0;
+    new ResizeObserver(function(entries){
+      if(stale()) return;
+      var h = Math.round(entries[0].contentRect.height);
+      if(!lastH){ lastH = h; return; }
+      if(h === lastH) return; lastH = h;
+      if(rolling) dirty = true; else park(WORDS[idx]);
+    }).observe(opts.refit);
+  }
   /* pass119 REMOVED, 27 Aug. It re-parked the venue on fonts.ready — rebuilding
      the slot's per-character spans — and when that landed mid-roll the running
      glyph animation kept writing into spans that had just been replaced. The
@@ -23294,7 +23310,8 @@ window.__nfRoller = function(link, slot, slotc, WORDS, opts){
          nobody can see; park on the destination word and pick up cleanly next cycle. */
       if(document.hidden){ park(WORDS[idx]); continue; }
       var L=buildRow(w);
-      await rollIn(L);
+      rolling = true; await rollIn(L); rolling = false;
+      if(dirty){ dirty = false; park(WORDS[idx]); }   /* the type changed size mid-roll (176c) */
       if(stale()) return;
       if(opts.onSettle) opts.onSettle();
     }
@@ -23346,7 +23363,7 @@ window.__nfRoller(
   document.getElementById('shopRollSlot'),
   document.getElementById('shopRollSlotc'),
   ['Buy the coffee.','Hold the line.'],
-  { hold: 3000 }
+  { hold: 3000, refit: document.querySelector('#shop .shop-lead') }   /* re-measure when it pins and shrinks (176c) */
 );
 </script>
 <script>
