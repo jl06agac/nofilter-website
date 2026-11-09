@@ -19,7 +19,7 @@
    paid shop orders and subscription deliveries have sent to conservation. Never returned: phone, full card
    details, billing address. */
 const { ensureCatalogue, ensurePortal, lookupKey, deliveryKey } = require('./_lib/catalogue.js');
-const { ORIGINS, SUB_OFF, BAG } = require('./checkout.js')._test;
+const { ORIGINS, SUB_OFF, BAG, GRINDS, grindOf, grindsEncode, grindsDecode } = require('./checkout.js')._test;
 const reply = (statusCode, body, extra) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...(extra || {}) }, body: JSON.stringify(body) });
 
 async function call(path, key, form) {
@@ -112,7 +112,7 @@ exports.handler = async function (event) {
         const ids = want.map(w => w && w.id);
         if (ids.length !== items.length || new Set(ids).size !== ids.length || !items.every(it => ids.includes(it.id)))
           return reply(409, { error: 'subscription changed; reload the page' });
-        let kept = 0;
+        let kept = 0; const keptLines = [];
         want.forEach((w, i) => {
           if (!items.find(it => it.id === w.id)) return;
           const qty = Math.max(0, Math.min(20, parseInt(w.qty, 10) || 0));
@@ -121,8 +121,11 @@ exports.handler = async function (event) {
           const pr = priceFor(w.name, String(w.size).toLowerCase().replace(/\s+/g, ''), curEvery);
           if (!pr) throw Object.assign(Error('bad item'), { bad: true });
           f.set(`items[${i}][price]`, pr); f.set(`items[${i}][quantity]`, String(qty)); kept++;
+          keptLines.push({ name: w.name, size: String(w.size).toLowerCase().replace(/\s+/g, ''), grind: grindOf(w.grind) });
         });
         if (!kept) return reply(400, { error: 'keep at least one coffee, or cancel instead' });
+        // 203: the grind of each coffee and size, readable in the Stripe dashboard for packing renewals
+        f.set('metadata[grinds]', grindsEncode(keptLines));
         var perDelivery = want.reduce((n, w) => { const q = Math.max(0, Math.min(20, parseInt(w.qty, 10) || 0)); return n + (q && items.find(it => it.id === w.id) ? unitOf(String(w.size).toLowerCase().replace(/\s+/g, '')) * q : 0); }, 0), nextI = want.length, newEvery = curEvery;
       } else if (body.action === 'every') {
         const n = parseInt(body.every, 10);
@@ -176,9 +179,12 @@ exports.handler = async function (event) {
       by[k].bags += l.quantity || 0; by[k].sales += l.amount_total || 0;
     }
     const byPartner = Object.values(by).map(v => ({ origin: v.origin, name: v.name, partner: v.partner, bags: v.bags, contribution: Math.round(v.sales * rate) }));
-    const items = lines.data.filter(l => !delLines.includes(l)).map(l => { const [name, size] = String(l.description || '').split(' coffee, ');
-      const r = l.price && l.price.recurring;
-      return { name, size: size || '', qty: l.quantity || 0, amount: l.amount_total || 0, every: r && r.interval === 'week' ? r.interval_count : 0 }; });
+    const gmap = grindsDecode((s.metadata || {}).grinds);
+    const items = lines.data.filter(l => !delLines.includes(l)).map(l => { const [name, rest] = String(l.description || '').split(' coffee, ');
+      const size = String(rest || '').split(' \u00b7 ')[0];   // 203: one-off names carry " · <grind>"
+      const r = l.price && l.price.recurring, pm = (l.price && l.price.product && l.price.product.metadata) || {};
+      const grind = grindOf(pm.grind || gmap[name + ' ' + size.replace(/\s+/g, '')]);
+      return { name, size: size || '', qty: l.quantity || 0, amount: l.amount_total || 0, every: r && r.interval === 'week' ? r.interval_count : 0, grind, grindLabel: GRINDS[grind] }; });
     const ship = (s.collected_information && s.collected_information.shipping_details) || s.shipping_details || null;
     const a = (ship && ship.address) || {};
     const ch = s.payment_intent && s.payment_intent.latest_charge;
@@ -202,6 +208,7 @@ exports.handler = async function (event) {
 
     let subscription = null;
     if (sub) {
+      const subGrinds = grindsDecode((sub.metadata || {}).grinds || (s.metadata || {}).grinds);
       const item = sub.items && sub.items.data && sub.items.data[0];
       const every = +((sub.metadata || {}).every_weeks) || (item && item.price && item.price.recurring && item.price.recurring.interval_count) || 0;
       const pc = sub.pause_collection && sub.pause_collection.behavior === 'void' ? sub.pause_collection : null;
@@ -211,7 +218,8 @@ exports.handler = async function (event) {
         delivery: ((sub.items && sub.items.data) || []).filter(isDelivery).reduce((n, it) => n + ((it.price || {}).unit_amount || 0), 0),
         items: ((sub.items && sub.items.data) || []).filter(it => !isDelivery(it)).map(it => { const pr = it.price || {}, prod = pr.product && typeof pr.product === 'object' ? pr.product : {};
           const [name, size] = String(prod.name || '').split(' coffee, ');
-          return { id: it.id, name: name || null, size: size || '', qty: it.quantity || 1, amount: (pr.unit_amount || 0) * (it.quantity || 1) }; }) };
+          const grind = grindOf(subGrinds[(name || '') + ' ' + String(size || '').replace(/\s+/g, '')]);
+          return { id: it.id, name: name || null, size: size || '', qty: it.quantity || 1, amount: (pr.unit_amount || 0) * (it.quantity || 1), grind, grindLabel: GRINDS[grind] }; }) };
       // the project chosen while paying carries on to every delivery (read by the NGO report)
       const choice = (s.metadata || {}).choice || '';
       if (choice && (sub.metadata || {}).choice !== choice) { const f = new URLSearchParams(); f.set('metadata[choice]', choice); call('subscriptions/' + sub.id, KEY, f).catch(() => {}); }

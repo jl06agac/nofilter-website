@@ -17246,6 +17246,10 @@ $$('.org .org-hd').forEach(function(btn){
    kept for this visit, shown in the cart, applied by Stripe if it knows it */
 var SHOP_CODE = (function(){ try { return (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,24); } catch(e){ return ''; } })();
 var cart = [];   /* in-memory only — no localStorage / sessionStorage */
+/* 203 · grind (Alex, 9 Nov). Chosen per line in the basket; whole bean by default. Keys match GRINDS in checkout.js. */
+var GRIND_OPTS = [['whole','Whole bean'],['espresso','Espresso grind'],['filter','Filter grind (V60)'],['coarse','French press grind']];
+function grindLab(g){ for(var i=0;i<GRIND_OPTS.length;i++) if(GRIND_OPTS[i][0] === g) return GRIND_OPTS[i][1]; return 'Whole bean'; }
+function grindSelect(g, cls){ return '<select class="' + cls + '" aria-label="Grind">' + GRIND_OPTS.map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === (g || 'whole') ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>'; }
 /* 152 · subscriptions: a line with every = 1-4 is delivered every that many weeks at SUB_OFF (5%) off; 0 is one-off.
    Stripe allows one frequency per subscription, so all subscription lines in the basket share it. */
 var SUB_OFF = window.__nfSubOff = 0.05, DELIVERY = 4, FREE_FROM = 50, EVERY_LAB = { 1:'every week', 2:'every 2 weeks', 3:'every 3 weeks', 4:'every 4 weeks' };
@@ -17327,7 +17331,7 @@ function addToCart(o, size){
   for(var i=0;i<cart.length;i++){
     if(cart[i].k === o.k && cart[i].size === size){ cart[i].qty++; renderCart(); openCart(true); return; }
   }
-  cart.push({ k:o.k, name:o.name, size:size, price:price, qty:1 });
+  cart.push({ k:o.k, name:o.name, size:size, price:price, qty:1, grind:'whole' });
   renderCart(); openCart(true);
 }
 /* ── the bridge the lifted picker's NFCart adapter talks to ────────────────
@@ -17353,7 +17357,7 @@ window.__nfCartSet = function(id, qty, meta){
     var ev = window.__nfPlanArm ? (window.__nfPlan.every || 0) : 0; window.__nfPlanArm = false;
     if(ev && basketEvery() && basketEvery() !== ev) setBasketEvery(ev);
     cart.push({ k:id, id:id, name:meta.name||'Coffee', size:meta.size||'1kg',
-      price: (size.indexOf('250') >= 0 ? P250 : P1KG), qty:qty, color:meta.color, every:ev });
+      price: (size.indexOf('250') >= 0 ? P250 : P1KG), qty:qty, color:meta.color, every:ev, grind:'whole' });
   }
   renderCart();
   /* deliberately NOT opening the drawer here. Adding from the shop grid is a
@@ -17575,10 +17579,12 @@ function renderCart(){
     row.innerHTML = '<img class="cimg" src="' + (oo ? oo.bag : '') + '" alt="">' + '<div><div class="cn">' + li.name + '</div><div class="cs">' + li.size.toUpperCase() +
       ' · ' + CUR() + money(unitPrice(li)) + (unitPrice(li) < li.price ? ' <s>' + money(li.price) + '</s>' : '') + '</div>' +
       '<span class="csub" role="radiogroup" aria-label="How to buy"><button type="button" data-s="0" aria-checked="' + !li.every + '">One-time</button><button type="button" data-s="1" aria-checked="' + !!li.every + '">Subscribe \u22125%</button></span>' +
+      grindSelect(li.grind, 'cgr') +
       '<div class="cq"><button type="button" data-d="-1" aria-label="One fewer">−</button><span>' + li.qty + '</span><button type="button" data-d="1" aria-label="One more">+</button></div></div>' +
       '<div class="cn">' + CUR() + money(lineTotal(li)) + '</div>' +
       '<button class="cx" aria-label="Remove">✕</button>';
     $('.cx', row).addEventListener('click', function(){ cart.splice(i,1); renderCart(); });
+    $('.cgr', row).addEventListener('change', function(){ li.grind = this.value; });   /* 203 */
     $$('.csub button', row).forEach(function(b){ b.addEventListener('click', function(){ li.every = b.getAttribute('data-s') === '1' ? (basketEvery() || window.__nfPlan.last || 2) : 0; renderCart(); }); });
     $$('.cq button', row).forEach(function(b){ b.addEventListener('click', function(){
       var d = parseInt(b.getAttribute('data-d'), 10), bags = cart.reduce(function(n, x){ return n + x.qty; }, 0);
@@ -17670,7 +17676,8 @@ function payFigures(){
 function paySummary(F){
   return cart.map(function(l, i){ var b = ORIGINS.filter(function(x){ return x.name === l.name; })[0];
       return '<div class="nf-sum-l"><img src="' + (b ? b.bag : '') + '" alt=""><span><b>' + l.name + '</b><small>' + l.size.toUpperCase() + ' \u00d7 ' + l.qty + '</small>' +
-        '<span class="csub nf-sum-s" role="radiogroup" aria-label="How to buy"><button type="button" data-i="' + i + '" data-s="0" aria-checked="' + !l.every + '">One-time</button><button type="button" data-i="' + i + '" data-s="1" aria-checked="' + !!l.every + '">Subscribe \u22125%</button></span></span>' +
+        '<span class="csub nf-sum-s" role="radiogroup" aria-label="How to buy"><button type="button" data-i="' + i + '" data-s="0" aria-checked="' + !l.every + '">One-time</button><button type="button" data-i="' + i + '" data-s="1" aria-checked="' + !!l.every + '">Subscribe \u22125%</button></span>' +
+        grindSelect(l.grind, 'nf-sum-g" data-i="' + i) + '</span>' +   /* 203 */
         '<span>' + (unitPrice(l) < l.price ? '<s>' + money(l.price * l.qty) + '</s> ' : '') + CUR() + money(lineTotal(l)) + '</span></div>'; }).join('') +
     (F.be ? '<div class="nf-sum-f"><span>How often</span><div role="radiogroup" aria-label="How often">' + [1,2,3,4].map(function(n){ return '<button type="button" data-f="' + n + '" aria-checked="' + (n === F.be) + '">' + { 1:'Weekly', 2:'2 weeks', 3:'3 weeks', 4:'4 weeks' }[n] + '</button>'; }).join('') + '</div></div>'
       : '<button type="button" class="nf-sum-up" data-all="1">Subscribe to all and save 5% \u00b7 ' + CUR() + money(F.sub * SUB_OFF) + ' off each delivery</button>') +
@@ -17733,6 +17740,10 @@ function openPay(){
     el.querySelector('.nf-go-bar b').textContent = CUR() + money(F.sub + F.del);
     renderCart();
   }
+  /* 203 · grind changed in the checkout summary: kept on the line, nothing to recalculate */
+  el.querySelector('.nf-sum').addEventListener('change', function(e){
+    var g = e.target.closest('.nf-sum-g'); if(g){ var l = cart[+g.getAttribute('data-i')]; if(l) l.grind = g.value; renderCart(); }
+  });
   el.querySelector('.nf-sum').addEventListener('click', function(e){
     var s1 = e.target.closest('[data-s]'), f1 = e.target.closest('[data-f]'), all = e.target.closest('[data-all]');
     if(s1){ var l = cart[+s1.getAttribute('data-i')]; l.every = s1.getAttribute('data-s') === '1' ? (basketEvery() || window.__nfPlan.last || 2) : 0; }
@@ -17744,7 +17755,7 @@ function openPay(){
   go.addEventListener('click', function(){
     go.disabled = true; go.textContent = 'Opening secure payment…'; err.hidden = true;
     fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty, every:l.every || 0 }; }), code: SHOP_CODE, choice: choice,
+      body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty, every:l.every || 0, grind:l.grind || 'whole' }; }), code: SHOP_CODE, choice: choice,
         market: (function(){ var b = document.querySelector('#priceBoard [data-pbm][aria-pressed="true"]'); return b ? b.getAttribute('data-pbm') : 'SG'; })() }) })   /* 194: the server takes orders only for an open market */
       .then(function(r){ return r.json().then(function(d){ return { ok:r.ok, status:r.status, d:d }; }); })
       .then(function(x){
@@ -17755,7 +17766,7 @@ function openPay(){
             if(!parts[l.name]) parts[l.name] = { name:l.name, partner: oo ? oo.ngo : '', contribution:0 }; parts[l.name].contribution += Math.round(lineTotal(l) * 10); });
           var list = Object.keys(parts).map(function(k){ return parts[k]; });
           var d2 = { currency: MKT.cur, contribution: list.reduce(function(n, pp){ return n + pp.contribution; }, 0), byPartner: list, choice: choice,
-            order: { ref: 'NF-PREVIEW', items: cart.map(function(l){ return { name: l.name, size: /1kg/i.test(l.size) ? '1 kg' : '250 g', qty: l.qty, every: l.every || 0, amount: Math.round(lineTotal(l) * 100) }; }),
+            order: { ref: 'NF-PREVIEW', items: cart.map(function(l){ return { name: l.name, size: /1kg/i.test(l.size) ? '1 kg' : '250 g', grindLabel: grindLab(l.grind), qty: l.qty, every: l.every || 0, amount: Math.round(lineTotal(l) * 100) }; }),
               subtotal: Math.round(sub * 100), discount: 0, delivery: Math.round(del * 100), total: Math.round((sub + del) * 100), paidAt: Math.floor(Date.now() / 1000) } };
           close(); cart.length = 0; renderCart(); openCart(false); paidPanel().fill(d2); return;
         }
@@ -17833,6 +17844,7 @@ function paidPanel(panelOrder){
         var bg = ORIGINS.filter(function(o){ return o.name === it.name; })[0];
         return '<div class="nf-ty-row" data-id="' + esc(it.id) + '"><img src="' + (bg ? bg.bag : '') + '" alt=""><select class="c" aria-label="Coffee">' + COFFEE_NAMES.map(function(n){ return '<option' + (n === it.name ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' +
           '<select class="z" aria-label="Bag size"><option value="250g"' + (sz === '250g' ? ' selected' : '') + '>250 g</option><option value="1kg"' + (sz === '1kg' ? ' selected' : '') + '>1 kg</option></select>' +
+          grindSelect(it.grind, 'g') +   /* 203 */
           '<span class="q"><button type="button" data-d="-1" aria-label="One fewer">\u2212</button><b>' + it.qty + '</b><button type="button" data-d="1" aria-label="One more">+</button></span></div>'; }).join('') + '</div>' +
       '<div class="nf-ty-acts"><button type="button" class="nf-ty-b pri" data-a="swap" disabled>Save coffee changes</button></div>' +
       '<div class="nf-ty-freq"><span class="k">How often</span><div class="ch" role="radiogroup" aria-label="How often">' + [1,2,3,4].map(function(n){ return '<button type="button" data-f="' + n + '" aria-checked="' + (n === sb.every) + '">' + { 1:'Weekly', 2:'2 weeks', 3:'3 weeks', 4:'4 weeks' }[n] + '</button>'; }).join('') + '</div>' +
@@ -17853,7 +17865,7 @@ function paidPanel(panelOrder){
     x.querySelectorAll('button[data-a]').forEach(function(b){ b.addEventListener('click', function(){
       var a = b.getAttribute('data-a'), body = { action: a };
       if(a === 'swap') body.items = Array.prototype.map.call(x.querySelectorAll('.nf-ty-row'), function(r){
-        return { id: r.getAttribute('data-id'), name: r.querySelector('.c').value, size: r.querySelector('.z').value, qty: parseInt(r.querySelector('.q b').textContent, 10) || 0 }; });
+        return { id: r.getAttribute('data-id'), name: r.querySelector('.c').value, size: r.querySelector('.z').value, grind: r.querySelector('.g').value, qty: parseInt(r.querySelector('.q b').textContent, 10) || 0 }; });
       if(a === 'every') body.every = pickF;
       x.querySelectorAll('button').forEach(function(z){ z.disabled = true; }); b.textContent = 'Saving\u2026';
       subPost(body);
@@ -17873,7 +17885,7 @@ function paidPanel(panelOrder){
     if(o.items && o.items.length){
       el.querySelector('.nf-ty-items').innerHTML = o.items.map(function(it){
         var b = ORIGINS.filter(function(x){ return x.name === it.name; })[0];
-        return '<div class="nf-ty-it">' + (b ? '<img src="' + b.bag + '" alt="">' : '<i></i>') + '<span><b>' + esc(it.name) + '</b><small>' + esc(it.size) + ' \u00d7 ' + it.qty + (it.every ? ' \u00b7 ' + EVERY_LAB[it.every] : '') + '</small></span><span>' + m(it.amount) + '</span></div>'; }).join('');
+        return '<div class="nf-ty-it">' + (b ? '<img src="' + b.bag + '" alt="">' : '<i></i>') + '<span><b>' + esc(it.name) + '</b><small>' + esc(it.size) + (it.grindLabel ? ' \u00b7 ' + esc(it.grindLabel) : '') + ' \u00d7 ' + it.qty + (it.every ? ' \u00b7 ' + EVERY_LAB[it.every] : '') + '</small></span><span>' + m(it.amount) + '</span></div>'; }).join('');
       var rows = [];
       if(o.discount) rows.push(['Discount' + (d.code ? ' (' + esc(d.code) + ')' : ''), '\u2212' + m(o.discount)]);
       rows.push(['Delivery', o.delivery ? m(o.delivery) : 'Free']);
@@ -27348,6 +27360,9 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty-row .q{display:inline-flex;align-items:center;height:40px;border:1px solid rgba(26,24,21,.2);border-radius:999px;overflow:hidden;background:#fff}
 .nf-ty-row .q button{width:34px;height:100%;border:0;background:none;font-size:16px;cursor:pointer;color:#1A1815}
 .nf-ty-row .q b{min-width:22px;text-align:center;font-size:14px}
+.nf-ty-row .z{grid-column:3/5;grid-row:1}
+.nf-ty-row .q{grid-column:4;grid-row:2;justify-self:end}
+.nf-ty-row select.g{grid-column:2/4;grid-row:2;width:100%;min-width:0;height:36px;font-size:13px}   /* 203 · grind, on its own line under coffee and size */
 .nf-ty-freq{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0;padding-top:16px;border-top:1px solid rgba(26,24,21,.08);font-size:14px}
 .nf-ty-freq .k{flex-basis:100%;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,24,21,.55)}
 .nf-ty-freq .ch{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1 1 320px}
@@ -27385,6 +27400,9 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .cart .csub button,.nf-pay .csub button{height:24px;padding:0 9px;border:0;border-radius:999px;background:transparent;font:600 11px var(--body,sans-serif);color:rgba(26,24,21,.6);cursor:pointer;white-space:nowrap}
 .cart .csub [aria-checked="true"],.nf-pay .csub [aria-checked="true"]{background:#fff;color:#1A1815;box-shadow:0 1px 2px rgba(26,24,21,.12)}
 .cart .csub [data-s="1"][aria-checked="true"],.nf-pay .csub [data-s="1"][aria-checked="true"]{background:#1F6F5C;color:#fff}
+/* 203 · grind: a quiet select under the one-time / subscribe pill, same height and type */
+.cart .cgr,.nf-pay .nf-sum-g{display:block;width:100%;max-width:240px;min-width:0;height:28px;margin:6px 0 0;padding:0 26px 0 10px;border:1px solid rgba(26,24,21,.16);border-radius:999px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231A1815' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 10px center;-webkit-appearance:none;appearance:none;font:600 11px var(--body,sans-serif);color:#1A1815;cursor:pointer;text-overflow:ellipsis}
+.cart .cgr:focus-visible,.nf-pay .nf-sum-g:focus-visible{outline:2px solid #1A1815;outline-offset:2px}
 .cart .cs s{opacity:.5}
 .cart .ci > .cn{white-space:nowrap}
 .cart-plan{margin:0;padding:12px 14px;border-radius:14px;background:#FBFAF8;border:1px solid rgba(26,24,21,.1);font:13.5px var(--body,sans-serif);color:#1A1815}

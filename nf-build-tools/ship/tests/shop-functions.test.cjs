@@ -25,7 +25,7 @@ test('only the four coffees in 250 g or 1 kg; quantities merged; 20 bags an orde
  assert.equal(c([{name:'Free coffee',size:'1kg',qty:1}]),null);
  assert.equal(c([{name:'Gayo Lues',size:'5kg',qty:1}]),null);
  assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:0}]),null);
- assert.deepEqual(c([{name:'Gayo Lues',size:'1 KG',qty:12},{name:'Gayo Lues',size:'1kg',qty:8}]),[{name:'Gayo Lues',size:'1kg',qty:20,every:0}]);
+ assert.deepEqual(c([{name:'Gayo Lues',size:'1 KG',qty:12},{name:'Gayo Lues',size:'1kg',qty:8}]),[{name:'Gayo Lues',size:'1kg',qty:20,every:0,grind:'whole'}]);
  assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:15},{name:'Gayo Lues',size:'1kg',qty:9}]),null,'merged past 20');
  assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:20},{name:'Batang Toru',size:'250g',qty:1}]),null,'20 across the whole order, not per line');
  assert.equal(c([{name:'Gayo Lues',size:'1kg',qty:1,every:5}]),null,'every 1-4 weeks only');
@@ -96,7 +96,7 @@ test('order summary: only paid shop orders; order details for the confirmation p
  assert.equal(r.bags,3);assert.equal(r.contribution,1280);assert.deepEqual(r.byPartner.map(x=>[x.name,x.partner,x.contribution]),[['Batang Gadis','SRI',800],['Gayo Lues','OIC',480]]);
  assert.equal(r.order.ref,'NF-7K2Q9M');assert.equal(r.order.email,'a@b.c');assert.equal(r.order.firstName,'Alex');
  assert.deepEqual(r.order.address,['Alex Clark','1 Raffles Place','#20-01','Singapore 048616']);
- assert.deepEqual(r.order.items[0],{name:'Batang Gadis',size:'1 kg',qty:1,amount:8000,every:0});
+ assert.deepEqual(r.order.items[0],{name:'Batang Gadis',size:'1 kg',qty:1,amount:8000,every:0,grind:'whole',grindLabel:'Whole bean'});
  assert.equal(r.order.total,11520);assert.equal(r.order.discount,1280);assert.deepEqual(r.order.paidWith,{brand:'visa',last4:'4242',wallet:'apple_pay'});
  const out=JSON.stringify(r);for(const x of ['+6590000000','BILLING','fp_secret','2030'])assert(!out.includes(x),'never returned: '+x);
  mockStripe(()=>({body:{payment_status:'unpaid',metadata:{source:'website-shop'}}}));
@@ -588,4 +588,24 @@ test('the return address is our own site, never the caller\'s Origin; only the o
  assert.equal((await checkout.handler(ev({...cart,market:'UK'}))).statusCode,403,'UK shop closed');
  assert.equal((await checkout.handler(ev({...cart,market:''}))).statusCode,403,'no market, no order');
  assert.equal(forms.length,n,'nothing reached Stripe');
+});
+
+test('grind: whole bean by default, three grinds at the same price, carried to Stripe and back (203)',async()=>{
+ const t=checkout._test;
+ assert.equal(t.grindOf(undefined),'whole');assert.equal(t.grindOf('nonsense'),'whole');assert.equal(t.grindOf('espresso'),'espresso');
+ const c=t.cleanLines([{name:'Gayo Lues',size:'250g',qty:1},{name:'Gayo Lues',size:'250g',qty:1,grind:'espresso'},{name:'Gayo Lues',size:'250g',qty:2,grind:'espresso'}]);
+ assert.equal(c.length,2,'different grinds stay separate lines; same grind merges');
+ assert.equal(c.find(l=>l.grind==='espresso').qty,3);
+ const enc=t.grindsEncode(c);assert.deepEqual(t.grindsDecode(enc)['Gayo Lues 250g'],'espresso');
+ assert.equal(t.cleanLines([{name:'Gayo Lues',size:'250g',qty:1,every:2},{name:'Gayo Lues',size:'250g',qty:1,every:2,grind:'filter'}]),null,'a subscription cannot hold one coffee and size twice');
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';delete process.env.PRICE_BAG_1KG;delete process.env.PRICE_BAG_250G;
+ const forms=[];mockStripe((u,o)=>{if(u.endsWith('/v1/checkout/sessions')&&o&&o.method==='POST'){forms.push(new URLSearchParams(o.body));return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x',client_secret:'x'}};}return {body:{data:[]}};});
+ const r=await checkout.handler(ev({lines:[{name:'Batang Toru',size:'1kg',qty:1,grind:'coarse'},{name:'Gayo Lues',size:'250g',qty:1}]}));
+ assert.equal(r.statusCode,200);const f=forms.at(-1);const names=[...f.entries()].filter(([k])=>k.endsWith('[product_data][name]')).map(([,v])=>v);
+ assert.ok(names.some(n=>/Batang Toru.*1 ?kg.*French press/i.test(n)),names.join(' | '));assert.ok(names.some(n=>/Gayo Lues.*250 ?g.*Whole bean/i.test(n)),names.join(' | '));
+ assert.match(f.get('metadata[grinds]'),/Batang Toru 1kg=coarse/);
+ const amounts=[...f.entries()].filter(([k])=>k.endsWith('[unit_amount]')).map(([,v])=>v);
+ const plain=[];mockStripe((u,o)=>{if(u.endsWith('/v1/checkout/sessions')&&o&&o.method==='POST'){plain.push(new URLSearchParams(o.body));return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x',client_secret:'x'}};}return {body:{data:[]}};});
+ await checkout.handler(ev({lines:[{name:'Batang Toru',size:'1kg',qty:1},{name:'Gayo Lues',size:'250g',qty:1}]}));
+ assert.deepEqual(amounts,[...plain[0].entries()].filter(([k])=>k.endsWith('[unit_amount]')).map(([,v])=>v),'ground costs the same as whole bean');
 });

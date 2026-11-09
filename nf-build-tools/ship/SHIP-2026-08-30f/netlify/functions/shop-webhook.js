@@ -45,7 +45,7 @@ function customerEmail(d, origin, sessionId, when) {
   const manage = sb && sb.every ? `${origin}/shop/?paid=1&order=${encodeURIComponent(sessionId)}&manage=page` : '';
   const per = sb && sb.every ? (sb.items || []).reduce((n, it) => n + (it.amount || 0), 0) + (sb.delivery || 0) : 0;
   const row = (l, r, bold) => `<tr><td style="padding:4px 0;font-size:14px;color:${bold ? '#1A1815' : '#6B645C'};${bold ? 'font-weight:700;' : ''}">${l}</td><td align="right" style="padding:4px 0;font-size:14px;color:#1A1815;${bold ? 'font-weight:700;' : ''}white-space:nowrap">${r}</td></tr>`;
-  const items = (o.items || []).map(it => `<tr><td style="padding:8px 0;border-bottom:1px solid #E7E1D6;font-size:14px;color:#1A1815"><b>${ESC(it.name)}</b><br><span style="color:#6B645C;font-size:13px">${ESC(it.size)} &times; ${it.qty}${it.every ? ' &middot; ' + EVERY[it.every] : ''}</span></td><td align="right" style="padding:8px 0;border-bottom:1px solid #E7E1D6;font-size:14px;white-space:nowrap">${money(it.amount)}</td></tr>`).join('');
+  const items = (o.items || []).map(it => `<tr><td style="padding:8px 0;border-bottom:1px solid #E7E1D6;font-size:14px;color:#1A1815"><b>${ESC(it.name)}</b><br><span style="color:#6B645C;font-size:13px">${ESC(it.size)}${it.grindLabel ? ' &middot; ' + ESC(it.grindLabel) : ''} &times; ${it.qty}${it.every ? ' &middot; ' + EVERY[it.every] : ''}</span></td><td align="right" style="padding:8px 0;border-bottom:1px solid #E7E1D6;font-size:14px;white-space:nowrap">${money(it.amount)}</td></tr>`).join('');
   const sums = (o.discount ? row('Discount' + (d.code ? ' (' + ESC(d.code) + ')' : ''), '&minus;' + money(o.discount)) : '') + row('Delivery', o.delivery ? money(o.delivery) : 'Free') + row('Total paid', money(o.total), true);
   const partners = (d.byPartner || []).map(p => (p.partner ? ESC(p.partner) + ' in ' : '') + ESC(p.name)).join('; ');
   const pw = o.paidWith ? ({ apple_pay: 'Apple Pay, ', google_pay: 'Google Pay, ' }[o.paidWith.wallet] || '') + ESC(String(o.paidWith.brand || '').replace(/^./, c => c.toUpperCase())) + (o.paidWith.last4 ? ' &bull;&bull;&bull;&bull; ' + ESC(o.paidWith.last4) : '') : '';
@@ -69,7 +69,7 @@ ${pw ? `<td valign="top" style="font-size:13px;line-height:1.55;color:#4A443E"><
 <p style="margin:18px 0 0;font-size:12px;color:#8A837A">NoFilter Pte. Ltd., Singapore</p>
 </td></tr></table></body></html>`;
   const text = [`Order ${o.ref} confirmed. Thanks${o.firstName ? ', ' + o.firstName : ''}.`, `Roasted ${roastAfter(when)}, dispatched shortly after.`, '',
-    ...(o.items || []).map(it => `${it.name}, ${it.size} x ${it.qty}${it.every ? ', ' + EVERY[it.every] : ''}: ${money(it.amount)}`),
+    ...(o.items || []).map(it => `${it.name}, ${it.size}${it.grindLabel ? ', ' + it.grindLabel.toLowerCase() : ''} x ${it.qty}${it.every ? ', ' + EVERY[it.every] : ''}: ${money(it.amount)}`),
     o.discount ? `Discount: -${money(o.discount)}` : null, `Delivery: ${o.delivery ? money(o.delivery) : 'Free'}`, `Total paid: ${money(o.total)}`,
     per ? `\nThen ${money(per)} ${EVERY[sb.every]}. Manage your subscription: ${manage}` : null,
     d.contribution ? `\n${money(d.contribution)} to conservation${partners ? ', through ' + (d.byPartner || []).map(p => (p.partner ? p.partner + ' in ' : '') + p.name).join('; ') : ''}.` : null,
@@ -80,7 +80,7 @@ ${pw ? `<td valign="top" style="font-size:13px;line-height:1.55;color:#4A443E"><
 function deskEmail(d, sessionId, when) {
   const o = d.order || {}, sb = d.subscription;
   const lines = [`New shop order ${o.ref}${sb && sb.every ? ' (subscription, ' + EVERY[sb.every] + ')' : ''}`, `Roast: ${when ? roastAfter(when) : 'payment time not confirmed, check the order in Stripe'}`, '',
-    ...(o.items || []).map(it => `${it.qty} x ${it.name}, ${it.size}${it.every ? ' (' + EVERY[it.every] + ')' : ''}`), '',
+    ...(o.items || []).map(it => `${it.qty} x ${it.name}, ${it.size}, ${String(it.grindLabel || 'Whole bean').toUpperCase()}${it.every ? ' (' + EVERY[it.every] + ')' : ''}`), '',   // 203: the grind always stated, for packing
     `Total paid: ${money(o.total)} (delivery ${o.delivery ? money(o.delivery) : 'free'}${o.discount ? ', discount ' + money(o.discount) + (d.code ? ' ' + d.code : '') : ''})`,
     d.contribution ? `To conservation: ${money(d.contribution)} (${(d.byPartner || []).map(p => p.partner + ' ' + money(p.contribution)).join(', ')})` : null, '',
     'Deliver to:', ...(o.address || []), '', `Customer: ${o.firstName || ''} <${o.email || ''}>`, `Stripe: ${sessionId}`].filter(x => x !== null);

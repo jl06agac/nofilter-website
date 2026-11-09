@@ -58,6 +58,15 @@ const BAG = { '250g': 2400, '1kg': 7500 };
 // For a subscription the test is each delivery's coffee; it is never part of the conservation share.
 // One line per coffee, size and plan; quantities merged. At most MAX_BAGS bags in the whole order.
 const MAX_BAGS = 20;
+// 203 · grind (Alex, 9 Nov: "ground, wholebean and then a spectrum"). Compound grinds to order on roast day; same
+// price. Whole bean is the default. The label is what the customer, Stripe's page, the emails and the desk see.
+const GRINDS = { whole: 'Whole bean', espresso: 'Espresso grind', filter: 'Filter grind (V60)', coarse: 'French press grind' };
+const grindOf = g => (Object.prototype.hasOwnProperty.call(GRINDS, String(g || '')) ? String(g) : 'whole');
+// The grinds of an order or subscription, readable in the Stripe dashboard and parsed back by order-summary:
+// "Batang Toru 250g=espresso; Gayo Lues 1kg=whole". One grind per coffee and size (a subscription holds each
+// coffee and size once).
+const grindsEncode = ls => ls.map(l => `${l.name} ${l.size}=${grindOf(l.grind)}`).join('; ').slice(0, 500);
+const grindsDecode = str => { const m = {}; String(str || '').split(';').forEach(e => { const i = e.lastIndexOf('='); if (i > 0) m[e.slice(0, i).trim()] = grindOf(e.slice(i + 1).trim()); }); return m; };
 function cleanLines(lines) {
   if (!Array.isArray(lines) || !lines.length || lines.length > 20) return null;
   const merged = new Map();
@@ -66,13 +75,17 @@ function cleanLines(lines) {
     const size = String(l && l.size || '').toLowerCase().replace(/\s+/g, '');
     const qty = parseInt(l && l.qty, 10);
     const every = parseInt(l && l.every, 10) || 0;
+    const grind = grindOf(l && l.grind);
     if (!name || !['250g', '1kg'].includes(size) || !Number.isInteger(qty) || qty < 1 || every < 0 || every > 4) return null;
-    const k = name + '|' + size + '|' + every;
+    const k = name + '|' + size + '|' + every + '|' + grind;
     merged.set(k, (merged.get(k) || 0) + qty);
   }
   let total = 0; for (const q of merged.values()) total += q;
   if (total > MAX_BAGS) return null;
-  const out = [...merged].map(([k, qty]) => { const [name, size, every] = k.split('|'); return { name, size, qty, every: +every }; });
+  const out = [...merged].map(([k, qty]) => { const [name, size, every, grind] = k.split('|'); return { name, size, qty, every: +every, grind }; });
+  // a coffee and size appears once in a subscription, so it carries one grind
+  const subKeys = out.filter(l => +l.every).map(l => l.name + '|' + l.size);
+  if (new Set(subKeys).size !== subKeys.length) return null;
   const first = (out.find(l => l.every) || {}).every || 0;
   return out.map(l => (l.every ? { ...l, every: first } : l));
 }
@@ -189,13 +202,17 @@ exports.handler = async function (event) {
   const ref = orderRef();
   form.set('metadata[source]', 'website-shop');
   form.set('metadata[order_ref]', ref);
+  form.set('metadata[grinds]', grindsEncode(lines));
   if (every) {
     form.set('subscription_data[description]', 'NoFilter coffee every ' + (every === 1 ? 'week' : every + ' weeks') + ' (' + ref + ')');
     form.set('subscription_data[metadata][source]', 'website-shop');
     form.set('subscription_data[metadata][contribution_rate]', CONTRIBUTION_RATE);
     form.set('subscription_data[metadata][order_ref]', ref);
     form.set('subscription_data[metadata][every_weeks]', String(every));
-    form.set('custom_text[submit][message]', 'Delivered every ' + (every === 1 ? 'week' : every + ' weeks') + ' from that Wednesday\u2019s roast, charged each time until you cancel. Swap coffees, skip a delivery or cancel any time from your order page. [Subscription FAQs](' + origin + '/faqs#grp-shop)');
+    form.set('subscription_data[metadata][grinds]', grindsEncode(lines.filter(l => l.every)));
+    form.set('custom_text[submit][message]', 'Delivered every ' + (every === 1 ? 'week' : every + ' weeks') + ' from that Wednesday\u2019s roast, charged each time until you cancel. Swap coffees, skip a delivery or cancel any time from your order page. [Subscription FAQs](' + origin + '/faqs#grp-shop)' +
+      // 203: subscription lines use catalogue prices, whose names can't carry the grind, so it is stated here
+      ' Grind: ' + lines.filter(l => l.every).map(l => `${l.name} ${l.size === '250g' ? '250 g' : '1 kg'}, ${GRINDS[l.grind].toLowerCase()}`).join('; ') + '.');
   } else {
     form.set('payment_intent_data[description]', 'NoFilter order ' + ref);
     form.set('payment_intent_data[metadata][order_ref]', ref);
@@ -224,7 +241,8 @@ exports.handler = async function (event) {
     form.set(`line_items[${i}][price_data][currency]`, 'sgd');
     form.set(`line_items[${i}][price_data][unit_amount]`, String(unit(l)));
     if (l.every) { form.set(`line_items[${i}][price_data][recurring][interval]`, 'week'); form.set(`line_items[${i}][price_data][recurring][interval_count]`, String(l.every)); }
-    form.set(`line_items[${i}][price_data][product_data][name]`, `${l.name} coffee, ${l.size === '250g' ? '250 g' : '1 kg'}`);
+    form.set(`line_items[${i}][price_data][product_data][name]`, `${l.name} coffee, ${l.size === '250g' ? '250 g' : '1 kg'} \u00b7 ${GRINDS[l.grind]}`);
+    form.set(`line_items[${i}][price_data][product_data][metadata][grind]`, l.grind);
     form.set(`line_items[${i}][price_data][product_data][metadata][origin]`, ORIGINS[l.name].origin);
     form.set(`line_items[${i}][price_data][product_data][metadata][partner]`, ORIGINS[l.name].partner);
     form.set(`line_items[${i}][price_data][product_data][images][0]`, BAG_IMG + BAGS[l.name]);
@@ -248,4 +266,4 @@ exports.handler = async function (event) {
   return reply(200, { url: data.url, session: data.id, code: applied ? code : null });
 };
 
-exports._test = { cleanLines, subscriptionCodeOk, COFFEES, ORIGINS, CHOICES, SUB_OFF, MAX_BAGS, BAG };
+exports._test = { cleanLines, subscriptionCodeOk, COFFEES, ORIGINS, CHOICES, SUB_OFF, MAX_BAGS, BAG, GRINDS, grindOf, grindsEncode, grindsDecode };
