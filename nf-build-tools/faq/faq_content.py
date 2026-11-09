@@ -28,10 +28,10 @@ ORIGINS_ROW = [
     ("Arakan Mountains", "Magway, Myanmar", "/origins/arakan-mountains"),
 ]
 
-# The two external citations. UNVERIFIED: this session has no network access,
-# so these are written from knowledge and must be opened and confirmed before
-# the page is published.
-SRC_RA = "https://www.rainforest-alliance.org/resource-item/2020-sustainable-agriculture-standard/"
+# The two external citations, both opened and checked on 9 Nov 2026. The old
+# Rainforest Alliance address (/resource-item/2020-sustainable-agriculture-
+# standard/) no longer resolves; this is the standard's current page.
+SRC_RA = "https://www.rainforest-alliance.org/resource/certification-documents/certification-standard"
 SRC_FT = "https://www.fairtrade.net/standard/minimum-price-info"
 
 CATEGORIES = [

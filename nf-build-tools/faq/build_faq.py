@@ -159,7 +159,7 @@ def section_html(market="sg"):
     a('<div class="faq-hero"><div class="faq-wrap faq-hero-grid">')
     a('<div class="faq-hero-copy">')
     a('<p class="faq-kicker">%s</p>' % html.escape(KICKER))
-    a('<h1 class="faq-h1"><span>%s</span><span class="hl-o">%s</span></h1>'
+    a('<h1 class="faq-h1"><span>%s</span> <span class="hl-o">%s</span></h1>'
       % (html.escape(H1_A), html.escape(H1_B)))
     a('<p class="faq-intro">%s</p>' % html.escape(INTRO))
     a('<p class="faq-techline">%s</p>' % TECHLINE)

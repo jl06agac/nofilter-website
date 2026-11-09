@@ -176,13 +176,6 @@
 # Inert until saucybean.co is added as a domain alias. Both schemes and both
 # www forms are covered because Force HTTPS is a per-domain toggle.
 # Function source must never be served as a static file from the publish tree.
-# 9 Nov · the subscription terms moved into the FAQ (Beans for home)
-[[redirects]]
-  from = "/subscription-terms/*"
-  to = "/faqs#grp-shop"
-  status = 301
-  force = true
-
 [[redirects]]
   from = "/netlify/*"
   to = "/404.html"
@@ -403,6 +396,28 @@
   force = true
 
 # ── end of the saucybean block ───────────────────────────────────────────────
+
+# 9 Nov · www.nofilter.ae served every page itself (200) where www.nofilter.sg
+# already redirects. Canonicals point at the bare domain, but a 301 is the clean
+# signal and keeps one host per market. Before the UAE path rules, so a www URL
+# goes straight to the bare domain and is then served from there.
+[[redirects]]
+  from = "https://www.nofilter.ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+[[redirects]]
+  from = "http://www.nofilter.ae/*"
+  to = "https://nofilter.ae/:splat"
+  status = 301
+  force = true
+
+# 9 Nov · the subscription terms moved into the FAQ (Beans for home)
+[[redirects]]
+  from = "/subscription-terms/*"
+  to = "/faqs#grp-shop"
+  status = 301
+  force = true
 
 # ── 29 Aug (pass220, extended pass225) · NAMED PATHS, NOT A WILDCARD ─────────
 # pass218 wrote this as https://nofilter.ae/* -> /ae/:splat, and /* took

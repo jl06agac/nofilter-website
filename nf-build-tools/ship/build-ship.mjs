@@ -423,7 +423,7 @@ if (existsSync(llms)) {
   // has had its lastmod written by this script for weeks; this is the same
   // treatment for the one file whose entire job is telling an assistant what
   // is true right now.
-  const stamped = `# build: ${basename(OUT)}\n# generated ${new Date().toISOString().slice(0,10)} — do not hand-edit this line\n`;
+  const stamped = `# build: ${basename(OUT)}\n# generated ${new Date().toISOString().slice(0,10)}: do not hand-edit this line\n`;
   t = /^# build:.*\n(# generated.*\n)?/.test(t) ? t.replace(/^# build:.*\n(# generated.*\n)?/, stamped) : stamped + t;
   writeFileSync(llms, t);
 }
