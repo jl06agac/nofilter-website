@@ -563,12 +563,12 @@ test('order emails wait for the payment time; they never fall back to another ti
  assert.match(k.text,/Roast: payment time not confirmed/,'the late alert states no roast date');
 });
 
-test('checkout offers only methods that settle at checkout (Codex 184)',async()=>{
- process.env.STRIPE_SECRET_KEY='sk_test_x';let form;
- mockStripe((u,o)=>{if(u.includes('/v1/checkout/sessions')&&o&&o.method==='POST'){form=new URLSearchParams(o.body);return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x'}};}
+test('checkout never sends payment_method_types (Stripe refuses it; methods come from the Dashboard) (190)',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';const forms=[];
+ mockStripe((u,o)=>{if(u.includes('/v1/checkout/sessions')&&o&&o.method==='POST'){forms.push(new URLSearchParams(o.body));return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x'}};}
   if(u.includes('/v1/prices')||u.includes('/v1/products'))return {body:{data:[{id:'price_1',lookup_key:'k',active:true}],id:'price_1'}};return {body:{data:[]}};});
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1}]}));
- assert.deepEqual([...form].filter(([k])=>k.startsWith('payment_method_types')).map(([,v])=>v),['card','paynow','grabpay']);
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:2}]}));
- assert.deepEqual([...form].filter(([k])=>k.startsWith('payment_method_types')).map(([,v])=>v),['card']);
+ assert.equal(forms.length,2);
+ for(const f of forms) assert.equal([...f.keys()].filter(k=>k.startsWith('payment_method_types')).length,0);
 });

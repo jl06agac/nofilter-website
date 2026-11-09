@@ -435,4 +435,59 @@ if (existsSync(sm)) {
   writeFileSync(sm, readFileSync(sm, 'utf8').replace(/<lastmod>[^<]+<\/lastmod>/g, `<lastmod>${today}</lastmod>`));
 }
 execFileSync('python3', [fileURLToPath(new URL('./split-bundle.py', import.meta.url)), OUT], { stdio: 'inherit' });
+
+// 190 · THE SINGAPORE SHOP IS OPEN when the master says SHOP_LIVE.SG is true (the launch flips it; the draft
+// script flips a copy). Only then: SGD offers on the four coffees in the SG pages' JSON-LD, the live wording in
+// llms.txt and the SG shop description. The UAE and UK stay "coming soon". Prices are MARKETS.SG's, the same
+// figures checkout.js charges (a test ties BAG to them).
+if (/var SHOP_LIVE = \{ SG: true/.test(src)) {
+  const pm = src.match(/bag250:([\d.]+), bag1kg:([\d.]+)/);   // the first MARKETS entry is SG
+  if (!pm) { console.error('shop live: SG bag prices not found in the master'); process.exit(1); }
+  const p250 = Number(pm[1]).toFixed(2), p1kg = Number(pm[2]).toFixed(2);
+  const offer = (name, price) => ({ '@type': 'Offer', name, price, priceCurrency: 'SGD',
+    availability: 'https://schema.org/InStock', url: 'https://nofilter.sg/shop', seller: { '@id': 'https://nofilter.sg/#sg' } });
+  const OLD_DESC = 'Retail bags of our four single origins, from NGO-led conservation projects in Indonesia and Myanmar. The shop opens shortly.';
+  const NEW_DESC = '250 g and 1 kg bags of our four single origins, one-off or by subscription at 5% off, delivered across Singapore. 10% of the coffee price goes to conservation.';
+  let withOffers = 0;
+  (function walkLive(d) {
+    for (const e of readdirSync(d)) {
+      const f = join(d, e);
+      if (statSync(f).isDirectory()) { walkLive(f); continue; }
+      if (!f.endsWith('.html')) continue;
+      const rel = relative(OUT, f);
+      if (rel.startsWith('ae/') || rel.startsWith('uk/')) continue;
+      let h = readFileSync(f, 'utf8'), o = h;
+      h = h.replace(/(<script type="application\/ld\+json"[^>]*>)([\s\S]*?)(<\/script>)/g, (m0, a1, body, a3) => {
+        let j; try { j = JSON.parse(body); } catch (e) { return m0; }
+        let hit = false;
+        for (const n of [].concat(j['@graph'] || j)) {
+          if (n && [].concat(n['@type']).includes('Product')) { n.offers = [offer('250 g bag', p250), offer('1 kg bag', p1kg)]; hit = true; }
+        }
+        return hit ? a1 + JSON.stringify(j) + a3 : m0;
+      });
+      if (rel === 'shop/index.html') h = h.split(OLD_DESC).join(NEW_DESC);
+      if (h !== o) { writeFileSync(f, h); withOffers++; }
+    }
+  })(OUT);
+  const lt = join(OUT, 'llms.txt');
+  if (existsSync(lt)) {
+    let t = readFileSync(lt, 'utf8');
+    const swaps = [
+      ['- [Shop](https://nofilter.sg/shop): retail bags in 250 g and 1 kg. Not open yet.',
+       `- [Shop](https://nofilter.sg/shop): retail bags in 250 g (SGD ${p250}) and 1 kg (SGD ${p1kg}),\n  one-off or by subscription at 5% off. Open in Singapore; coming soon to the\n  UAE and the UK.`],
+      ['through. All are currently listed; the retail shop has not opened yet.',
+       'through. All four are on sale in the Singapore shop.'],
+      ['Not yet. Retail bags in 250 g and 1 kg are listed and the shop opens shortly;\nuntil then the site takes trade enquiries through the quote builder.',
+       `In Singapore, yes: 250 g (SGD ${p250}) and 1 kg (SGD ${p1kg}) bags at https://nofilter.sg/shop,\none-off or by subscription every 1 to 4 weeks at 5% off. Roasted every Wednesday\n(orders by Monday 12:00 Singapore time make that week's roast); delivery is SGD 4,\nfree when a delivery's coffee comes to SGD 50. 10% of the coffee price goes to the\nconservation partner at the origin. The UAE and UK shops are coming soon.`],
+      ['- No prices appear in the structured data while the retail shop is closed.',
+       '- Singapore retail prices appear as offers on the four coffees in the\n  structured data of the nofilter.sg pages.'],
+    ];
+    for (const [from, to] of swaps) {
+      if (!t.includes(from)) { console.error('shop live: llms.txt passage missing: ' + from.slice(0, 50)); process.exit(1); }
+      t = t.replace(from, to);
+    }
+    writeFileSync(lt, t);
+  }
+  console.log(`shop live (SG): offers at SGD ${p250} / ${p1kg} on ${withOffers} pages; llms.txt and shop description updated`);
+}
 console.log(`built ${built} pages into ${OUT}`);
