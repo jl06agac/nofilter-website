@@ -996,6 +996,18 @@
   to = "/wholesale-coffee"
   status = 301
   force = true
+# 9 Nov · Search Console: www.nofilter.sg/contact-us (the old Squarespace contact page) still 404'd. Contact now
+# sits on the office-coffee page ("Prefer to talk?") and in the Talk to us dock on every page.
+[[redirects]]
+  from = "/contact-us"
+  to = "/wholesale-coffee"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/contact"
+  to = "/wholesale-coffee"
+  status = 301
+  force = true
 [[redirects]]
   from = "/batang-toru"
   to = "/origins/batang-toru"
