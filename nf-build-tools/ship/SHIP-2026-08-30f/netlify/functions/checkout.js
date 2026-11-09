@@ -25,7 +25,9 @@ const ORIGINS = {
 };
 const COFFEES = Object.keys(ORIGINS);
 const CONTRIBUTION_RATE = '0.10';
-const BAGS = { 'Batang Toru': 'bag-batang-toru-640.webp', 'Batang Gadis': 'bag-batang-gadis-640.webp', 'Gayo Lues': 'bag-gayo-lues-640.webp', 'Arakan Mountains': 'bag-arakan-640.webp' };
+// 201 · the Sept 2026 studio shots (square, white), served by the site itself
+const BAGS = { 'Batang Toru': 'batang-toru-1kg-sq.jpg', 'Batang Gadis': 'batang-gadis-1kg-sq.jpg', 'Gayo Lues': 'gayo-lues-1kg-sq.jpg', 'Arakan Mountains': 'arakan-mountains-1kg-sq.jpg' };
+const BAG_IMG = 'https://nofilter.sg/assets/shop/bags/';
 const CDN = 'https://nofilter-shared.netlify.app/';
 // The three things a customer can point their 10% at, as on the impact counter. No choice means
 // where the partner needs it most. Recorded on the order (metadata.choice) and totalled in the report.
@@ -225,7 +227,7 @@ exports.handler = async function (event) {
     form.set(`line_items[${i}][price_data][product_data][name]`, `${l.name} coffee, ${l.size === '250g' ? '250 g' : '1 kg'}`);
     form.set(`line_items[${i}][price_data][product_data][metadata][origin]`, ORIGINS[l.name].origin);
     form.set(`line_items[${i}][price_data][product_data][metadata][partner]`, ORIGINS[l.name].partner);
-    form.set(`line_items[${i}][price_data][product_data][images][0]`, CDN + BAGS[l.name]);
+    form.set(`line_items[${i}][price_data][product_data][images][0]`, BAG_IMG + BAGS[l.name]);
   });
 
   // Subscription delivery: a recurring delivery line when each delivery's coffee comes to less than the threshold

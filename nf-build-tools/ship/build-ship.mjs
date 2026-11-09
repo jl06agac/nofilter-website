@@ -326,7 +326,7 @@ for (const rel of pages) {
       sec = sec.replace(/<video\b[^>]*?\sdata-poster="([^"]+)"[^>]*>/g, (tag, url) => { posters.push(url); return tag.replace(/\sdata-poster="/, ' poster="'); });
       page = page.slice(0, open) + sec + page.slice(close);
       const wanted = posters.slice();
-      if (route === 'shop') for (const o of ['batang-toru', 'batang-gadis', 'gayo-lues', 'arakan']) wanted.push(`${CDN}bag-${o}-640.webp`);
+      if (route === 'shop') for (const o of ['batang-toru', 'batang-gadis', 'gayo-lues', 'arakan-mountains']) wanted.push(`/assets/shop/bags/${o}-1kg.webp`);   // 201: Sept 2026 studio shots
       const at = page.indexOf('<link rel="preload" as="font"');
       if (at < 0) { console.error(`${rel}: no font preload to anchor image preloads on`); process.exit(1); }
       const tags = [...new Set(wanted)].filter(u => !page.includes(`as="image" href="${u}"`)).map(u => `<link rel="preload" as="image" href="${u}">`);
@@ -505,7 +505,7 @@ if (/var SHOP_LIVE = \{ SG: true/.test(src)) {
     `<g:id>${x(p.sku)}-${k}</g:id><g:item_group_id>${x(p.sku)}</g:item_group_id>` +
     `<title>${x(p.name)} single-origin coffee, ${label} bag</title>` +
     `<description>${x(p.description)}</description>` +
-    `<link>${x('https://nofilter.sg/shop?coffee=' + p.sku.replace(/^nf-/, '') + '&size=' + k)}</link><g:image_link>${x(p.image)}</g:image_link>` +   // 200 (Codex P2): lands on that coffee and size
+    `<link>${x('https://nofilter.sg/shop?coffee=' + p.sku.replace(/^nf-/, '') + '&size=' + k)}</link><g:image_link>${x([].concat(p.image)[0])}</g:image_link>` + [].concat(p.image).slice(1).map(u => `<g:additional_image_link>${x(u)}</g:additional_image_link>`).join('') +   // 200 (Codex P2): lands on that coffee and size; 201: front shot, then the shared back
     `<g:price>${price} SGD</g:price><g:availability>in_stock</g:availability><g:condition>new</g:condition>` +
     `<g:brand>NoFilter</g:brand><g:identifier_exists>no</g:identifier_exists>` +
     `<g:google_product_category>1868</g:google_product_category><g:product_type>Coffee &gt; Single origin</g:product_type>` +
