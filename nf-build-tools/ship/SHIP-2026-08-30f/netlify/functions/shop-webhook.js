@@ -159,9 +159,11 @@ exports.handler = async function (event) {
   if (late) {
     const k = deskEmail(d, s.id, when);
     const noReceipt = sent.nf_mail_customer !== 'sent';
+    // 177a (Codex): an absent marker means unconfirmed, not unsent (Resend may have sent it and only the
+    // Stripe note failed), so the operator checks Resend before sending anything by hand
     const missing = [noReceipt ? 'the customer\'s receipt' : null, sent.nf_mail_desk !== 'sent' ? 'the order copy' : null].filter(Boolean).join(' and ');
-    const note = 'This order was paid over 23 hours ago and ' + missing + ' could not be sent automatically.'
-      + (noReceipt ? ' Please email the customer their confirmation by hand (reply to this email reaches them).' : '') + '\n\n';
+    const note = 'This order was paid over 23 hours ago and ' + missing + ' could not be confirmed as sent.'
+      + (noReceipt ? ' Check Resend (Emails, search ' + ((d.order && d.order.email) || 'the customer\'s address') + ') before sending anything: if the receipt is there, nothing more is needed; if not, email the customer their confirmation (replying to this email reaches them).' : '') + '\n\n';
     const x = await send({ from: FROM, to: [desk], reply_to: (d.order && d.order.email) || desk, subject: 'Action needed: ' + k.subject, text: note + k.text }, 'shop-late-' + s.id);
     if (!x.ok) {
       let msg = ''; try { const j = await x.json(); msg = (j && (j.message || j.name)) || ''; } catch (e) {}

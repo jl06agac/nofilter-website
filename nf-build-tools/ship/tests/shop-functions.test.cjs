@@ -491,7 +491,7 @@ test('order emails: past 23 hours the customer gets nothing more and NoFilter ge
   let r=await fire();assert.equal(r.statusCode,500,'alert could not be sent: Stripe keeps retrying');assert.match(r.body,/escalation failed: 503/);
   down=false;r=await fire();assert.equal(r.body,'escalated');
   assert.ok(mails.every(m=>m.b.to[0]==='hello@nofilter.sg'),'the customer is never emailed past the window');
-  const last=mails[mails.length-1];assert.match(last.b.subject,/^Action needed: Shop order NF-DDDDDD/);assert.match(last.b.text,/receipt could not be sent automatically/);assert.equal(last.key,'shop-late-cs_test_vvvvvvvvvvvvvvvv');
+  const last=mails[mails.length-1];assert.match(last.b.subject,/^Action needed: Shop order NF-DDDDDD/);assert.match(last.b.text,/receipt could not be confirmed as sent/);assert.match(last.b.text,/Check Resend .* before sending anything/);assert.equal(last.key,'shop-late-cs_test_vvvvvvvvvvvvvvvv');
   assert.equal(meta.nf_mail_late,'sent');const n=mails.length;assert.equal((await fire()).body,'already escalated');assert.equal(mails.length,n);
  }finally{console.error=orig;}
 });
