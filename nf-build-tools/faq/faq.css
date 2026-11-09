@@ -68,35 +68,40 @@
 #faq .faq-body{padding:42px 0 80px}
 #faq .faq-panel{background:var(--sheet);
   padding:clamp(28px,4vw,56px) clamp(20px,3.4vw,48px)}
-#faq .faq-cols{display:grid;grid-template-columns:minmax(0,34fr) minmax(0,66fr);
-  gap:clamp(32px,6vw,96px);align-items:start}
-#faq .faq-side{position:sticky;top:134px}
+#faq .faq-cols{display:grid;grid-template-columns:minmax(0,37fr) minmax(0,63fr);
+  gap:clamp(32px,5vw,80px);align-items:start}
+/* 9 Nov · the index is a near-black card, in the same black as the nav and the
+   data bar, so it reads as part of the site's frame. Orange marks the numbers
+   and the section you are reading (set by the scroll script). */
+#faq .faq-side{position:sticky;top:134px;--night:#1A1815;--cream:#F4F2EE;
+  --cream-dim:rgba(244,242,238,.62);--cream-rul:rgba(244,242,238,.18)}
+#faq .faq-side-in{background:var(--night);padding:clamp(22px,2.4vw,30px) clamp(20px,2.2vw,28px)}
 /* the site's body{overflow-x:hidden} makes body a scroll container (html is
    overflow-x:clip, so it is not handed to the viewport), and sticky inside it
    never sticks. clip hides the same overflow without that. This stylesheet is
    on /faqs only, so the rest of the site is unchanged. */
 body:has(#faq){overflow-x:clip}
 #faq .faq-side-h{font-family:var(--disp);font-weight:900;text-transform:uppercase;
-  letter-spacing:-.005em;line-height:.95;color:var(--ink);
+  letter-spacing:-.005em;line-height:.95;color:var(--cream);
   font-size:clamp(28px,2.8vw,38px);margin:0 0 18px}
-#faq .faq-idx{list-style:none;margin:0;padding:0;border-top:1px solid var(--rul)}
-#faq .faq-idx a{display:grid;grid-template-columns:30px minmax(0,1fr) auto;
-  align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--rul);
-  text-decoration:none;color:var(--ink);font-family:var(--body);font-size:16px;
+#faq .faq-idx{list-style:none;margin:0;padding:0;border-top:1px solid var(--cream-rul)}
+#faq .faq-idx a{display:grid;grid-template-columns:24px minmax(0,1fr) auto;
+  align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--cream-rul);
+  text-decoration:none;color:var(--cream);font-family:var(--body);font-size:15.5px;
   line-height:1.3}
-#faq .ix-n{width:24px;height:24px;border:1px solid var(--ink);border-radius:50%;
-  display:grid;place-items:center;font-family:var(--mono);font-size:10px}
-#faq .ix-a{font-size:15px;color:var(--muted)}
-#faq .faq-idx a:hover,#faq .faq-idx a:hover .ix-a{color:var(--o)}
-#faq .faq-idx a:hover .ix-n{border-color:var(--o)}
+#faq .ix-n{width:24px;height:24px;border:1px solid var(--o);border-radius:50%;
+  display:grid;place-items:center;font-family:var(--mono);font-size:10px;color:var(--o)}
+#faq .ix-a{font-size:15px;color:var(--o)}
+#faq .faq-idx a:hover,#faq .faq-idx a.is-on{color:var(--o)}
+#faq .faq-idx a.is-on .ix-n{background:var(--o);color:var(--night)}
 #faq .faq-idx a:focus-visible{outline:2px solid var(--o);outline-offset:2px}
 #faq .faq-side-note{font-family:var(--body);font-size:15px;line-height:1.55;
-  color:var(--muted);margin:22px 0 0;max-width:34ch}
-#faq .faq-side-note a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--o)}
+  color:var(--cream-dim);margin:22px 0 0;max-width:34ch}
+#faq .faq-side-note a{color:var(--cream);text-decoration:none;border-bottom:1px solid var(--o)}
 #faq .faq-strip{font-family:var(--mono);font-size:10px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--muted);margin:18px 0 0;
-  display:flex;gap:18px;flex-wrap:wrap}
-#faq .faq-strip b{color:var(--ink);font-weight:500}
+  text-transform:uppercase;color:var(--cream-dim);margin:18px 0 0;
+  display:flex;gap:6px 18px;flex-wrap:wrap}
+#faq .faq-strip b{color:var(--cream);font-weight:500}
 
 #faq .nf-faq-group{display:block;scroll-margin-top:134px}
 #faq .nf-faq-group+.nf-faq-group{margin-top:clamp(40px,4.4vw,60px)}

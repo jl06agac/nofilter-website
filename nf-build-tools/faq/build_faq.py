@@ -86,6 +86,30 @@ JS = """
     walk();
   }
 
+  /* 9 Nov · the index marks the section being read: the last one whose
+     heading has passed under the header. rAF-throttled and passive. */
+  var links = Array.prototype.slice.call(document.querySelectorAll('.faq-idx a'));
+  var secs = links.map(function (l) { return document.getElementById(l.getAttribute('href').slice(1)); });
+  if (links.length && secs.every(Boolean)) {
+    var spyPending = false;
+    function spy() {
+      spyPending = false;
+      var on = 0;
+      secs.forEach(function (s, i) { if (s.getBoundingClientRect().top <= 180) on = i; });
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4 &&
+          secs[secs.length - 1].getBoundingClientRect().top < innerHeight) on = secs.length - 1;
+      links.forEach(function (l, i) {
+        l.classList.toggle('is-on', i === on);
+        if (i === on) l.setAttribute('aria-current', 'true'); else l.removeAttribute('aria-current');
+      });
+    }
+    window.addEventListener('scroll', function () {
+      if (spyPending) return; spyPending = true;
+      (window.requestAnimationFrame || setTimeout)(spy);
+    }, { passive: true });
+    spy();
+  }
+
   /* clicking a question writes its anchor to the address bar, so a colleague
      can be sent straight to the answer rather than to the top of the page */
   document.querySelectorAll('.nf-faq-item').forEach(function (item) {
