@@ -2775,6 +2775,11 @@ html.rail-slim .rail-tele{height:0;opacity:0;overflow:hidden;pointer-events:none
 .cx-photo{aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#efe9df;position:relative;cursor:pointer;}
 .cx-photo img{width:100%;height:100%;object-fit:cover;object-position:center 42%;display:block;transition:transform .3s;}
 .cx-tile:hover .cx-photo img{transform:scale(1.015);}
+/* 201 · Alex, 9 Nov: the back-of-bag shot belongs wherever the fronts are. On a device with a mouse the tile
+   cross-fades to the back on hover; touch screens keep the front, since a tap on the photo opens the buy controls. */
+.cx-photo .cx-back{position:absolute;inset:0;opacity:0;transition:opacity .35s ease,transform .3s;pointer-events:none;}
+@media (hover:hover) and (pointer:fine){.cx-tile:hover .cx-photo .cx-back{opacity:1;}}
+@media (prefers-reduced-motion:reduce){.cx-photo .cx-back{transition:none;}}
 .cx-name{font-family:var(--font-s,Georgia,serif);font-size:16px;margin:10px 3px 5px;color:var(--nb,#1A1815);}
 .cx-chips{display:flex;gap:5px;flex-wrap:wrap;margin:0 3px 4px;}
 .cx-chip{font-family:var(--font-m,monospace);font-size:8px;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(26,24,21,.16);border-radius:99px;color:rgba(26,24,21,.6);}
@@ -23674,7 +23679,7 @@ window.__nfRoller(
           var el=document.createElement('div'); el.className='cx-cell';
           el.innerHTML='<div class="cx-tile" data-origin="'+c.name+'" data-sched="'+c.sched+'">'
             +'<div class="cx-bar" style="background:'+c.color+'"></div>'
-            +'<div class="cx-photo"><img src="'+c.img+'" alt="'+c.name+'" loading="lazy" onerror="this.style.opacity=0"></div>'
+            +'<div class="cx-photo"><img src="'+c.img+'" alt="'+c.name+'" loading="lazy" onerror="this.style.opacity=0"><img class="cx-back" src="/assets/shop/bags/1kg-back.webp" alt="" loading="lazy" aria-hidden="true"></div>'   /* 201: the back of the bag, shown on hover */
             +'<div class="cx-name">'+c.name+'</div>'
             +'<div class="cx-chips">'+c.notes.map(function(n){return '<span class="cx-chip">'+n+'</span>';}).join('')+'</div>'
             +'<div class="cx-scales">'
