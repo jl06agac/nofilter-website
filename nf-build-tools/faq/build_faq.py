@@ -37,32 +37,18 @@ CSS = ('<style id="nf-faq-css">\n'
 JS = """
 <script id="nf-faq-js">
 /* The accordion is visual only. Every answer is already in the DOM above;
-   this script never fetches or writes copy. It does three things: keeps the
-   six category panels mutually exclusive, opens the right panel and question
+   this script never fetches or writes copy. It opens the right question
    when the page is loaded with a hash, and gives each question a copyable
    link. Nothing here is required to read the page — with JS off, every
    <details> still opens on click. */
 (function () {
-  var groups = Array.prototype.slice.call(document.querySelectorAll('.nf-faq-group'));
-
-  groups.forEach(function (g) {
-    g.addEventListener('toggle', function () {
-      if (!g.open) return;
-      groups.forEach(function (o) { if (o !== g) o.open = false; });
-    });
-  });
-
   function reveal(id, scroll) {
-    var item = document.getElementById(id);
-    if (!item) return false;
-    var grp = item.closest('.nf-faq-group');
-    if (grp) {
-      groups.forEach(function (o) { o.open = (o === grp); });
-    }
-    item.open = true;
+    var el = document.getElementById(id);
+    if (!el) return false;
+    if (el.tagName === 'DETAILS') el.open = true;
     if (scroll) {
-      try { item.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
-      catch (e) { item.scrollIntoView(); }
+      try { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+      catch (e) { el.scrollIntoView(); }
     }
     return true;
   }
@@ -161,52 +147,40 @@ def section_html(market="sg"):
          html.escape(HERO_CAP_1), html.escape(HERO_CAP_2)))
     a('</div>')
     a('</div>')
-    # the index: one sheet of paper carrying the file line and the four
-    # categories, separated by rules. The file line is stated once, here, and
-    # the categories carry their own number and class instead of repeating it.
+    # 9 Nov · two columns, after Alex's references (Common Man, PPP): the
+    # section index and the write-to-us line on the left, every question on
+    # the right as a flat row. No folded sections, no straplines.
     CATS = cats(market)
     nq = sum(len(c["items"]) for c in CATS)
     a('<div class="faq-zone">')
     # the trail: decorative, aria-hidden, and outside the reading order
     a('<div class="faq-trail" aria-hidden="true"><i></i></div>')
     a('<div class="faq-body"><div class="faq-wrap">')
-    a('<div class="faq-panel">')
-    a('<div class="faq-strip">'
-      '<span class="st-lead">FAQ file</span><span><b>%d</b> questions</span>'
-      '<span><b>%02d</b> sections</span><span>Updated <b>%s</b></span></div>'
-      % (nq, len(CATS), STRIP_DATE))
-
+    a('<div class="faq-panel faq-cols">')
+    a('<aside class="faq-side"><div class="faq-side-in">')
+    a('<h2 class="faq-side-h">Questions</h2>')
+    a('<nav aria-label="FAQ sections"><ol class="faq-idx">')
     for ci, c in enumerate(CATS, 1):
-        n = len(c["items"])
-        a('<details class="nf-faq-group" id="grp-%s" data-beat%s>'
-          % (c["id"], " open" if c.get("open") else ""))
-        # one component, used four times: number and class on one mono line,
-        # count and mark closing it, title and strap beneath. No photograph —
-        # a picture on a closed row is decoration, and the ones that prove
-        # something now sit inside the answers that need them.
-        a('<summary><span class="grp-head">')
-        a('<span class="grp-top">'
-          '<span class="beat-hd"><span class="sn">%s</span> · %s</span>'
-          '<span class="grp-right">'
-          '<span class="grp-count">%d question%s</span>'
-          '<span class="grp-mark" aria-hidden="true"></span>'
-          '</span></span>' % (c["n"], html.escape(c["cls"]), n,
-                              "" if n == 1 else "s"))
-        a('<span class="grp-copy">')
-        a('<h2 class="grp-t">%s</h2>' % c["title"])
-        a('<span class="grp-s">%s</span>' % c["strap"])
-        a('</span>')
-        a('</span></summary>')
-        a('<div class="grp-body">')
+        a('<li><a href="#grp-%s"><span class="ix-n">%d</span>'
+          '<span class="ix-t">%s</span><span class="ix-a" aria-hidden="true">&#8599;</span></a></li>'
+          % (c["id"], ci, c["title"]))
+    a('</ol></nav>')
+    a('<p class="faq-side-note">Not answered here? Write to '
+      '<a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a> and we will come back to you.</p>')
+    a('<p class="faq-strip"><span><b>%d</b> questions</span><span>Updated <b>%s</b></span></p>'
+      % (nq, STRIP_DATE))
+    a('</div></aside>')
+    a('<div class="faq-main">')
+    for ci, c in enumerate(CATS, 1):
+        a('<section class="nf-faq-group" id="grp-%s" data-beat>' % c["id"])
+        a('<h2 class="grp-h"><span class="beat-hd"><span class="sn">%02d</span></span>'
+          '<span class="grp-t">%s</span></h2>' % (ci, c["title"]))
         for qi, q in enumerate(c["items"], 1):
             a('<details class="nf-faq-item" id="%s">' % q["id"])
-            a('<summary><span class="q-n">%02d</span><h3 class="q-t">%s</h3>'
+            a('<summary><h3 class="q-t">%s</h3>'
               '<span class="q-mark" aria-hidden="true"></span></summary>'
-              % (qi, html.escape(q["q"])))
-            a('<div class="faq-a"><span class="a-lab">Answer · %s.%02d</span>%s'
-              % (c["n"], qi, q["a"].strip()))
-            # photography sits inside the answer, where it is evidence, rather
-            # than on the closed row, where it was decoration
+              % html.escape(q["q"]))
+            a('<div class="faq-a">%s' % q["a"].strip())
             if q.get("img"):
                 a('<figure class="faq-ev">'
                   '<img src="%s" alt="%s" width="1200" height="675" loading="lazy" decoding="async">'
@@ -221,8 +195,8 @@ def section_html(market="sg"):
                   '<span class="org-n">%s</span><span class="org-r">%s</span></a>'
                   % (href, html.escape(name), html.escape(region)))
             a('</nav>')
-        a('</div></details>')
-
+        a('</section>')
+    a('</div>')
     a('</div>')
     a('</div></div></div></section>')
     return "\n".join(out)
