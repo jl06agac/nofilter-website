@@ -40,7 +40,7 @@ function verify(raw, header, secret, now = Date.now()) {
   return sigs.some(s => s.length === want.length && crypto.timingSafeEqual(Buffer.from(s), Buffer.from(want)));
 }
 
-function customerEmail(d, origin, sessionId, when = Date.now()) {
+function customerEmail(d, origin, sessionId, when) {
   const o = d.order || {}, sb = d.subscription, first = o.firstName ? ', ' + ESC(o.firstName) : '';
   const manage = sb && sb.every ? `${origin}/shop/?paid=1&order=${encodeURIComponent(sessionId)}&manage=page` : '';
   const per = sb && sb.every ? (sb.items || []).reduce((n, it) => n + (it.amount || 0), 0) + (sb.delivery || 0) : 0;
@@ -77,9 +77,9 @@ ${pw ? `<td valign="top" style="font-size:13px;line-height:1.55;color:#4A443E"><
   return { subject: `Your NoFilter order ${o.ref || ''}`.trim(), html, text };
 }
 
-function deskEmail(d, sessionId, when = Date.now()) {
+function deskEmail(d, sessionId, when) {
   const o = d.order || {}, sb = d.subscription;
-  const lines = [`New shop order ${o.ref}${sb && sb.every ? ' (subscription, ' + EVERY[sb.every] + ')' : ''}`, `Roast: ${roastAfter(when)}`, '',
+  const lines = [`New shop order ${o.ref}${sb && sb.every ? ' (subscription, ' + EVERY[sb.every] + ')' : ''}`, `Roast: ${when ? roastAfter(when) : 'payment time not confirmed, check the order in Stripe'}`, '',
     ...(o.items || []).map(it => `${it.qty} x ${it.name}, ${it.size}${it.every ? ' (' + EVERY[it.every] + ')' : ''}`), '',
     `Total paid: ${money(o.total)} (delivery ${o.delivery ? money(o.delivery) : 'free'}${o.discount ? ', discount ' + money(o.discount) + (d.code ? ' ' + d.code : '') : ''})`,
     d.contribution ? `To conservation: ${money(d.contribution)} (${(d.byPartner || []).map(p => p.partner + ' ' + money(p.contribution)).join(', ')})` : null, '',
@@ -157,13 +157,16 @@ exports.handler = async function (event) {
   const r = await summary.handler({ httpMethod: 'GET', queryStringParameters: { order: s.id } });
   if (r.statusCode !== 200) return { statusCode: 500, body: 'order not readable' };   // Stripe retries
   const body = JSON.parse(r.body);
-  // 182 (Codex): the same paidAt the confirmation page uses, so the email and the page name the same roast
-  // the event itself is created when the payment succeeds, the next best thing if paidAt is missing
-  const createdSec = ((body.order || {}).paidAt) || ev.created || Math.floor(Date.now() / 1000);
+  // 182/185 (Codex): the emails use the same paidAt as the confirmation page and nothing else, so the two can
+  // never name different roasts. If Stripe has not given a payment time yet, nothing goes out: answer 500 and
+  // Stripe retries until it can be read. Past 23 hours NoFilter is still alerted, without a roast date.
+  const paidAt = (body.order || {}).paidAt || null;
+  if (!paidAt && !late) return { statusCode: 500, body: 'payment time not readable' };
+  const createdSec = paidAt || ev.created || Math.floor(Date.now() / 1000);   // only the late alert's next-charge line uses a fallback
   const d = frozen(body, createdSec);
   let origin = 'https://nofilter.sg';
   try { origin = new URL(s.success_url).origin; } catch (e) {}
-  const when = createdSec * 1000;
+  const when = paidAt ? paidAt * 1000 : null;
   const send = (payload, key) => fetch('https://api.resend.com/emails', { method: 'POST',
     headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Idempotency-Key': key }, body: JSON.stringify(payload) });
   const desk = process.env.ORDERS_TO || process.env.QUOTE_TO || 'hello@nofilter.sg';

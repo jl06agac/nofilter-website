@@ -333,7 +333,7 @@ test('trade access: the rate-limited wrappers pass requests through unchanged',a
 test('order emails: signed Stripe events only; the customer gets the receipt with a manage link, NoFilter gets the order',async()=>{
  const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
- const sess={id:'cs_test_abcdefghijklmnop',object:'checkout.session',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_1',success_url:'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}',
+ const sess={id:'cs_test_abcdefghijklmnop',object:'checkout.session',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_1',invoice:{id:'in_x',status:'paid',status_transitions:{paid_at:1794151900}},success_url:'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}',
   amount_subtotal:2160,amount_total:2560,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-SRSP2T',delivery_cents:'400'},
   customer_details:{email:'pat@example.com',name:'Pat Lee',address:{line1:'1 Raffles Place',postal_code:'048616',country:'SG'}},shipping_details:{name:'Pat Lee',address:{line1:'1 Raffles Place',postal_code:'048616',country:'SG'}}};
  const sub={id:'sub_1',status:'active',metadata:{every_weeks:'1',off_pct:'10'},items:{data:[
@@ -391,7 +391,7 @@ test('the server charges the prices the shop page shows (BAG equals MARKETS.SG i
 test('order emails: delayed payments, a retry never sends twice, and Stripe sees only an error category',async()=>{
  const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
- const sess={id:'cs_test_zzzzzzzzzzzzzzzz',payment_status:'paid',mode:'payment',currency:'sgd',customer:'cus_1',payment_intent:'pi_1',created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
+ const sess={id:'cs_test_zzzzzzzzzzzzzzzz',payment_status:'paid',mode:'payment',currency:'sgd',customer:'cus_1',payment_intent:{id:'pi_1',latest_charge:{status:'succeeded',created:1794151900}},created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
   amount_subtotal:7500,amount_total:7500,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-AAAAAA'},customer_details:{email:'pat@example.com',name:'pat lee'}};
  let meta={},mails=[],failDesk=0;
  mockStripe((u,o)=>{
@@ -421,7 +421,7 @@ test('order emails: delayed payments, a retry never sends twice, and Stripe sees
 test('order emails: a 409 is not a send, and an unrecorded send is not acknowledged',async()=>{
  const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
- const sess={id:'cs_test_yyyyyyyyyyyyyyyy',payment_status:'paid',mode:'payment',currency:'sgd',customer:'cus_1',payment_intent:'pi_2',created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
+ const sess={id:'cs_test_yyyyyyyyyyyyyyyy',payment_status:'paid',mode:'payment',currency:'sgd',customer:'cus_1',payment_intent:{id:'pi_2',latest_charge:{status:'succeeded',created:1794151900}},created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
   amount_subtotal:7500,amount_total:7500,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-BBBBBB'},customer_details:{email:'pat@example.com',name:'Pat'}};
  let meta={},resendStatus=200,metaFail=false,mails=0;
  mockStripe((u,o)=>{
@@ -446,7 +446,7 @@ test('order emails: a 409 is not a send, and an unrecorded send is not acknowled
 test('order emails: a retry after the customer changes the subscription carries the same email',async()=>{
  const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
  process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
- const sess={id:'cs_test_wwwwwwwwwwwwwwww',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_9',created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
+ const sess={id:'cs_test_wwwwwwwwwwwwwwww',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_9',invoice:{id:'in_x',status:'paid',status_transitions:{paid_at:1794151900}},created:1794151811,success_url:'https://nofilter.sg/shop/?paid=1',
   amount_subtotal:2160,amount_total:2560,total_details:{amount_shipping:0},metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-CCCCCC',delivery_cents:'400'},customer_details:{email:'pat@example.com',name:'Pat'}};
  const item=(id,name,origin,amt,every)=>({id,quantity:1,current_period_end:1795000000,price:{unit_amount:amt,recurring:{interval:'week',interval_count:every},product:{name,metadata:{origin,partner:'OIC'}}}});
  let sub={id:'sub_9',status:'active',metadata:{every_weeks:'1',off_pct:'10'},default_payment_method:{type:'card',card:{brand:'visa',last4:'4242'}},items:{data:[item('si_1','Gayo Lues coffee, 250 g','gayo',2160,1),{...item('si_d','Delivery','delivery',400,1),price:{unit_amount:400,recurring:{interval:'week',interval_count:1},product:{name:'Delivery',metadata:{kind:'delivery'}}}}]}};
@@ -540,6 +540,27 @@ test('roast date: page and email both follow when the order was paid, not when c
  const one={payment_status:'paid',mode:'payment',currency:'sgd',created:opened,metadata:{source:'website-shop',contribution_rate:'0.10'}};
  assert.equal(await pa({...one,payment_intent:{latest_charge:{status:'succeeded',created:paid}}}),paid,'one-off: the charge time once it succeeded');
  assert.equal(await pa({...one,payment_status:'unpaid',payment_intent:{latest_charge:{status:'pending',created:paid}}}),null,'pending: no paid time');
+});
+
+test('order emails wait for the payment time; they never fall back to another timestamp (Codex 185)',async()=>{
+ const wh=require(path.join(F,'shop-webhook.js')),crypto=require('crypto');
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_WEBHOOK_SECRET='whsec_test';process.env.RESEND_API_KEY='re_x';process.env.QUOTE_FROM='NoFilter <hello@nofilter.sg>';process.env.QUOTE_TO='hello@nofilter.sg';
+ const sess={id:'cs_test_nopaidat00000000',object:'checkout.session',payment_status:'paid',mode:'subscription',currency:'sgd',customer:'cus_1',subscription:'sub_7',created:1794151811,
+  invoice:{id:'in_7',status:'open',status_transitions:{paid_at:null}},success_url:'https://nofilter.sg/shop/?paid=1',amount_subtotal:2280,amount_total:2680,total_details:{amount_shipping:0},
+  metadata:{source:'website-shop',contribution_rate:'0.10',order_ref:'NF-WAIT00',delivery_cents:'400'},customer_details:{email:'pat@example.com',name:'Pat Lee'}};
+ const sub={id:'sub_7',status:'active',created:1794151811,metadata:{every_weeks:'2'},items:{data:[]}};
+ const mails=[];
+ mockStripe(u=>{if(u.startsWith('https://api.resend.com')){mails.push(1);return {body:{id:'em'}};}
+  if(u.includes('/line_items')||u.includes('?customer=')||u.includes('invoices?'))return {body:{data:[]}};
+  if(u.includes('/v1/subscriptions/sub_7'))return {body:sub};
+  if(u.includes('/v1/checkout/sessions/'))return {body:sess};return {body:{}};});
+ const go=async created=>{const raw=JSON.stringify({type:'checkout.session.completed',created,data:{object:sess}});
+  const t=Math.floor(Date.now()/1000),sig='t='+t+',v1='+crypto.createHmac('sha256','whsec_test').update(t+'.'+raw).digest('hex');
+  return wh.handler({httpMethod:'POST',headers:{'stripe-signature':sig},body:raw});};
+ const r=await go(Math.floor(Date.now()/1000));
+ assert.equal(r.statusCode,500,'Stripe retries');assert.equal(mails.length,0,'no email with a guessed roast date');
+ const k=wh._test.deskEmail({order:{ref:'NF-WAIT00',items:[],total:0}},'cs_x',null);
+ assert.match(k.text,/Roast: payment time not confirmed/,'the late alert states no roast date');
 });
 
 test('checkout offers only methods that settle at checkout (Codex 184)',async()=>{
