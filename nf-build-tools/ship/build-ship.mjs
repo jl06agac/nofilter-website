@@ -505,7 +505,7 @@ if (/var SHOP_LIVE = \{ SG: true/.test(src)) {
     `<g:id>${x(p.sku)}-${k}</g:id><g:item_group_id>${x(p.sku)}</g:item_group_id>` +
     `<title>${x(p.name)} single-origin coffee, ${label} bag</title>` +
     `<description>${x(p.description)}</description>` +
-    `<link>https://nofilter.sg/shop</link><g:image_link>${x(p.image)}</g:image_link>` +
+    `<link>${x('https://nofilter.sg/shop?coffee=' + p.sku.replace(/^nf-/, '') + '&size=' + k)}</link><g:image_link>${x(p.image)}</g:image_link>` +   // 200 (Codex P2): lands on that coffee and size
     `<g:price>${price} SGD</g:price><g:availability>in_stock</g:availability><g:condition>new</g:condition>` +
     `<g:brand>NoFilter</g:brand><g:identifier_exists>no</g:identifier_exists>` +
     `<g:google_product_category>1868</g:google_product_category><g:product_type>Coffee &gt; Single origin</g:product_type>` +

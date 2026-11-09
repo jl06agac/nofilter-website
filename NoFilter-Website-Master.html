@@ -18014,7 +18014,7 @@ if (_sheetRef) _sheetRef.textContent = QREF;   /* 113: quote route only */
       var vp = track.parentElement;
       var GAP = 14;
       var COFFEES = [
-        {name:'Batang Toru', sched:'batang toru', note:'N. SUMATRA · PRCF INDONESIA & SRI', color:'#2f5d3a',
+        {name:'Batang Toru', sched:'batang toru', note:'N. SUMATRA · PRCF INDONESIA & OIC', color:'#2f5d3a',
          img:'../../_CDN-UPLOAD-SAFE/bag-batang-toru-640.webp', video:'../../_CDN-UPLOAD-SAFE/batang-toru-banner-lite.mp4', poster:'../../_CDN-UPLOAD-SAFE/sabar-agroforest.jpg',
          desc:'The buffer at the edge of Batang Toru, the only home of the Tapanuli orangutan. Shade-grown, farmers paid to keep the forest edge where it is.',
          notes:['Dark chocolate','Red plum','Cedar'], acid:2, body:4, roast:3, proc:'Wet-hulled (giling basah)', coord:'1°38′18″N · 99°15′56″E', origin:'Sipirok, South Tapanuli · Indonesia', forest:'Batang Toru ecosystem', partner:'PRCF Indonesia · OIC', on:false},
@@ -23621,7 +23621,7 @@ window.__nfRoller(
       var vp = track.parentElement;
       var GAP = 14;
       var COFFEES = [
-        {name:'Batang Toru', sched:'batang toru', note:'N. SUMATRA · PRCF INDONESIA & SRI', color:'#2f5d3a',
+        {name:'Batang Toru', sched:'batang toru', note:'N. SUMATRA · PRCF INDONESIA & OIC', color:'#2f5d3a',
          img:'../../_CDN-UPLOAD-SAFE/bag-batang-toru-640.webp',
          video:'../../_CDN-UPLOAD-SAFE/batang-toru-banner-lite.mp4',
          poster:'../../_CDN-UPLOAD-SAFE/sabar-agroforest.jpg',
@@ -24211,6 +24211,20 @@ window.__nfRoller(
       document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ if(drawer&&drawer.classList.contains('open')) closeDrawer(); else if(openIdx>=0) closeDetail(); else if(dossierIdx>=0) closeDossier(); } });
       build();
       requestAnimationFrame(function(){ layout(false); });
+      /* 200 (Codex P2): Google Shopping listings link to /shop?coffee=toru&size=1kg, so the coffee opens with that
+         size already chosen instead of leaving the visitor to find it again */
+      (function(){
+        var q; try { q = new URLSearchParams(location.search); } catch(e){ return; }
+        var NAMES = { toru:'Batang Toru', gadis:'Batang Gadis', gayo:'Gayo Lues', arakan:'Arakan Mountains' };
+        var name = NAMES[String(q.get('coffee') || '').toLowerCase()]; if(!name) return;
+        var i = -1; COFFEES.forEach(function(c, k){ if(c.name === name) i = k; }); if(i < 0 || !cells[i]) return;
+        var tile = cells[i].el.querySelector('.cx-tile'); if(!tile) return;
+        var want = String(q.get('size') || '').toLowerCase(), si = -1;
+        (COFFEES[i].sizes || []).forEach(function(sz, k){ if(String(sz.lab).toLowerCase() === want) si = k; });
+        if(!tile.classList.contains('is-open')) toggleBuy(tile, i);
+        if(si >= 0){ var b = tile.querySelector('.cx-seg button[data-s="' + si + '"]'); if(b) b.click(); }
+        setTimeout(function(){ try { tile.scrollIntoView({ block:'center', inline:'center', behavior:'smooth' }); } catch(e){} }, 400);
+      })();
     })();
 </script>
 
