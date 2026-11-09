@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),path=require('path');
 const F=path.join(__dirname,'..','SHIP-2026-08-30f','netlify','functions');
 const checkout=require(path.join(F,'checkout.js')),report=require(path.join(F,'shop-ngo-report.js'));
-const ev=(body,headers={origin:'https://nofilter.sg'})=>({httpMethod:'POST',headers,body:JSON.stringify(body)});
+const ev=(body,headers={host:'nofilter.sg'})=>({httpMethod:'POST',headers,body:JSON.stringify('market' in body||body.action?body:{...body,market:'SG'})});
 // Stripe refuses an expand deeper than 4 levels (found live on 8 Nov, when the mocks had let one through).
 function tooDeep(url){const m=String(url).match(/expand(?:%5B%5D|\[\])=([^&]+)/g)||[];return m.map(x=>decodeURIComponent(x.split('=')[1])).find(p=>p.split('.').length>4);}
 function mockStripe(handler){const calls=[];global.fetch=async(url,opt={})=>{calls.push({url,opt});const deep=String(url).includes('api.stripe.com')&&tooDeep(url);
@@ -571,4 +571,21 @@ test('checkout never sends payment_method_types (Stripe refuses it; methods come
  await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'250g',qty:1,every:2}]}));
  assert.equal(forms.length,2);
  for(const f of forms) assert.equal([...f.keys()].filter(k=>k.startsWith('payment_method_types')).length,0);
+});
+
+test('the return address is our own site, never the caller\'s Origin; only the open market takes orders (194, Codex)',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';const forms=[];
+ mockStripe((u,o)=>{if(u.endsWith('/v1/checkout/sessions')&&o&&o.method==='POST'){forms.push(new URLSearchParams(o.body));return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x'}};}return {body:{data:[]}};});
+ const cart={lines:[{name:'Gayo Lues',size:'250g',qty:1}]};
+ let r=await checkout.handler(ev(cart,{host:'nofilter.sg',origin:'https://evil.example'}));
+ assert.equal(r.statusCode,200);assert.equal(forms.at(-1).get('success_url'),'https://nofilter.sg/shop/?paid=1&order={CHECKOUT_SESSION_ID}','a forged Origin is ignored');
+ r=await checkout.handler(ev(cart,{host:'shop-preview--nofilter-site.netlify.app'}));assert.equal(r.statusCode,200,'drafts still work');
+ assert.match(forms.at(-1).get('success_url'),/^https:\/\/shop-preview--nofilter-site\.netlify\.app\/shop\//);
+ const n=forms.length;
+ for(const h of [{host:'evil.example'},{origin:'https://nofilter.sg'},{host:'nofilter-site.netlify.app.evil.example'}])
+  assert.equal((await checkout.handler(ev(cart,h))).statusCode,400,JSON.stringify(h));
+ assert.equal((await checkout.handler(ev(cart,{host:'nofilter.ae'}))).statusCode,403,'UAE shop closed');
+ assert.equal((await checkout.handler(ev({...cart,market:'UK'}))).statusCode,403,'UK shop closed');
+ assert.equal((await checkout.handler(ev({...cart,market:''}))).statusCode,403,'no market, no order');
+ assert.equal(forms.length,n,'nothing reached Stripe');
 });

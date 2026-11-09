@@ -483,6 +483,7 @@ if (/var SHOP_LIVE = \{ SG: true/.test(src)) {
        '- Singapore retail prices appear as offers on the four coffees in the\n  structured data of the nofilter.sg pages.'],
     ];
     for (const [from, to] of swaps) {
+      if (t.includes(to)) continue;   // 194 (Codex P3): already applied, so a second run leaves it as it is
       if (!t.includes(from)) { console.error('shop live: llms.txt passage missing: ' + from.slice(0, 50)); process.exit(1); }
       t = t.replace(from, to);
     }

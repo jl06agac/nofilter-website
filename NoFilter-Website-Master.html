@@ -17741,7 +17741,8 @@ function openPay(){
   go.addEventListener('click', function(){
     go.disabled = true; go.textContent = 'Opening secure payment…'; err.hidden = true;
     fetch('/.netlify/functions/checkout', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty, every:l.every || 0 }; }), code: SHOP_CODE, choice: choice }) })
+      body: JSON.stringify({ lines: cart.map(function(l){ return { name:l.name, size:l.size, qty:l.qty, every:l.every || 0 }; }), code: SHOP_CODE, choice: choice,
+        market: (function(){ var b = document.querySelector('#priceBoard [data-pbm][aria-pressed="true"]'); return b ? b.getAttribute('data-pbm') : 'SG'; })() }) })   /* 194: the server takes orders only for an open market */
       .then(function(r){ return r.json().then(function(d){ return { ok:r.ok, status:r.status, d:d }; }); })
       .then(function(x){
         if(x.ok && x.d.url){ location.assign(x.d.url); return; }

@@ -149,9 +149,16 @@ exports.handler = async function (event) {
   const P250 = BAG['250g'], P1KG = BAG['1kg'];
   const DELIVERY = parseInt(process.env.DELIVERY_CENTS || '400', 10);
   const FREE_FROM = parseInt(process.env.FREE_FROM_CENTS || '5000', 10);
-  const host = event.headers && event.headers.host;
-  const origin = (event.headers && event.headers.origin) || (host ? 'https://' + host : '');
-  if (!/^https?:\/\//.test(origin)) return reply(400, { error: 'bad origin' });
+  // 194 (Codex P1): Stripe sends the customer back to this address with the order id, which opens the order and
+  // its subscription controls, so it is built only from our own sites, never from the caller's Origin header
+  // (anyone can set that and have a paid customer land on their site). The host is the site Netlify served.
+  const host = String((event.headers && event.headers.host) || '').toLowerCase();
+  const local = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);
+  if (!local && !/^(www\.)?nofilter\.(sg|ae)$/.test(host) && !/^([a-z0-9-]+--)?nofilter-site\.netlify\.app$/.test(host)) return reply(400, { error: 'bad origin' });
+  const origin = (local ? 'http://' : 'https://') + host;
+  // 194 (Codex P2): only the markets whose shop is open take orders; keep in step with SHOP_LIVE in the master
+  const LIVE_MARKETS = ['SG'];
+  if (/^(www\.)?nofilter\.ae$/.test(host) || !LIVE_MARKETS.includes(String(body.market || ''))) return reply(403, { error: 'shop not open in this market' });
 
   const every = (lines.find(l => l.every) || {}).every || 0;
   const form = new URLSearchParams();
