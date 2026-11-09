@@ -516,4 +516,33 @@ if (/var SHOP_LIVE = \{ SG: true/.test(src)) {
     items.join('\n') + '\n</channel></rss>\n');
   console.log(`shop live (SG): offers at SGD ${p250} / ${p1kg} on ${withOffers} pages; llms.txt and shop description updated; merchant feed ${items.length} items`);
 }
+// 199 · a market whose shop is closed carries no Product items in its structured data. Without prices Google reads
+// them as invalid products and flags every page; the coffees are still described on the page and in the origins
+// data. A market's items come back automatically when its SHOP_LIVE flag is switched on (and get offers above).
+{
+  const flags = (src.match(/var SHOP_LIVE = \{([^}]*)\}/) || [, ''])[1];
+  const live = k => new RegExp('\\b' + k + ':\\s*true').test(flags);
+  const closed = [['SG', ''], ['AE', 'ae/'], ['UK', 'uk/']].filter(([k]) => !live(k)).map(([, dir]) => dir);
+  let stripped = 0;
+  (function walkClosed(d) {
+    for (const e of readdirSync(d)) {
+      const f = join(d, e);
+      if (statSync(f).isDirectory()) { walkClosed(f); continue; }
+      if (!f.endsWith('.html')) continue;
+      const rel = relative(OUT, f);
+      const dir = rel.startsWith('ae/') ? 'ae/' : rel.startsWith('uk/') ? 'uk/' : '';
+      if (!closed.includes(dir)) continue;
+      const h = readFileSync(f, 'utf8');
+      const out = h.replace(/(<script type="application\/ld\+json"[^>]*>)([\s\S]*?)(<\/script>)/g, (m0, a1, body, a3) => {
+        let j; try { j = JSON.parse(body); } catch (e) { return m0; }
+        if (!j || !Array.isArray(j['@graph'])) return m0;
+        const keep = j['@graph'].filter(n => !(n && [].concat(n['@type']).includes('Product')));
+        if (keep.length === j['@graph'].length) return m0;
+        j['@graph'] = keep; return a1 + JSON.stringify(j) + a3;
+      });
+      if (out !== h) { writeFileSync(f, out); stripped++; }
+    }
+  })(OUT);
+  console.log(`closed shops (${closed.map(d => d || 'sg').join(', ') || 'none'}): product items removed on ${stripped} pages`);
+}
 console.log(`built ${built} pages into ${OUT}`);
