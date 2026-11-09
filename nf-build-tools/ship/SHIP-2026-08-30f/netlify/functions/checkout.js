@@ -63,8 +63,8 @@ const MAX_BAGS = 20;
 const GRINDS = { whole: 'Whole beans', espresso: 'Ground for espresso', aeropress: 'Ground for AeroPress', filter: 'Ground for filter', coarse: 'Ground for French press' };
 const grindOf = g => (Object.prototype.hasOwnProperty.call(GRINDS, String(g || '')) ? String(g) : 'whole');
 // The grinds of an order or subscription, readable in the Stripe dashboard and parsed back by order-summary:
-// "Batang Toru 250g=espresso; Gayo Lues 1kg=whole". One grind per coffee and size (a subscription holds each
-// coffee and size once).
+// "Batang Toru 250g=espresso; Gayo Lues 1kg=whole". Subscription lines only: one grind per coffee and size (a
+// subscription holds each coffee and size once; at most 8 entries, well inside Stripe's 500 characters).
 const grindsEncode = ls => ls.map(l => `${l.name} ${l.size}=${grindOf(l.grind)}`).join('; ').slice(0, 500);
 const grindsDecode = str => { const m = {}; String(str || '').split(';').forEach(e => { const i = e.lastIndexOf('='); if (i > 0) m[e.slice(0, i).trim()] = grindOf(e.slice(i + 1).trim()); }); return m; };
 function cleanLines(lines) {
@@ -202,7 +202,9 @@ exports.handler = async function (event) {
   const ref = orderRef();
   form.set('metadata[source]', 'website-shop');
   form.set('metadata[order_ref]', ref);
-  form.set('metadata[grinds]', grindsEncode(lines));
+  // 203c (Codex P1): subscription lines only. One-off lines carry their grind on their own product (name and
+  // metadata), and a subscription holds each coffee and size once, so the keys here can never collide.
+  if (lines.some(l => l.every)) form.set('metadata[grinds]', grindsEncode(lines.filter(l => l.every)));
   if (every) {
     form.set('subscription_data[description]', 'NoFilter coffee every ' + (every === 1 ? 'week' : every + ' weeks') + ' (' + ref + ')');
     form.set('subscription_data[metadata][source]', 'website-shop');

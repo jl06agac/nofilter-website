@@ -603,9 +603,39 @@ test('grind: whole bean by default, three grinds at the same price, carried to S
  const r=await checkout.handler(ev({lines:[{name:'Batang Toru',size:'1kg',qty:1,grind:'coarse'},{name:'Gayo Lues',size:'250g',qty:1}]}));
  assert.equal(r.statusCode,200);const f=forms.at(-1);const names=[...f.entries()].filter(([k])=>k.endsWith('[product_data][name]')).map(([,v])=>v);
  assert.ok(names.some(n=>/Batang Toru.*1 ?kg.*French press/i.test(n)),names.join(' | '));assert.ok(names.some(n=>/Gayo Lues.*250 ?g.*Whole beans/i.test(n)),names.join(' | '));
- assert.match(f.get('metadata[grinds]'),/Batang Toru 1kg=coarse/);
+ assert.equal(f.get('metadata[grinds]'),null,'one-off lines carry their own grind (203c)');
+ assert.ok([...f.entries()].some(([k,v])=>k.endsWith('[product_data][metadata][grind]')&&v==='coarse'));
  const amounts=[...f.entries()].filter(([k])=>k.endsWith('[unit_amount]')).map(([,v])=>v);
  const plain=[];mockStripe((u,o)=>{if(u.endsWith('/v1/checkout/sessions')&&o&&o.method==='POST'){plain.push(new URLSearchParams(o.body));return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x',client_secret:'x'}};}return {body:{data:[]}};});
  await checkout.handler(ev({lines:[{name:'Batang Toru',size:'1kg',qty:1},{name:'Gayo Lues',size:'250g',qty:1}]}));
  assert.deepEqual(amounts,[...plain[0].entries()].filter(([k])=>k.endsWith('[unit_amount]')).map(([,v])=>v),'ground costs the same as whole bean');
+});
+
+test('grind (Codex P1, 203c): a mixed order keeps each line\'s grind; a swap cannot hold one coffee and size twice',async()=>{
+ process.env.STRIPE_SECRET_KEY='sk_test_x';process.env.STRIPE_PUBLISHABLE_KEY='pk_test_x';delete process.env.PRICE_BAG_1KG;delete process.env.PRICE_BAG_250G;
+ // checkout: the order map holds subscription lines only
+ const calls=mockStripe(stripeWithCatalogue(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}})));
+ assert.equal((await checkout.handler(ev({lines:[{name:'Batang Toru',size:'250g',qty:1,every:2,grind:'espresso'},{name:'Batang Toru',size:'250g',qty:1,grind:'whole'}]}))).statusCode,200);
+ const f=sessionCall(calls);assert.equal(f.get('metadata[grinds]'),'Batang Toru 250g=espresso');assert.equal(f.get('subscription_data[metadata][grinds]'),'Batang Toru 250g=espresso');
+ const once=mockStripe(()=>({body:{client_secret:'x',url:'https://checkout.stripe.com/c/pay/x',id:'cs_test_9'}}));
+ await checkout.handler(ev({lines:[{name:'Gayo Lues',size:'1kg',qty:1,grind:'filter'}]}));assert.equal(sessionCall(once).get('metadata[grinds]'),null,'one-off only: no map');
+ // order summary: same coffee and size, recurring espresso and one-off whole beans, each read from its own source
+ const sum=require(path.join(F,'order-summary.js'));
+ mockStripe(u=>u.includes('/line_items')?{body:{data:[
+   {description:'Batang Toru coffee, 250 g',quantity:1,amount_total:2280,price:{recurring:{interval:'week',interval_count:2},product:{metadata:{origin:'toru',partner:'PRCF Indonesia, OIC'}}}},
+   {description:'Batang Toru coffee, 250 g · Whole beans',quantity:1,amount_total:2400,price:{product:{metadata:{origin:'toru',partner:'PRCF Indonesia, OIC',grind:'whole'}}}}]}}
+  :{body:{payment_status:'paid',currency:'sgd',created:1794100000,amount_subtotal:4680,amount_total:4680,total_details:{},metadata:{source:'website-shop',grinds:'Batang Toru 250g=espresso'},customer_details:{email:'a@b.c'}}});
+ const r=JSON.parse((await sum.handler({queryStringParameters:{order:'cs_test_abcdefghijklmnop'}})).body);
+ assert.deepEqual(r.order.items.map(i=>[i.size,i.every,i.grind]),[['250 g',2,'espresso'],['250 g',0,'whole']]);
+ // swap: two rows turned into the same coffee and size are refused before Stripe is touched
+ const item=(id,origin,name)=>({id,quantity:1,current_period_end:1795000000,price:{unit_amount:2160,recurring:{interval:'week',interval_count:2},product:{name,metadata:{origin}}}});
+ const session={payment_status:'paid',mode:'subscription',customer:'cus_1',metadata:{source:'website-shop'},
+  subscription:{id:'sub_1',status:'active',metadata:{every_weeks:'2',off_pct:'5'},items:{data:[item('si_1','gayo','Gayo Lues coffee, 250 g'),item('si_2','toru','Batang Toru coffee, 1 kg')]}}};
+ const sc=mockStripe(stripeWithCatalogue((u,o)=>({body:u.includes('/v1/subscriptions/')?((o&&o.method==='POST')?{}:session.subscription):session})));
+ const post=b=>sum.handler({httpMethod:'POST',body:JSON.stringify({order:'cs_test_abcdefghijklmnop',...b})});
+ assert.equal((await post({action:'swap',items:[{id:'si_1',name:'Gayo Lues',size:'250g',qty:1,grind:'espresso'},{id:'si_2',name:'Gayo Lues',size:'250 g',qty:1,grind:'filter'}]})).statusCode,400);
+ assert.equal(sc.filter(c=>c.url.includes('/v1/subscriptions/sub_1')&&c.opt&&c.opt.method==='POST').length,0,'nothing sent to Stripe');
+ const ok=await post({action:'swap',items:[{id:'si_1',name:'Gayo Lues',size:'250g',qty:1,grind:'espresso'},{id:'si_2',name:'Batang Toru',size:'1kg',qty:1,grind:'coarse'}]});
+ assert.equal(ok.statusCode,200);
+ assert.equal(new URLSearchParams(sc.filter(c=>c.url.includes('/v1/subscriptions/sub_1')&&c.opt&&c.opt.method==='POST').pop().opt.body).get('metadata[grinds]'),'Gayo Lues 250g=espresso; Batang Toru 1kg=coarse');
 });

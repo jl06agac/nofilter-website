@@ -123,6 +123,9 @@ exports.handler = async function (event) {
           f.set(`items[${i}][price]`, pr); f.set(`items[${i}][quantity]`, String(qty)); kept++;
           keptLines.push({ name: w.name, size: String(w.size).toLowerCase().replace(/\s+/g, ''), grind: grindOf(w.grind) });
         });
+        // 203c (Codex P1): each coffee and size once, as at checkout, so every line keeps its own grind
+        if (new Set(keptLines.map(l => l.name + '|' + l.size)).size !== keptLines.length)
+          return reply(400, { error: 'each coffee and size can appear once; change the quantity instead' });
         if (!kept) return reply(400, { error: 'keep at least one coffee, or cancel instead' });
         // 203: the grind of each coffee and size, readable in the Stripe dashboard for packing renewals
         f.set('metadata[grinds]', grindsEncode(keptLines));
@@ -183,7 +186,8 @@ exports.handler = async function (event) {
     const items = lines.data.filter(l => !delLines.includes(l)).map(l => { const [name, rest] = String(l.description || '').split(' coffee, ');
       const size = String(rest || '').split(' \u00b7 ')[0];   // 203: one-off names carry " · <grind>"
       const r = l.price && l.price.recurring, pm = (l.price && l.price.product && l.price.product.metadata) || {};
-      const grind = grindOf(pm.grind || gmap[name + ' ' + size.replace(/\s+/g, '')]);
+      // 203c (Codex P1): a one-off line's grind is on its own product; the map holds subscription lines only
+      const grind = grindOf(r ? gmap[name + ' ' + size.replace(/\s+/g, '')] : pm.grind);
       return { name, size: size || '', qty: l.quantity || 0, amount: l.amount_total || 0, every: r && r.interval === 'week' ? r.interval_count : 0, grind, grindLabel: GRINDS[grind] }; });
     const ship = (s.collected_information && s.collected_information.shipping_details) || s.shipping_details || null;
     const a = (ship && ship.address) || {};
