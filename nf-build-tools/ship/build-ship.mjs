@@ -489,6 +489,31 @@ if (/var SHOP_LIVE = \{ SG: true/.test(src)) {
     }
     writeFileSync(lt, t);
   }
-  console.log(`shop live (SG): offers at SGD ${p250} / ${p1kg} on ${withOffers} pages; llms.txt and shop description updated`);
+  // 195 · the Google Merchant Center feed (free listings in Google Shopping, Singapore). Merchant Center re-reads
+  // https://nofilter.sg/merchant-feed.xml daily, so it is built from the shop page's own Product data and the
+  // same SG prices: one source, nothing to keep in step by hand. One item per coffee and bag size.
+  const shopHtml = readFileSync(join(OUT, 'shop', 'index.html'), 'utf8');
+  const products = [];
+  for (const m of shopHtml.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
+    let j; try { j = JSON.parse(m[1]); } catch (e) { continue; }
+    for (const n of [].concat(j['@graph'] || j)) if (n && [].concat(n['@type']).includes('Product') && n.sku) products.push(n);
+  }
+  if (products.length !== 4) { console.error('merchant feed: expected 4 coffees on the shop page, found ' + products.length); process.exit(1); }
+  const x = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const items = products.flatMap(p => [['250g', '250 g', p250, '250'], ['1kg', '1 kg', p1kg, '1000']].map(([k, label, price, grams]) =>
+    '<item>' +
+    `<g:id>${x(p.sku)}-${k}</g:id><g:item_group_id>${x(p.sku)}</g:item_group_id>` +
+    `<title>${x(p.name)} single-origin coffee, ${label} bag</title>` +
+    `<description>${x(p.description)}</description>` +
+    `<link>https://nofilter.sg/shop</link><g:image_link>${x(p.image)}</g:image_link>` +
+    `<g:price>${price} SGD</g:price><g:availability>in_stock</g:availability><g:condition>new</g:condition>` +
+    `<g:brand>NoFilter</g:brand><g:identifier_exists>no</g:identifier_exists>` +
+    `<g:google_product_category>1868</g:google_product_category><g:product_type>Coffee &gt; Single origin</g:product_type>` +
+    `<g:size>${label}</g:size><g:unit_pricing_measure>${grams}g</g:unit_pricing_measure><g:unit_pricing_base_measure>100g</g:unit_pricing_base_measure>` +
+    '</item>'));
+  writeFileSync(join(OUT, 'merchant-feed.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"><channel>' +
+    '<title>NoFilter coffee (Singapore)</title><link>https://nofilter.sg/shop</link><description>NoFilter retail coffee, Singapore</description>\n' +
+    items.join('\n') + '\n</channel></rss>\n');
+  console.log(`shop live (SG): offers at SGD ${p250} / ${p1kg} on ${withOffers} pages; llms.txt and shop description updated; merchant feed ${items.length} items`);
 }
 console.log(`built ${built} pages into ${OUT}`);
