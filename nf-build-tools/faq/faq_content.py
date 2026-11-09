@@ -294,10 +294,14 @@ CATEGORIES = [
 """,
             },
             {
-                "id": "shop-problem",
-                "q": "What if a bag arrives damaged or isn't what I ordered?",
+                # 9 Nov · Alex: no returns on opened coffee; replacement for wrong (and damaged)
+                # orders, reported within 3 days of receiving them. Merchant Center links here as
+                # the return policy: https://nofilter.sg/faqs#shop-returns
+                "id": "shop-returns",
+                "q": "Can I return coffee, or what if an order arrives damaged or wrong?",
                 "a": """
-<p>Write to <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a> within 7 days with your order number and we'll put it right.</p>
+<p>Coffee is a food product, so we can't take back bags once they've been opened.</p>
+<p>If your order arrives damaged, or we've sent the wrong coffee or size, write to <a href="mailto:hello@nofilter.sg">hello@nofilter.sg</a> within 3 days of receiving it, with your order number and a photo, and we'll send a replacement or refund you.</p>
 """,
             },
         ],
