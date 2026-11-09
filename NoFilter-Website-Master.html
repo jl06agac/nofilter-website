@@ -17914,7 +17914,13 @@ function paidPanel(panelOrder){
   var order = q.get('order') || '';
   var panel = paidPanel(/^cs_(test|live)_/.test(order) ? order : '');
   if(!/^cs_(test|live)_/.test(order)) return;
-  fetch('/.netlify/functions/order-summary?order=' + encodeURIComponent(order)).then(function(r){ return r.ok ? r.json() : null; }).then(panel.fill).catch(function(){});
+  /* 193 (Alex, 9 Nov: "the thanks alexander comes first then the rest jerks into appearance"): the page
+     waits for the order details, then fades in as one; if they are slow or fail it shows anyway after 2.5 s */
+  var main = panel.el.querySelector('.nf-ty-in'), shown = false;
+  function reveal(){ if(shown) return; shown = true; main.classList.remove('nf-ty-wait'); }
+  main.classList.add('nf-ty-wait');
+  setTimeout(reveal, 2500);
+  fetch('/.netlify/functions/order-summary?order=' + encodeURIComponent(order)).then(function(r){ return r.ok ? r.json() : null; }).then(panel.fill).catch(function(){}).then(reveal);
 })();
 renderCart();
 
@@ -27284,6 +27290,9 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .nf-ty-back{background:none;border:1px solid rgba(26,24,21,.18);border-radius:999px;padding:8px 14px;font:500 13px var(--body,sans-serif);color:#1A1815;cursor:pointer}
 .nf-ty-back:hover{border-color:#1A1815}
 .nf-ty-in{max-width:540px;margin:0 auto;padding:clamp(24px,5vw,48px) 20px 48px;outline:none}
+.nf-ty-in{transition:opacity .35s ease}
+.nf-ty-in.nf-ty-wait{opacity:0}
+@media (prefers-reduced-motion:reduce){.nf-ty-in{transition:none}}
 .nf-ty-ref{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(26,24,21,.6);margin:0}
 .nf-ty-dot{width:8px;height:8px;border-radius:50%;background:#1F8A70}
 .nf-ty-h{font-family:var(--disp,sans-serif);font-weight:900;font-size:clamp(28px,4vw,36px);line-height:1;letter-spacing:-.01em;margin:10px 0 0;color:#1A1815;text-wrap:balance}
