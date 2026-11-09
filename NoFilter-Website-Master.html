@@ -2797,7 +2797,7 @@ html.rail-slim .rail-tele{height:0;opacity:0;overflow:hidden;pointer-events:none
 .cx-seg button{font-family:var(--font-b,sans-serif);font-size:11px;font-weight:600;padding:7px 10px;background:transparent;border:none;color:var(--nb,#1A1815);cursor:pointer;transition:.15s;}
 .cx-seg button.on{background:var(--nb,#1A1815);color:#fff;}
 .cx-dprice{font-family:var(--font-display,sans-serif);font-weight:900;font-size:23px;line-height:.82;text-align:right;color:var(--nb,#1A1815);flex:0 0 auto;}
-.cx-dprice small{font-family:var(--font-m,monospace);font-size:8px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:var(--gy,#6B6B6B);display:block;margin-bottom:3px;}
+.cx-dprice small{display:none;}   /* 9 Nov, Alex: the size above the price repeated the selected size pill */
 .cx-mbadge{display:flex;align-items:center;gap:6px;margin:0;flex:0 1 auto;min-width:0;}
 .cx-mseal{position:relative;width:34px;height:34px;flex:0 0 auto;}
 .cx-mseal svg{position:absolute;inset:0;width:100%;height:100%;animation:cxSpin 22s linear infinite;}
@@ -2870,7 +2870,7 @@ html.rail-slim .rail-tele{height:0;opacity:0;overflow:hidden;pointer-events:none
 .cx-db-buy{margin-top:6px;padding-top:20px;border-top:1px solid rgba(244,242,238,.2);}
 .cx-price-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
 .cx-price{font-family:var(--font-display,sans-serif);font-weight:900;font-size:clamp(30px,3.4vw,42px);line-height:.9;color:#F4F2EE;}
-.cx-price small{font-family:var(--font-m,monospace);font-size:11px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,232,195,.6);display:block;margin-bottom:6px;}
+.cx-price small{display:none;}   /* 9 Nov, as .cx-dprice small */
 .cx-db-sizes{display:inline-flex;gap:6px;}
 .cx-db-size{font-family:var(--font-m,monospace);font-size:10px;letter-spacing:.05em;text-transform:uppercase;background:none;border:1.4px solid rgba(244,242,238,.45);border-radius:8px;color:#F4F2EE;padding:9px 13px;cursor:pointer;transition:background .15s,border-color .15s;}
 .cx-db-size:hover{border-color:rgba(244,242,238,.8);}
