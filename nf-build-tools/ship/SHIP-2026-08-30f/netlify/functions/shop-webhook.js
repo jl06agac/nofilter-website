@@ -80,7 +80,7 @@ ${pw ? `<td valign="top" style="font-size:13px;line-height:1.55;color:#4A443E"><
 function deskEmail(d, sessionId, when) {
   const o = d.order || {}, sb = d.subscription;
   const lines = [`New shop order ${o.ref}${sb && sb.every ? ' (subscription, ' + EVERY[sb.every] + ')' : ''}`, `Roast: ${when ? roastAfter(when) : 'payment time not confirmed, check the order in Stripe'}`, '',
-    ...(o.items || []).map(it => `${it.qty} x ${it.name}, ${it.size}, ${String(it.grindLabel || 'Whole bean').toUpperCase()}${it.every ? ' (' + EVERY[it.every] + ')' : ''}`), '',   // 203: the grind always stated, for packing
+    ...(o.items || []).map(it => `${it.qty} x ${it.name}, ${it.size}, ${String(it.grindLabel || 'Whole beans').toUpperCase()}${it.every ? ' (' + EVERY[it.every] + ')' : ''}`), '',   // 203: the grind always stated, for packing
     `Total paid: ${money(o.total)} (delivery ${o.delivery ? money(o.delivery) : 'free'}${o.discount ? ', discount ' + money(o.discount) + (d.code ? ' ' + d.code : '') : ''})`,
     d.contribution ? `To conservation: ${money(d.contribution)} (${(d.byPartner || []).map(p => p.partner + ' ' + money(p.contribution)).join(', ')})` : null, '',
     'Deliver to:', ...(o.address || []), '', `Customer: ${o.firstName || ''} <${o.email || ''}>`, `Stripe: ${sessionId}`].filter(x => x !== null);

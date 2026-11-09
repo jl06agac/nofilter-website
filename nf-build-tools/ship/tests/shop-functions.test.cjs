@@ -96,7 +96,7 @@ test('order summary: only paid shop orders; order details for the confirmation p
  assert.equal(r.bags,3);assert.equal(r.contribution,1280);assert.deepEqual(r.byPartner.map(x=>[x.name,x.partner,x.contribution]),[['Batang Gadis','SRI',800],['Gayo Lues','OIC',480]]);
  assert.equal(r.order.ref,'NF-7K2Q9M');assert.equal(r.order.email,'a@b.c');assert.equal(r.order.firstName,'Alex');
  assert.deepEqual(r.order.address,['Alex Clark','1 Raffles Place','#20-01','Singapore 048616']);
- assert.deepEqual(r.order.items[0],{name:'Batang Gadis',size:'1 kg',qty:1,amount:8000,every:0,grind:'whole',grindLabel:'Whole bean'});
+ assert.deepEqual(r.order.items[0],{name:'Batang Gadis',size:'1 kg',qty:1,amount:8000,every:0,grind:'whole',grindLabel:'Whole beans'});
  assert.equal(r.order.total,11520);assert.equal(r.order.discount,1280);assert.deepEqual(r.order.paidWith,{brand:'visa',last4:'4242',wallet:'apple_pay'});
  const out=JSON.stringify(r);for(const x of ['+6590000000','BILLING','fp_secret','2030'])assert(!out.includes(x),'never returned: '+x);
  mockStripe(()=>({body:{payment_status:'unpaid',metadata:{source:'website-shop'}}}));
@@ -602,7 +602,7 @@ test('grind: whole bean by default, three grinds at the same price, carried to S
  const forms=[];mockStripe((u,o)=>{if(u.endsWith('/v1/checkout/sessions')&&o&&o.method==='POST'){forms.push(new URLSearchParams(o.body));return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x',client_secret:'x'}};}return {body:{data:[]}};});
  const r=await checkout.handler(ev({lines:[{name:'Batang Toru',size:'1kg',qty:1,grind:'coarse'},{name:'Gayo Lues',size:'250g',qty:1}]}));
  assert.equal(r.statusCode,200);const f=forms.at(-1);const names=[...f.entries()].filter(([k])=>k.endsWith('[product_data][name]')).map(([,v])=>v);
- assert.ok(names.some(n=>/Batang Toru.*1 ?kg.*French press/i.test(n)),names.join(' | '));assert.ok(names.some(n=>/Gayo Lues.*250 ?g.*Whole bean/i.test(n)),names.join(' | '));
+ assert.ok(names.some(n=>/Batang Toru.*1 ?kg.*French press/i.test(n)),names.join(' | '));assert.ok(names.some(n=>/Gayo Lues.*250 ?g.*Whole beans/i.test(n)),names.join(' | '));
  assert.match(f.get('metadata[grinds]'),/Batang Toru 1kg=coarse/);
  const amounts=[...f.entries()].filter(([k])=>k.endsWith('[unit_amount]')).map(([,v])=>v);
  const plain=[];mockStripe((u,o)=>{if(u.endsWith('/v1/checkout/sessions')&&o&&o.method==='POST'){plain.push(new URLSearchParams(o.body));return {body:{id:'cs_test_1',url:'https://checkout.stripe.com/x',client_secret:'x'}};}return {body:{data:[]}};});

@@ -60,7 +60,7 @@ const BAG = { '250g': 2400, '1kg': 7500 };
 const MAX_BAGS = 20;
 // 203 · grind (Alex, 9 Nov: "ground, wholebean and then a spectrum"). Compound grinds to order on roast day; same
 // price. Whole bean is the default. The label is what the customer, Stripe's page, the emails and the desk see.
-const GRINDS = { whole: 'Whole bean', espresso: 'Espresso grind', filter: 'Filter grind (V60)', coarse: 'French press grind' };
+const GRINDS = { whole: 'Whole beans', espresso: 'Ground for espresso', aeropress: 'Ground for AeroPress', filter: 'Ground for filter', coarse: 'Ground for French press' };
 const grindOf = g => (Object.prototype.hasOwnProperty.call(GRINDS, String(g || '')) ? String(g) : 'whole');
 // The grinds of an order or subscription, readable in the Stripe dashboard and parsed back by order-summary:
 // "Batang Toru 250g=espresso; Gayo Lues 1kg=whole". One grind per coffee and size (a subscription holds each

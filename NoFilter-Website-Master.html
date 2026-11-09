@@ -17247,8 +17247,8 @@ $$('.org .org-hd').forEach(function(btn){
 var SHOP_CODE = (function(){ try { return (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,24); } catch(e){ return ''; } })();
 var cart = [];   /* in-memory only — no localStorage / sessionStorage */
 /* 203 · grind (Alex, 9 Nov). Chosen per line in the basket; whole bean by default. Keys match GRINDS in checkout.js. */
-var GRIND_OPTS = [['whole','Whole bean'],['espresso','Espresso grind'],['filter','Filter grind (V60)'],['coarse','French press grind']];
-function grindLab(g){ for(var i=0;i<GRIND_OPTS.length;i++) if(GRIND_OPTS[i][0] === g) return GRIND_OPTS[i][1]; return 'Whole bean'; }
+var GRIND_OPTS = [['whole','Whole beans'],['espresso','Ground for espresso'],['aeropress','Ground for AeroPress'],['filter','Ground for filter'],['coarse','Ground for French press']];
+function grindLab(g){ for(var i=0;i<GRIND_OPTS.length;i++) if(GRIND_OPTS[i][0] === g) return GRIND_OPTS[i][1]; return 'Whole beans'; }
 function grindSelect(g, cls){ return '<select class="' + cls + '" aria-label="Grind">' + GRIND_OPTS.map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === (g || 'whole') ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>'; }
 /* 152 · subscriptions: a line with every = 1-4 is delivered every that many weeks at SUB_OFF (5%) off; 0 is one-off.
    Stripe allows one frequency per subscription, so all subscription lines in the basket share it. */
