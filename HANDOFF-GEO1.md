@@ -154,3 +154,30 @@ Repeat the three exact office queries for Singapore, Dubai, Abu Dhabi, UAE, Lond
 - 137: no em dashes in any title; brand suffix "NoFilter Coffee"; structured data and og:site_name name the brand "NoFilter Coffee" (alternate "NoFilter"). UAE pages link to bare paths (split-bundle, wire_links and build_faq no longer prefix /ae). netlify.toml: nofilter.ae/ae/* 301 to nofilter.ae/:splat and nofilter.ae/uk/* 301 to nofilter.sg/uk/:splat. Checked live.
 - 138: sameAs adds the Google Knowledge Graph entity (kgmid /g/11nvkx815c); NoFilter Pte. Ltd carries hasMap and sameAs for the Singapore Business Profile (Maps CID 3848062334334392515); founder Alex Clark links to linkedin.com/in/alexclark-nofilter. Checked live.
 - Pending: PageSpeed test (Google's PSI quota was exhausted on 28 Oct); request reindexing of the main changed pages; UAE Business Profile video verification (add hello@nofilter.ae as owner of the UAE profile first); landing pages; Arakan page redirect line; GIS map onto nofilter.sg.
+
+## Audit 9 Nov 2026 (Claude): status of the 28 Oct items, and commit 186
+
+Live production is still SHIP-2026-10-28a. Checked in a browser on nofilter.sg and nofilter.ae, separately from the shop draft.
+
+| Item (28 Oct) | Status 9 Nov |
+|---|---|
+| Function source and netlify.toml publicly served | Fixed: both 404 on both domains |
+| nofilter.ae /ae/* paths | Fixed: 301 to the bare path |
+| Em dashes in titles | Fixed in titles; remained in JSON-LD product descriptions and origin page names: fixed in 186 |
+| Route-specific HTML, one h1 per page | Fixed: 30 pages, 200, one h1, self canonical, en-sg/en-ae/en-gb/x-default |
+| robots.txt, llms.txt, sitemap.xml | Live matches source (bar the build stamp); all AI crawlers allowed; 30 URLs in the sitemap |
+| Founding dates (2024-05 brand, 2018 SG entity) | Fixed in JSON-LD and llms.txt |
+| Reindexing requests | Open: 6 UK pages "Discovered, currently not indexed" (uk/origins x4, uk/shop, uk/trade-pricing), validation started 7 Sep |
+| PageSpeed test | Open: every page is 680 to 740 KB of HTML (inline base64 fonts); not measured |
+| Product snippets missing offers | Open by design until the shop launches; add SG offers at launch, never before |
+| UAE Business Profile verification | Open (Alex) |
+
+New on 9 Nov:
+- www.nofilter.ae served every page with 200 (www.nofilter.sg redirects). Search Console lists www.nofilter.ae copies as alternates. 186 adds a 301; verify on production after deploy (cannot be tested on a draft).
+- Search Console 404 for /KG</span><span>: Google read a quote-receipt string as a link. 186 writes it as &#47;KG.
+- llms.txt had " ; " artefacts from an old em-dash strip; FAQ question count would go stale with the shop section. Fixed in 186.
+- Rainforest Alliance citation in the FAQ no longer resolves; moved to the standard's current page. Fairtrade link checked and fine.
+
+Search Console, 28 days to 6 Nov (nofilter.sg): 38 clicks, 10.5K impressions, position 12.2. "arakan mountains" is 9,657 of the impressions with 0 clicks. Brand: "no filter coffee" position 6.8, "nofilter" 11.9, "nofilter coffee" 3.8. Commercial: "office coffee supplier" 67.5, "office coffee service" 51.9, "coffee machines hire" 38.7. nofilter.sg: 22 indexed, 22 not (10 redirects of old Wix paths, 6 trailing-slash alternates, 6 UK pages discovered not indexed). nofilter.ae: 10 indexed.
+
+Not code problems, so not changed in 186: brand queries not ranking first and commercial queries off page 1 come from authority and references (Business Profiles, directories, links), not markup. Google and OpenAI both say no markup or llms.txt guarantees inclusion in AI answers.
