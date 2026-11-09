@@ -17770,7 +17770,7 @@ function paidPanel(panelOrder){
     '<main class="nf-ty-in" tabindex="-1">' +
       '<p class="nf-ty-ref"><span class="nf-ty-dot" aria-hidden="true"></span><span class="nf-ty-refv">Order confirmed</span></p>' +
       '<h2 class="nf-ty-h">Thanks<span class="nf-ty-name"></span>.</h2>' +
-      '<p class="nf-ty-lead">Roasted <b>' + nextRoast() + '</b>, dispatched shortly after. <span class="nf-ty-mail">Your receipt is on its way by email.</span></p>' +
+      '<p class="nf-ty-lead">Roasted <b class="nf-ty-roast">' + nextRoast() + '</b>, dispatched shortly after. <span class="nf-ty-mail">Your receipt is on its way by email.</span></p>' +
       '<section class="nf-ty-card nf-ty-order" hidden><div class="nf-ty-items"></div><div class="nf-ty-sums"></div><p class="nf-ty-again" hidden></p><p class="nf-ty-gl" hidden></p></section>' +
       '<div class="nf-ty-acts2"><button type="button" class="nf-ty-b pri nf-ty-mng" hidden aria-expanded="false">Manage subscription</button><button type="button" class="nf-ty-b nf-ty-shop" data-close>Back to the coffee</button></div>' +
       '<section class="nf-ty-card nf-ty-sub" hidden><h3>Your subscription</h3><p class="nf-ty-sub-p"></p><div class="nf-ty-subx"></div></section>' +
@@ -17843,6 +17843,9 @@ function paidPanel(panelOrder){
     var cur = String(d.currency || 'sgd').toUpperCase(), o = d.order || {}, m = function(c){ return cur + ' ' + money(c / 100); };
     if(o.ref){ el.querySelector('.nf-ty-refv').textContent = 'Order ' + o.ref + ' · confirmed'; el.querySelector('.nf-ty-help-ref').textContent = ', quoting ' + o.ref; }
     if(o.firstName) el.querySelector('.nf-ty-name').textContent = ', ' + o.firstName;
+    /* 182 (Codex): the roast date follows when the order was paid, the same paidAt the order email uses,
+       not when this page happens to be opened */
+    if(o.paidAt) el.querySelector('.nf-ty-roast').textContent = roastOnOrAfter(o.paidAt);
     if(o.email) el.querySelector('.nf-ty-mail').innerHTML = 'Your receipt is on its way to <b>' + esc(o.email) + '</b>.';
     if(o.items && o.items.length){
       el.querySelector('.nf-ty-items').innerHTML = o.items.map(function(it){

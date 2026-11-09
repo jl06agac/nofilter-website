@@ -186,7 +186,11 @@ exports.handler = async function (event) {
       items, subtotal: s.amount_subtotal || 0, discount: (s.total_details || {}).amount_discount || 0,
       delivery: shipOf(s) + delLines.reduce((n, l) => n + (l.amount_total || 0), 0), total: s.amount_total || 0,
       paidWith: card ? { brand: card.brand || '', last4: card.last4 || '', wallet: wallet || null } : ptype ? { brand: ptype } : null,
-      placed: s.created || null };
+      placed: s.created || null,
+      // 182 (Codex): the moment the order counts for the Monday 12:00 cut-off, shared by the confirmation page
+      // and the order email so both name the same roast. The charge time for one-off orders; for subscriptions
+      // the subscription's creation, which Stripe does at payment; the session's creation only as a fallback.
+      paidAt: (ch && ch.created) || (sub && sub.created) || s.created || null };
 
     let subscription = null;
     if (sub) {
