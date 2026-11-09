@@ -11148,7 +11148,7 @@ addEventListener('error', function(e){
     <div class="fbh-strip-in">
       <span class="fs-n">01</span>
       <span class="fs-i"><i>Species</i>Tapanuli orangutan</span>
-      <span class="fs-i"><i>Partner</i>PRCF Indonesia &middot; SRI</span>
+      <span class="fs-i"><i>Partner</i>PRCF Indonesia &middot; OIC</span>
       <span class="fs-i fs-hide-s"><i>On file</i>1&deg;38&prime;18&Prime;N &middot; 99&deg;15&prime;56&Prime;E</span>
       <span class="fs-i fs-hide-m"><i>Tasting</i>Dark chocolate &middot; Red plum &middot; Cedar</span>
       <button class="fbh-more" type="button" aria-expanded="false" aria-controls="fbhd-toru">
@@ -11399,7 +11399,9 @@ addEventListener('error', function(e){
       <div class="exh-tail">
         <div class="exh-e fade d2x">
           <span class="six">Entry 01</span><span class="exh-tag">[ BEFORE MARGIN ]</span>
-          <div class="sv"><span data-count="5" data-dec="0">0</span>&ndash;<em><span data-count="10" data-dec="0">0</span>%</em></div>
+          <!-- 9 Nov: the real figures sit in the HTML so crawlers and assistants read 5-10%, 4 and 100%, not
+            "0-0%" and "0% of top-ups passed on". countUp still animates from zero when the entry is revealed. -->
+          <div class="sv"><span data-count="5" data-dec="0">5</span>&ndash;<em><span data-count="10" data-dec="0">10</span>%</em></div>
           <div class="sl">of every sale, ring-fenced</div>
           <!-- 28 Aug: "the conservation share" rather than "the share" -- by this point in the
             page the reader has met several shares, and this is the one that matters. -->
@@ -11407,7 +11409,7 @@ addEventListener('error', function(e){
         </div>
         <div class="exh-e fade d2x">
           <span class="six">Entry 02</span><span class="exh-tag">[ ON RECORD ]</span>
-          <div class="sv"><span data-count="4" data-dec="0">0</span></div>
+          <div class="sv"><span data-count="4" data-dec="0">4</span></div>
           <div class="sl">NGO-led origins</div>
           <!-- 28 Aug: "agroforestry plot" is what these actually are, and it is the word the
             partners use. "Four coffees" goes: the count that matters here is forests and
@@ -11417,7 +11419,7 @@ addEventListener('error', function(e){
         </div>
         <div class="exh-e fade d2x">
           <span class="six">Entry 03</span><span class="exh-tag">[ PER INVOICE ]</span>
-          <div class="sv"><span data-count="100" data-dec="0">0</span><em>%</em></div>
+          <div class="sv"><span data-count="100" data-dec="0">100</span><em>%</em></div>
           <div class="sl">of top-ups passed on</div>
           <!-- 28 Aug: "the NGO field teams" rather than "the NGO" -- it names where the money
             lands rather than which organisation receives it, which is the more specific
