@@ -17572,20 +17572,7 @@ function renderCart(){
     $$('.cp-f button', pl).forEach(function(b){ b.addEventListener('click', function(){ setBasketEvery(parseInt(b.getAttribute('data-f'), 10)); renderCart(); }); });
     var ft = $('.cart-ft'); ft.insertBefore(pl, ft.firstChild);
   }
-  /* 142 · the empty space under the lines plays the landscape most of the basket comes from */
-  if(cart.length){
-    var tally = {}, lead = null; cart.forEach(function(l){ tally[l.name] = (tally[l.name] || 0) + lineTotal(l); });
-    Object.keys(tally).forEach(function(n){ if(!lead || tally[n] > tally[lead]) lead = n; });
-    var lo = ORIGINS.filter(function(x){ return x.name === lead; })[0];
-    if(lo && typeof PAY_FILMS !== 'undefined'){
-      if(!renderCart.film){ renderCart.film = document.createElement('figure'); renderCart.film.className = 'cart-film';
-        renderCart.film.innerHTML = '<video autoplay muted loop playsinline preload="metadata"></video><figcaption></figcaption>'; }
-      var v = renderCart.film.querySelector('video');
-      if(v.getAttribute('src') !== PAY_FILMS[lo.k]){ v.setAttribute('src', PAY_FILMS[lo.k]); try { var pp = v.play(); if(pp && pp.catch) pp.catch(function(){}); } catch(e){} }
-      renderCart.film.querySelector('figcaption').innerHTML = '<span>Where it grows</span>' + lo.name + ' · with ' + lo.ngo;
-      body.insertBefore(renderCart.film, body.firstChild);
-    }
-  }
+  /* 175 · the basket's landscape film removed (Alex, 9 Nov): the checkout panel opens with it instead */
   /* 155 · delivery: SGD 4 under SGD 50, free from SGD 50 (for a subscription, each delivery's coffee) */
   var dl = $('#cartDel');
   if(!dl){ dl = document.createElement('div'); dl.id = 'cartDel'; dl.className = 'cart-del'; var ro = $('.cart-ft .readout'); if(ro) ro.parentNode.insertBefore(dl, ro.nextSibling); }
@@ -17637,8 +17624,6 @@ $('#checkoutBtn').addEventListener('click', function(){
    summary with delivery. "Continue to secure payment" creates the order (checkout.js, with the choice on it)
    and goes to Stripe's hosted checkout, in NoFilter's branding; Stripe returns to the confirmation page.
    Hosted rather than embedded since 156 (Alex: Stripe's own page "looks better"). */
-var PAY_FILMS = { toru:'../../_CDN-UPLOAD-SAFE/batang-toru-banner-lite.mp4', gadis:'../../_CDN-UPLOAD-SAFE/batang-gadis-banner-lite.mp4',
-  gayo:'../../_CDN-UPLOAD-SAFE/gayo-lues-banner-lite.mp4', arakan:'../../_CDN-UPLOAD-SAFE/batang-arakan-banner-lite.mp4' };
 var PAY_CHOICES = [
   { id:'protect-forests', title:'Protect wild forests', img:'/assets/shop/protect-forests.webp' },
   { id:'orangutans-in-danger', title:'Help orangutans in danger', img:'/assets/shop/orangutans-in-danger.webp' },
@@ -17671,13 +17656,10 @@ function openPay(){
   var el = document.createElement('div'); el.className = 'nf-pay'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Checkout');
   el.innerHTML = '<div class="nf-pay-in">' +
     '<div class="nf-pay-hd"><span>NOFILTER · CHECKOUT</span><button type="button" class="nf-pay-x" aria-label="Close checkout">CLOSE ✕</button></div>' +
-    '<div class="nf-pay-story">' +
-      '<video class="nf-pay-film" src="' + PAY_FILMS[o.k] + '" autoplay muted loop playsinline preload="metadata"></video>' +
-      '<div class="nf-pay-cap"><span class="nf-pay-k">' + o.name + ' · ' + o.ngo + '</span></div>' +
-      '<div class="nf-pay-ask"><span class="nf-pay-step">Where it goes</span><h3></h3><p class="nf-pay-p"></p><div class="nf-pay-by"></div></div>' +
-    '</div>' +
+    /* 175 · one column (Alex, 9 Nov): the film is gone; the conservation share sits with the order */
     '<div class="nf-pay-form"><span class="nf-pay-step">Your order</span>' +
       '<div class="nf-sum">' + paySummary(F) + '</div>' +
+      '<div class="nf-pay-ask"><h3></h3><p class="nf-pay-p"></p><div class="nf-pay-by"></div></div>' +
       '<button type="button" class="nf-go">Continue to secure payment →</button>' +
       '<p class="nf-go-n"></p>' +
       '<p class="nf-go-err" hidden></p>' +
@@ -27325,8 +27307,6 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 .cart-plan .cp-f [aria-checked="true"]{background:#1A1815;border-color:#1A1815;color:#F4F2EE}
 .cart-plan small{display:block;margin-top:9px;font-size:12px;color:rgba(26,24,21,.6)}
 @media(max-height:820px){
-  .cart .cart-film video{aspect-ratio:16/5}
-  .cart .cart-film figcaption{padding-top:22px}
   .cart-plan{padding:10px 12px}
   .cart-plan .cp-h{margin-bottom:8px}
   .cart-plan small{display:none}
@@ -27345,10 +27325,6 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 /* 142 · bag photos on the lines; the landscape film in the space beneath */
 .cart .ci{grid-template-columns:48px 1fr auto auto}
 .cart .ci .cimg{width:48px;height:48px;object-fit:cover;border-radius:8px;background:rgba(26,24,21,.06)}
-.cart-film{margin:12px 0 4px;position:relative;border-radius:12px;overflow:hidden;background:#111}
-.cart-film video{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
-.cart-film figcaption{position:absolute;left:0;right:0;bottom:0;padding:44px 14px 12px;background:linear-gradient(rgba(8,9,10,0),rgba(8,9,10,.6) 35%,rgba(8,9,10,.92));font-family:var(--body,sans-serif);font-size:13px;color:#F4F2EE}
-.cart-film figcaption span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,242,238,.65);margin-bottom:3px}
 /* 142 · the preview checkout (draft links only) */
 .nf-sum{display:grid;gap:2px;margin:4px 0 0}
 .nf-sum-l{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(26,24,21,.08)}
@@ -27394,23 +27370,19 @@ html[data-shop="soon"] #shop .cx-dc-add svg{opacity:0}
 /* 141 · the checkout panel */
 .nf-paying body{overflow:hidden}
 .nf-pay{position:fixed;inset:0;z-index:4100;background:rgba(26,24,21,.55);backdrop-filter:blur(6px);overflow:auto;padding:clamp(0px,3vw,40px);display:grid;place-items:start center}
-.nf-pay-in{width:min(1000px,100%);margin:auto 0;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);align-content:start;background:#F4F2EE;border:1px solid rgba(26,24,21,.1);border-radius:18px;overflow:hidden;box-shadow:0 40px 100px -40px rgba(0,0,0,.9)}
-.nf-pay-story{position:relative;display:flex;flex-direction:column;border-right:1px solid rgba(26,24,21,.1)}
-.nf-pay-film{width:calc(100% - 2*clamp(18px,3vw,32px));margin:22px auto 0;border-radius:12px;aspect-ratio:16/9;object-fit:cover;display:block;background:#111}
-.nf-pay-cap{padding:12px clamp(18px,3vw,32px) 0}
+.nf-pay-in{width:min(560px,100%);margin:auto 0;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;background:#F4F2EE;border:1px solid rgba(26,24,21,.1);border-radius:18px;overflow:hidden;box-shadow:0 40px 100px -40px rgba(0,0,0,.9)}
 .nf-pay-step{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--signal,#EE4D17);margin:0 0 10px}
-.nf-pay-k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(26,24,21,.6)}
-.nf-pay-ask{padding:22px clamp(18px,3vw,32px) 30px}
-.nf-pay-ask h3{font-family:var(--disp,sans-serif);font-weight:900;text-transform:uppercase;font-size:clamp(24px,2.6vw,34px);line-height:.98;color:#1A1815;margin:0}
-.nf-pay-by{display:grid;gap:8px;padding-top:14px;border-top:1px solid rgba(26,24,21,.1)}
-.nf-pay-by div{display:flex;justify-content:space-between;gap:12px;font-family:var(--body,sans-serif);font-size:14px;color:#1A1815}
+.nf-pay-ask{margin:16px 0 18px;padding:14px 16px;background:#FBFAF8;border:1px solid rgba(26,24,21,.1);border-radius:12px}
+.nf-pay-ask h3{font-family:var(--disp,sans-serif);font-weight:900;text-transform:uppercase;font-size:20px;line-height:1;color:#C2410C;margin:0}
+.nf-pay-by{display:grid;gap:6px;padding-top:10px;border-top:1px solid rgba(26,24,21,.1)}
+.nf-pay-by div{display:flex;justify-content:space-between;gap:12px;font-family:var(--body,sans-serif);font-size:13.5px;color:#1A1815}
 .nf-pay-by small{font-size:inherit;color:rgba(26,24,21,.6)}
 .nf-pay-by div>span:last-child{white-space:nowrap;font-weight:600}
-.nf-pay-ask p{font-family:var(--body,sans-serif);font-size:13.5px;line-height:1.55;color:rgba(26,24,21,.7);margin:10px 0 16px}
+.nf-pay-ask p{font-family:var(--body,sans-serif);font-size:13px;line-height:1.5;color:rgba(26,24,21,.7);margin:6px 0 10px}
 .nf-pay-form{display:flex;flex-direction:column;min-width:0;padding:22px clamp(18px,3vw,32px) 30px}
 .nf-pay-hd{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:16px clamp(18px,3vw,32px);border-bottom:1px solid rgba(26,24,21,.1);font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(26,24,21,.6)}
 .nf-pay-x{background:none;border:0;color:rgba(26,24,21,.75);font:inherit;letter-spacing:.16em;cursor:pointer;padding:6px}
-@media(max-width:860px){.nf-pay{padding:0}.nf-pay-in{grid-template-columns:1fr;border:0;border-radius:0;min-height:100%}.nf-pay-story{border-right:0;border-bottom:1px solid rgba(26,24,21,.1)}.nf-pay-film{aspect-ratio:2/1}}
+@media(max-width:860px){.nf-pay{padding:0}.nf-pay-in{grid-template-columns:1fr;border:0;border-radius:0;min-height:100%}}
 .nf-soon-scrim{position:absolute;inset:0;background:rgba(8,9,10,.72);
   backdrop-filter:blur(3px);opacity:0;transition:opacity .28s ease}
 .nf-soon[data-in] .nf-soon-scrim{opacity:1}
