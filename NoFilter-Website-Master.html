@@ -538,6 +538,10 @@ p{margin:0 0 1em}
 /* line-masked reveal */
 .rl{display:block;overflow:hidden}
 .shop-roll{white-space:nowrap}
+/* 176d · Alex: the pinned bar doesn't need the animation. Pinned, the headline is still text and the roll pauses. */
+.shop-roll-still{display:none;white-space:nowrap}
+#shop .shop-lead.is-stuck .shop-roll{display:none}
+#shop .shop-lead.is-stuck .shop-roll-still{display:inline}
 }
 /* one-line headline variant — the reveal still runs per .rl, they just sit side by side */
 .d2-inline{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .34em}
@@ -11602,7 +11606,7 @@ addEventListener('error', function(e){
         <div class="shop-lead-a">
           <!-- 176 · was "Buy the boundary." (Alex, 9 Nov). The two lines roll into each other with the
                site's letter roller, as "in your café" does (caller 4 of window.__nfRoller). -->
-          <h2 class="d2" aria-label="Buy the coffee. Hold the line."><span class="rl"><span><span class="shop-roll" id="shopRoll"><span class="mani-slot" id="shopRollSlot" aria-hidden="true"><span class="mani-slotc" id="shopRollSlotc"></span></span></span></span></span></h2>
+          <h2 class="d2" aria-label="Buy the coffee. Hold the line."><span class="rl"><span><span class="shop-roll" id="shopRoll"><span class="mani-slot" id="shopRollSlot" aria-hidden="true"><span class="mani-slotc" id="shopRollSlotc"></span></span></span><span class="shop-roll-still" aria-hidden="true">Buy the coffee.</span></span></span></h2>
           <!-- shown only while SHOP_LIVE is false — see the pre-launch block
                at the foot of this file -->
           <div class="shop-soon"><span class="shop-soon-c">[ Retail shop &middot; pending launch ]</span>
@@ -23294,7 +23298,7 @@ window.__nfRoller = function(link, slot, slotc, WORDS, opts){
     while(true){
       await wait(HOLD);
       if(stale()) return;                              /* the host re-rendered under us */
-      if(paused||document.hidden){ continue; }         /* never move under the cursor */
+      if(paused||document.hidden||(opts.pauseWhen&&opts.pauseWhen())){ continue; }   /* never move under the cursor; opts.pauseWhen (176d) */
       idx=(idx+1)%WORDS.length;
       syncMeas();
       var w=WORDS[idx];
@@ -23363,7 +23367,8 @@ window.__nfRoller(
   document.getElementById('shopRollSlot'),
   document.getElementById('shopRollSlotc'),
   ['Buy the coffee.','Hold the line.'],
-  { hold: 3000, refit: document.querySelector('#shop .shop-lead') }   /* re-measure when it pins and shrinks (176c) */
+  { hold: 3000, refit: document.querySelector('#shop .shop-lead'),   /* re-measure when it un-pins (176c) */
+    pauseWhen: function(){ var l = document.querySelector('#shop .shop-lead'); return !!(l && l.classList.contains('is-stuck')); } }   /* still text while pinned (176d) */
 );
 </script>
 <script>
